@@ -49,6 +49,11 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
         setAlbumData(null);
     };
 
+    const images = songs.reduce((acc, song) => {
+        acc[song.id] = useLoadImage(song) ?? undefined;
+        return acc;
+    }, {} as { [key: string]: string | undefined });
+
     return (
         <div className="w-full px-2">
             <table className="w-full text-left table-auto border-collapse">
@@ -65,7 +70,7 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
                 </thead>
                 <tbody className="bg-neutral-900 text-neutral-200">
                     {songs.map((song, index) => {
-                        const imageUrl = useLoadImage(song);
+                        const imageUrl = images[song.id];
 
                         return (
                             <tr key={song.id} className="border-b border-neutral-800 hover:bg-neutral-800 transition-all duration-200">
