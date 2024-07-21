@@ -61,14 +61,24 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
       if (user) {
         const { data, error } = await supabaseClient
           .from("users")
-          .select("avatar_url, first_name, last_name, gender, dateOfBirth")
+          .select("id, avatar_url, first_name, last_name, gender, dateOfBirth")
           .eq("id", user.id)
           .single();
 
         if (error) {
           toast.error(error.message);
         } else {
-          setUserDetails(data);
+          // Ensure data matches UserDetails
+          const userDetails: UserDetails = {
+            id: data?.id || "",
+            first_name: data?.first_name,
+            last_name: data?.last_name,
+            avatar_url: data?.avatar_url,
+            gender: data?.gender,
+            dateOfBirth: data?.dateOfBirth,
+          };
+
+          setUserDetails(userDetails);
         }
       }
     };
