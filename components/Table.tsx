@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Song } from '@/types';
 import useLoadImage from '@/hooks/useLoadImage';
 import LikeButton from '@/components/LikeButton';
@@ -49,10 +49,12 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
         setAlbumData(null);
     };
 
-    const images = songs.reduce((acc, song) => {
-        acc[song.id] = useLoadImage(song) ?? undefined;
-        return acc;
-    }, {} as { [key: string]: string | undefined });
+    const images = useMemo(() => {
+        return songs.reduce((acc, song) => {
+            acc[song.id] = useLoadImage(song) ?? undefined;
+            return acc;
+        }, {} as { [key: string]: string | undefined });
+    }, [songs]);
 
     return (
         <div className="w-full px-2">
