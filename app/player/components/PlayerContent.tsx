@@ -157,7 +157,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
     if (audioElement && isPlaying) {
       audioElement.play();
     }
-  }, [songUrl]);
+  }, [songUrl, isPlaying]);
 
   return (
     <div className="mx-1 flex flex-row gap-x-1">

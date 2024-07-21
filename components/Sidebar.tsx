@@ -1,17 +1,14 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import { HiHome } from "react-icons/hi";
 import { BiSearch } from "react-icons/bi";
-import { TbPlaylist } from "react-icons/tb";
 import Box from "./Box";
 import SidebarItem from "./SidebarItem";
-import { Song, Playlists } from "@/types";
+import { Song } from "@/types";
 import usePlayer from "@/hooks/usePlayer";
 import { twMerge } from "tailwind-merge";
-import PlaylistFormModal from "./PlaylistFormModal";
-import { supabase } from "@/actions/supabaseClient";
 
 interface SidebarProps {
   children: React.ReactNode;
@@ -21,25 +18,6 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ children, songs = [] }) => {
   const pathname = usePathname();
   const player = usePlayer();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [playlists, setPlaylists] = useState<Playlists[]>([]);
-
-  useEffect(() => {
-    const fetchPlaylists = async () => {
-      const { data, error } = await supabase
-        .from('playlists')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching playlists:', error);
-      } else {
-        setPlaylists(data || []);
-      }
-    };
-
-    fetchPlaylists();
-  }, []);
 
   const routes = useMemo(
     () => [
@@ -90,30 +68,11 @@ const Sidebar: React.FC<SidebarProps> = ({ children, songs = [] }) => {
             ))}
           </div>
         </Box>
-        <Box className="overflow-y-auto h-full">
-          <div className="flex justify-between items-center px-5 py-4">
-            <h2 className="text-white text-lg font-semibold">Your Playlists</h2>
-            <TbPlaylist
-              className="text-white cursor-pointer"
-              size={26}
-              onClick={() => setIsModalOpen(true)}
-            />
-          </div>
-          {playlists.length > 0 ? (
-            playlists.map((playlist) => (
-              <div key={playlist.id} className="text-neutral-400 px-5 py-2">
-                {playlist.name}
-              </div>
-            ))
-          ) : (
-            <div className="text-neutral-400 px-5 py-2">
-              No playlists yet, click on the button above to create one.
-            </div>
-          )}
+        <Box className="overflow-y-auto items-center px-4 py-2 h-full">
+          Playlist functionality in a future update. Stay tuned.
         </Box>
       </div>
       <main className="h-full w-full flex overflow-y-auto">{children}</main>
-      <PlaylistFormModal isOpen={isModalOpen} onChange={setIsModalOpen} songs={songs} playlists={[]} />
     </div>
   );
 };

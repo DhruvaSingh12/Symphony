@@ -8,7 +8,7 @@ import LikedContent from "./components/LikedContent";
 export const revalidate = 0;
 
 const Liked = async () => {
-  let songs = [];
+  let songs: string | any[] = [];
   try {
     songs = await getLikedSongs();
   } catch (error) {

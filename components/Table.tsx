@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { Song } from '@/types';
-import useLoadImage from '@/hooks/useLoadImage';
 import LikeButton from '@/components/LikeButton';
-import Image from 'next/image';
-import { BsFillPlayFill } from 'react-icons/bs';
+import MediaItem from '@/components/MediaItem';  // Import the MediaItem component
 import ArtistModal from './ArtistModal';
 import AlbumModal from './AlbumModal';
 
@@ -64,69 +62,44 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
                     </tr>
                 </thead>
                 <tbody className="bg-neutral-900 text-neutral-200">
-                    {songs.map((song, index) => {
-                        const imageUrl = useLoadImage(song);
-
-                        return (
-                            <tr key={song.id} className="border-b border-neutral-800 hover:bg-neutral-800 transition-all duration-200">
-                                <td className="hidden sm:table-cell py-3 pl-4 pr-3">{index + 1}</td>
-                                <td className="py-3 px-1">
-                                    <div className="relative w-[48px] h-[48px]">
-                                        <Image
-                                            fill
-                                            src={imageUrl || '/images/liked.png'}
-                                            alt={`${song.title} cover`}
-                                            className="object-cover rounded-md"
-                                        />
-                                        <button
-                                            onClick={() => onPlay(song.id)}
-                                            className="
-                                                absolute
-                                                inset-0
-                                                flex
-                                                items-center
-                                                justify-center
-                                                bg-black bg-opacity-50
-                                                text-white
-                                                opacity-0
-                                                hover:opacity-100
-                                                transition
-                                                rounded-md
-                                            "
-                                            aria-label={`Play ${song.title}`}
-                                        >
-                                            <BsFillPlayFill size={30} />
-                                        </button>
-                                    </div>
-                                </td>
-                                <td className="py-3 px-2">{song.title}</td>
-                                <td className="py-3 px-2">
-                                    {song.artist.map((artist, i) => (
-                                        <span
-                                            key={artist}
-                                            className="text-white cursor-pointer hover:text-purple-500"
-                                            onClick={() => handleArtistClick(artist)}
-                                        >
-                                            {i > 0 && ', '}
-                                            {artist}
-                                        </span>
-                                    ))}
-                                </td>
-                                <td className="hidden md:table-cell py-3 px-2">
+                    {songs.map((song, index) => (
+                        <tr key={song.id} className="border-b border-neutral-800 hover:bg-neutral-800 transition-all duration-200">
+                            <td className="hidden sm:table-cell py-3 pl-4 pr-3">{index + 1}</td>
+                            <td className="py-3 mb-2 px-1 flex justify-center items-center">
+                                <div className="relative w-[48px] h-[48px]">
+                                    <MediaItem
+                                        data={song}
+                                        onClick={onPlay}
+                                    />
+                                </div>
+                            </td>
+                            <td className="py-3 px-2">{song.title}</td>
+                            <td className="py-3 px-2">
+                                {song.artist.map((artist, i) => (
                                     <span
+                                        key={artist}
                                         className="text-white cursor-pointer hover:text-purple-500"
-                                        onClick={() => handleAlbumClick(song.album)}
+                                        onClick={() => handleArtistClick(artist)}
                                     >
-                                        {song.album}
+                                        {i > 0 && ', '}
+                                        {artist}
                                     </span>
-                                </td>
-                                <td className="hidden xl:table-cell py-3 px-2">{formatDate(song.created_at)}</td>
-                                <td className="py-3 px-2">
-                                    <LikeButton songId={song.id} />
-                                </td>
-                            </tr>
-                        );
-                    })}
+                                ))}
+                            </td>
+                            <td className="hidden md:table-cell py-3 px-2">
+                                <span
+                                    className="text-white cursor-pointer hover:text-purple-500"
+                                    onClick={() => handleAlbumClick(song.album)}
+                                >
+                                    {song.album}
+                                </span>
+                            </td>
+                            <td className="hidden xl:table-cell py-3 px-2">{formatDate(song.created_at)}</td>
+                            <td className="py-3 px-2">
+                                <LikeButton songId={song.id} />
+                            </td>
+                        </tr>
+                    ))}
                 </tbody>
             </table>
             {selectedArtist && artistData && (

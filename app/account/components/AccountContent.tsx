@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/hooks/useUser";
 import { FaUser, FaBirthdayCake, FaTransgender } from "react-icons/fa";
 import DetailsForm from "./DetailsForm";
+import Image from 'next/image';
 
 const AccountsContent = () => {
   const supabaseClient = useSupabaseClient();
@@ -111,11 +112,15 @@ const AccountsContent = () => {
       ) : (
         <div className="flex items-center space-x-4">
           {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt="Avatar"
-              className="h-32 w-32 rounded-full"
-            />
+            <div className="relative h-32 w-32">
+              <Image
+                src={avatarUrl}
+                alt="Avatar"
+                className="rounded-full"
+                layout="fill"
+                objectFit="cover"
+              />
+            </div>
           ) : (
             <div className="h-32 w-32 bg-gray-200 rounded-full flex items-center justify-center">
               <span className="text-gray-400">No image</span>
