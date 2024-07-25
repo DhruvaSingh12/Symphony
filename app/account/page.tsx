@@ -17,7 +17,7 @@ const AccountsPage = () => {
                     fill
                     alt="Account"
                     className="object-cover rounded-full"
-                    src="/images/account.png"
+                    src="/images/accounts.avif"
                   />
                 </div>
                 <div className="flex flex-col gap-y-2 mt-0 md:mt-0">
