@@ -12,6 +12,8 @@ interface ArtistModalProps {
 }
 
 const ArtistModal: React.FC<ArtistModalProps> = ({ artist, artistData, onClose }) => {
+  const songCount = artistData.songs.length;
+
   return (
     <div className="fixed inset-0 mx-1 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-neutral-900 p-6 rounded-lg shadow-lg max-w-2xl w-full max-h-[70vh] overflow-y-auto relative">
@@ -26,7 +28,9 @@ const ArtistModal: React.FC<ArtistModalProps> = ({ artist, artistData, onClose }
           <h2 className="text-2xl font-bold text-white">
             {artist}
           </h2>
-          <h4 className='text-neutral-500'>{artistData.songs.length} song(s)</h4>
+          <h4 className='text-neutral-500'>
+            {songCount} {songCount === 1 ? 'song' : 'songs'}
+          </h4>
         </div>
         {Array.from(artistData.albums).map((album) => (
           <div key={album} className="mt-4">
