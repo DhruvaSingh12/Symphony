@@ -1,3 +1,4 @@
+
 import React from 'react';
 import ArtistContent from './components/ArtistContent';
 import Header from '@/components/Header';
@@ -52,8 +53,7 @@ const ArtistsPage = () => {
                     </div>
                 </Box>
             </div>
-        </div>
-    );
+        </div>    );
 };
 
 export default ArtistsPage;
