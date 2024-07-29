@@ -32,6 +32,7 @@ const ArtistsPage = () => {
                                 <div className="relative h-20 w-20 md:h-24 md:w-24 lg:h-28 lg:w-28 rounded-lg">
                                     <Image
                                         fill
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                         alt="Artists"
                                         className="object-cover rounded-lg"
                                         src="/images/artists.webp"
