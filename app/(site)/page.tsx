@@ -74,7 +74,7 @@ export default async function Home() {
         </Header>
       </Box>
       <Box className={`bg-gradient-to-b ${fromColor} ${toColor}`}>  
-        <div className="mt-2 px-6 h-full">
+        <div className="mt-2 pb-10 px-6 h-full">
           <Sort songs={songs} ContentComponent={PageContent} />
         </div>
       </Box>
