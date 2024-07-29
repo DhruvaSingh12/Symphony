@@ -95,7 +95,6 @@ const AccountsContent = () => {
 
   return (
     <div className="bg-neutral-900 p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6">User Details</h2>
       {isNewUser ? (
         <DetailsForm
           firstName={firstName}

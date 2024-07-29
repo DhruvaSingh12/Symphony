@@ -29,7 +29,6 @@ export interface Playlists {
     created_at: string;
     updated_at: string;
     playlist_id: string;
-    coverimage_path: string;
 }
 
 export interface PlaylistSongs {
