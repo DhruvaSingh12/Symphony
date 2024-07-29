@@ -1,4 +1,3 @@
-
 import React from 'react';
 import ArtistContent from './components/ArtistContent';
 import Header from '@/components/Header';
