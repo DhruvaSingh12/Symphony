@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Song } from '@/types';
 import LikeButton from '@/components/LikeButton';
-import MediaItem from '@/components/MediaItem';  // Import the MediaItem component
+import MediaItem from '@/components/MediaItem'; 
 import ArtistModal from './ArtistModal';
 import AlbumModal from './AlbumModal';
 
@@ -23,6 +23,25 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
     const [artistData, setArtistData] = useState<{ songs: Song[]; albums: Set<string> } | null>(null);
     const [selectedAlbum, setSelectedAlbum] = useState<string | null>(null);
     const [albumData, setAlbumData] = useState<{ songs: Song[] } | null>(null);
+    const [dropdownVisible, setDropdownVisible] = useState<Record<string, boolean>>({});
+
+    const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as Node;
+            for (const key in dropdownRefs.current) {
+                if (dropdownRefs.current[key] && !dropdownRefs.current[key]?.contains(target)) {
+                    setDropdownVisible(prev => ({ ...prev, [key]: false }));
+                }
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     const handleArtistClick = (artist: string) => {
         const filteredSongs = songs.filter(song => song.artist.includes(artist));
@@ -31,10 +50,11 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
         setSelectedArtist(artist);
     };
 
-    const handleAlbumClick = (album: string) => {
+    const handleAlbumClick = (album: string, id: string) => {
         const filteredSongs = songs.filter(song => song.album === album);
         setAlbumData({ songs: filteredSongs });
         setSelectedAlbum(album);
+        setDropdownVisible(prev => ({ ...prev, [id]: false }));
     };
 
     const closeArtistModal = () => {
@@ -47,25 +67,30 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
         setAlbumData(null);
     };
 
+    const toggleDropdown = (id: string) => {
+        setDropdownVisible(prev => ({ ...prev, [id]: !prev[id] }));
+    };
+
     return (
         <div className="w-full px-2">
             <table className="w-full text-left table-auto border-collapse">
                 <thead className="bg-neutral-800 text-neutral-400">
                     <tr>
                         <th className="hidden sm:table-cell py-3 pl-3 pr-2 border-b border-neutral-700">#</th>
-                        <th className="py-3 px-2 border-b border-neutral-700">Cover</th>
-                        <th className="py-3 px-2 border-b border-neutral-700">Title</th>
+                        <th className="py-3 pl-2 border-b border-neutral-700"></th>
+                        <th className="py-3 pl-0 pr-2 border-b border-neutral-700">Media</th>
                         <th className="py-3 px-2 border-b border-neutral-700">Artist</th>
                         <th className="hidden md:table-cell py-3 px-2 border-b border-neutral-700">Album</th>
                         <th className="hidden xl:table-cell py-3 px-2 border-b border-neutral-700">Date Added</th>
-                        <th className="py-3 pl-2 pr-1 border-b border-neutral-700">Like</th>
+                        <th className="py-3 pl-1 pr-2 border-b border-neutral-700">Like</th>
+                        <th className='py-3 border-b border-neutral-700'></th>
                     </tr>
                 </thead>
                 <tbody className="bg-neutral-900 text-neutral-200">
                     {songs.map((song, index) => (
                         <tr key={song.id} className="border-b border-neutral-800 hover:bg-neutral-800 transition-all duration-200">
-                            <td className="hidden sm:table-cell py-3 pl-4 pr-3">{index + 1}</td>
-                            <td className="py-3 mb-2 px-1 flex justify-center items-center">
+                            <td className="hidden sm:table-cell py-3 pl-4 pr-2">{index + 1}</td>
+                            <td className="pb-4 px-1 flex justify-center items-center">
                                 <div className="relative w-[48px] h-[48px]">
                                     <MediaItem
                                         data={song}
@@ -73,7 +98,7 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
                                     />
                                 </div>
                             </td>
-                            <td className="py-3 px-2">{song.title}</td>
+                            <td className="py-3 px-3">{song.title}</td>
                             <td className="py-3 px-2">
                                 {song.artist.map((artist, i) => (
                                     <span
@@ -89,14 +114,46 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
                             <td className="hidden md:table-cell py-3 px-2">
                                 <span
                                     className="text-white cursor-pointer hover:text-purple-500"
-                                    onClick={() => handleAlbumClick(song.album)}
+                                    onClick={() => handleAlbumClick(song.album, song.id)}
                                 >
                                     {song.album}
                                 </span>
                             </td>
                             <td className="hidden xl:table-cell py-3 px-2">{formatDate(song.created_at)}</td>
-                            <td className="py-3 px-2">
+                            <td className="py-3 pl-1 pr-2">
                                 <LikeButton songId={song.id} />
+                            </td>
+                            <td className="px-2 pt-1 pb-1 block md:hidden relative">
+                                <button
+                                    className="text-white text-xl hover:text-purple-500"
+                                    onClick={() => toggleDropdown(song.id)}
+                                >
+                                    &#x22EE;
+                                </button>
+                                {dropdownVisible[song.id] && (
+                                    <div
+                                        ref={ref => {
+                                            if (ref) {
+                                                dropdownRefs.current[song.id] = ref;
+                                            }
+                                        }}
+                                        className="absolute bg-neutral-700 p-2 mt-1 rounded shadow-lg z-10 right-0"
+                                    >
+                                        <div className="py-1">
+                                            <span
+                                                className="block text-white cursor-pointer border-b hover:text-purple-500"
+                                                onClick={() => handleAlbumClick(song.album, song.id)}
+                                            >
+                                                {song.album}
+                                            </span>
+                                        </div>
+                                        <div className="py-1">
+                                            <span className="block text-white">
+                                                {formatDate(song.created_at)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
                             </td>
                         </tr>
                     ))}
