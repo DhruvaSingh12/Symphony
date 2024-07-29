@@ -51,7 +51,7 @@ const SortArtist: React.FC<SortArtistProps> = ({ artists, ContentComponent }) =>
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <div className='mt-4 ml-4'>
+        <div className='pt-4 pl-4'>
           <label htmlFor="sort-options" className="sr-only">Sort by</label>
           <select
             id="sort-options"
