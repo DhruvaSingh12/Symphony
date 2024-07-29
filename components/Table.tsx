@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Song } from '@/types';
 import LikeButton from '@/components/LikeButton';
-import MediaItem from '@/components/MediaItem';  // Import the MediaItem component
+import MediaItem from '@/components/MediaItem'; 
 import ArtistModal from './ArtistModal';
 import AlbumModal from './AlbumModal';
 
