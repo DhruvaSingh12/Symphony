@@ -7,9 +7,11 @@ import SortArtist from './sortartist';
 import ArtistModal from '@/components/ArtistModal';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/useUser';
+import ArtistSearch from './ArtistSearch';
 
 const ArtistContent = () => {
     const [artists, setArtists] = useState<{ [key: string]: { songs: Song[]; albums: Set<string> } }>({});
+    const [filteredArtists, setFilteredArtists] = useState<{ [key: string]: { songs: Song[]; albums: Set<string> } }>({});
     const [selectedArtist, setSelectedArtist] = useState<string | null>(null);
     const supabase = useSupabaseClient();
     const router = useRouter();
@@ -31,7 +33,6 @@ const ArtistContent = () => {
         { base: 'bg-fuchsia-500', hover: 'hover:bg-fuchsia-800' },
         { base: 'bg-rose-500', hover: 'hover:bg-rose-800' },
     ];
-    
 
     useEffect(() => {
         if (!isLoading && !user) {
@@ -63,6 +64,7 @@ const ArtistContent = () => {
             });
 
             setArtists(artistData);
+            setFilteredArtists(artistData);
         };
 
         fetchArtists();
@@ -76,10 +78,25 @@ const ArtistContent = () => {
         setSelectedArtist(null);
     };
 
+    const handleSearch = (searchTerm: string) => {
+        if (searchTerm === '') {
+            setFilteredArtists(artists);
+        } else {
+            const filtered = Object.keys(artists).filter(artist => 
+                artist.toLowerCase().includes(searchTerm.toLowerCase())
+            ).reduce((obj, key) => {
+                obj[key] = artists[key];
+                return obj;
+            }, {} as { [key: string]: { songs: Song[]; albums: Set<string> } });
+            setFilteredArtists(filtered);
+        }
+    };
+
     return (
         <div>
+            <div className='px-4 mt-4'><ArtistSearch onSearch={handleSearch} /></div>
             <SortArtist
-                artists={artists}
+                artists={filteredArtists}
                 ContentComponent={({ artists }) => (
                     <div className="bg-neutral-900 p-4 rounded-lg">
                         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
