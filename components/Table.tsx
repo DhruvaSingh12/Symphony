@@ -90,7 +90,7 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
                     {songs.map((song, index) => (
                         <tr key={song.id} className="border-b border-neutral-800 hover:bg-neutral-800 transition-all duration-200">
                             <td className="hidden sm:table-cell py-3 pl-4 pr-2">{index + 1}</td>
-                            <td className="pt-1 pb-3.5 px-1 flex justify-center items-center">
+                            <td className="py-3 mb-3 px-1 flex">
                                 <div className="w-[48px] h-[48px]">
                                     <MediaItem
                                         data={song}
