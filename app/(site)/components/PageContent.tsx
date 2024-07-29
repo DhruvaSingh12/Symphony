@@ -23,7 +23,7 @@ const PageContent: React.FC<PageContentProps> = ({ songs }) => {
   return (
     <div className="
       grid
-      grid-cols-3
+      grid-cols-2
       sm:grid-cols-3
       md:grid-cols-3
       lg:grid-cols-4
