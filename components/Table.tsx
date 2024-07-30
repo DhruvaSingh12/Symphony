@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Song } from '@/types';
 import LikeButton from '@/components/LikeButton';
-import MediaItem from '@/components/MediaItem'; 
+import MediaItem from '@/components/MediaItem';
 import ArtistModal from './ArtistModal';
 import AlbumModal from './AlbumModal';
 
@@ -71,6 +71,8 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
         setDropdownVisible(prev => ({ ...prev, [id]: !prev[id] }));
     };
 
+    const memoizedSongs = useMemo(() => songs, [songs]);
+
     return (
         <div className="w-full px-2">
             <table className="w-full text-left table-auto border-collapse">
@@ -87,7 +89,7 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
                     </tr>
                 </thead>
                 <tbody className="bg-neutral-900 text-neutral-200">
-                    {songs.map((song, index) => (
+                    {memoizedSongs.map((song, index) => (
                         <tr key={song.id} className="border-b border-neutral-800 hover:bg-neutral-800 transition-all duration-200">
                             <td className="hidden sm:table-cell py-3 pl-4 pr-2">{index + 1}</td>
                             <td className="py-3 mb-3 px-1 flex">
@@ -127,6 +129,8 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
                                 <button
                                     className="text-white text-xl hover:text-purple-500"
                                     onClick={() => toggleDropdown(song.id)}
+                                    aria-haspopup="true"
+                                    aria-expanded={dropdownVisible[song.id]}
                                 >
                                     &#x22EE;
                                 </button>

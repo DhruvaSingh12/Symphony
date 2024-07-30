@@ -16,6 +16,12 @@
         "select-name": "off",
         "label": "off"
       }
+    ],
+    "axe/aria": [
+      "default",
+      {
+        "aria-valid-attr-value": "off"
+      }
     ]
   }
 }
