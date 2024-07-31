@@ -12,7 +12,7 @@ const AuthModal = () => {
   const supabaseClient = useSupabaseClient();
   const router = useRouter();
   const { session } = useSessionContext();
-  const { onClose, isOpen } = useAuthModal();
+  const { isOpen, onClose } = useAuthModal();
 
   useEffect(() => {
     if (session) {
@@ -21,7 +21,7 @@ const AuthModal = () => {
     }
   }, [session, router, onClose]);
 
-  const onChange = (open: boolean) => {
+  const handleChange = (open: boolean) => {
     if (!open) {
       onClose();
     }
@@ -32,7 +32,7 @@ const AuthModal = () => {
       title="Welcome"
       description="Login to your account or create a new one"
       isOpen={isOpen}
-      onChange={onChange}
+      onChange={handleChange}
     >
       <Auth
         theme="dark"

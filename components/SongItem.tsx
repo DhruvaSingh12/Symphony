@@ -83,6 +83,7 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick }) => {
           className="object-cover"
           src={imagePath || '/images/liked.png'}
           fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           alt="Image"
         />
         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity">

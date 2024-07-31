@@ -32,7 +32,7 @@ const UploadModal = () => {
     const onChange = (open: boolean) => {
         if (!open) {
             reset();
-            setArtists(['']); // Reset artists to one empty field
+            setArtists(['']); 
             uploadModal.onClose();
         }
     };
@@ -51,7 +51,6 @@ const UploadModal = () => {
 
             const uniqueID = uniqid();
 
-            // Upload song
             const { data: songData, error: songError } = await supabaseClient
                 .storage
                 .from('songs')
@@ -65,7 +64,6 @@ const UploadModal = () => {
                 return toast.error("Failed to upload song file.");
             }
 
-            // Upload image
             const { data: imageData, error: imageError } = await supabaseClient
                 .storage
                 .from('images')
@@ -79,7 +77,6 @@ const UploadModal = () => {
                 return toast.error("Failed to upload cover file.");
             }
 
-            // Insert song data into database
             const { error: supabaseError } = await supabaseClient
                 .from('songs')
                 .insert({
@@ -100,7 +97,7 @@ const UploadModal = () => {
             setIsLoading(false);
             toast.success('Song uploaded successfully');
             reset();
-            setArtists(['']); // Reset artists to one empty field
+            setArtists(['']); 
             uploadModal.onClose();
         } catch (error) {
             toast.error("Something went wrong");
@@ -151,11 +148,17 @@ const UploadModal = () => {
                 />
                 <div>
                     <div className='pb-1 flex items-center'>
-                        <span>Song Artist</span>
-                        <button type="button" onClick={addArtistField} className="ml-2 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center">+</button>
+                        <span className="font-semibold">Song Artists</span>
+                        <button 
+                            type="button" 
+                            onClick={addArtistField} 
+                            className="ml-2 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-blue-600 transition"
+                        >
+                            +
+                        </button>
                     </div>
                     {artists.map((artist, index) => (
-                        <div key={index} className="flex items-center gap-x-2">
+                        <div key={index} className="flex items-center gap-x-2 mt-2">
                             <Input
                                 id={`artist-${index}`}
                                 disabled={isLoading}
@@ -164,13 +167,19 @@ const UploadModal = () => {
                                 placeholder={`Artist ${index + 1}`}
                             />
                             {artists.length > 1 && (
-                                <button type="button" onClick={() => removeArtistField(index)} className="text-red-500">x</button>
+                                <button 
+                                    type="button" 
+                                    onClick={() => removeArtistField(index)} 
+                                    className="text-white hover:text-purple-500 text-xl transition"
+                                >
+                                    x
+                                </button>
                             )}
                         </div>
                     ))}
                 </div>
                 <div>
-                    <div className='pb-1'>
+                    <div className='pb-1 font-semibold'>
                         Select a song file
                     </div>
                     <Input
@@ -182,7 +191,7 @@ const UploadModal = () => {
                     />
                 </div>
                 <div>
-                    <div className='pb-1'>
+                    <div className='pb-1 font-semibold'>
                         Select song cover
                     </div>
                     <Input

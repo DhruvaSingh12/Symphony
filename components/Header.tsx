@@ -134,12 +134,12 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
               <Button onClick={handleLogout} className="bg-white px-4 py-2 text-black rounded-full">
                 Logout
               </Button>
-              <Button onClick={() => router.push("/account")} className="bg-transparent px-2 py-2 rounded-full">
+              <Button onClick={() => router.push("/account")} className="bg-transparent px-2 pt-2 pb-1 rounded-full">
                 {avatarUrl ? (
                   <img
                     src={avatarUrl}
                     alt="User Avatar"
-                    className="h-12 w-12 rounded-full"
+                    className="h-10 w-10 rounded-full"
                   />
                 ) : (
                   <FaUserAlt />

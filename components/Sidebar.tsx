@@ -38,7 +38,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children, songs = [] }) => {
   );
 
   return (
-    <div className={twMerge(`flex w-full h-full fixed`, player.activeId && "h-[calc(100%-98px)]")}>
+    <div className={twMerge(`flex w-full h-full fixed`, player.activeId && "h-[calc(100%-80px)]")}>
       <div
         className="
           w-[300px]
@@ -49,7 +49,8 @@ const Sidebar: React.FC<SidebarProps> = ({ children, songs = [] }) => {
           bg-black
           h-full
           px-2
-          pb-0
+          pt-2
+          pb-1
         "
       >
         <Box>
@@ -72,7 +73,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children, songs = [] }) => {
           Playlist functionality in a future update. Stay tuned.
         </Box>
       </div>
-      <main className="h-full w-full flex overflow-y-auto">{children}</main>
+      <main className="h-full w-full flex pt-2 pb-1 overflow-y-auto">{children}</main>
     </div>
   );
 };

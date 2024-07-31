@@ -3,6 +3,7 @@ import AccountContent from "./components/AccountContent";
 import Header from "@/components/Header";
 import Box from "@/components/Box";
 import Image from "next/image";
+import ListItem from "@/components/ListItem"; 
 
 const AccountsPage = () => {
   return (
@@ -33,6 +34,23 @@ const AccountsPage = () => {
         <Box className="overflow-y-auto flex-1 h-full">
           <div className="mt-1 mb-4">
             <AccountContent />
+          </div>
+          <div className="mt-4 px-6">
+            <div className="
+              grid
+              grid-cols-2
+              sm:grid-cols-3
+              xl:grid-cols-4
+              2xl:grid-cols-6
+              gap-3
+              mt-4
+            ">
+              <ListItem 
+                image="/images/privacy.png" 
+                name="Privacy Policy"
+                href="/privacypolicy"
+              />
+            </div>
           </div>
         </Box>
       </div>
