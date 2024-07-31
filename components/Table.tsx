@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Song } from '@/types';
 import LikeButton from '@/components/LikeButton';
-import MediaItem from '@/components/MediaItem';
+import MediaItem from '@/components/MediaItem';  // Import the MediaItem component
 import ArtistModal from './ArtistModal';
 import AlbumModal from './AlbumModal';
 
@@ -67,12 +67,6 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
         setAlbumData(null);
     };
 
-    const toggleDropdown = (id: string) => {
-        setDropdownVisible(prev => ({ ...prev, [id]: !prev[id] }));
-    };
-
-    const memoizedSongs = useMemo(() => songs, [songs]);
-
     return (
         <div className="w-full px-2">
             <table className="w-full text-left table-auto border-collapse">
@@ -124,40 +118,6 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
                             <td className="hidden xl:table-cell py-3 px-2">{formatDate(song.created_at)}</td>
                             <td className="py-3 pl-1 pr-2">
                                 <LikeButton songId={song.id} />
-                            </td>
-                            <td className="px-2 pt-1 pb-1 block md:hidden relative">
-                                <button
-                                    className="text-white text-xl hover:text-purple-500"
-                                    onClick={() => toggleDropdown(song.id)}
-                                    aria-haspopup="true"
-                                    aria-expanded={dropdownVisible[song.id]}
-                                >
-                                    &#x22EE;
-                                </button>
-                                {dropdownVisible[song.id] && (
-                                    <div
-                                        ref={ref => {
-                                            if (ref) {
-                                                dropdownRefs.current[song.id] = ref;
-                                            }
-                                        }}
-                                        className="absolute bg-neutral-700 p-2 mt-1 rounded shadow-lg z-10 right-0"
-                                    >
-                                        <div className="py-1">
-                                            <span
-                                                className="block text-white cursor-pointer border-b hover:text-purple-500"
-                                                onClick={() => handleAlbumClick(song.album, song.id)}
-                                            >
-                                                {song.album}
-                                            </span>
-                                        </div>
-                                        <div className="py-1">
-                                            <span className="block text-white">
-                                                {formatDate(song.created_at)}
-                                            </span>
-                                        </div>
-                                    </div>
-                                )}
                             </td>
                         </tr>
                     ))}
