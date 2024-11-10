@@ -11,7 +11,6 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useUser } from "@/hooks/useUser";
 import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
-import { FaUserAlt } from "react-icons/fa";
 import useLoadAvatar from "@/hooks/useLoadAvatar";
 import { UserDetails } from "@/types";
 
@@ -28,6 +27,7 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
   const [bgColor, setBgColor] = useState<string>("");
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const avatarUrl = useLoadAvatar(userDetails);
+  const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string>("/images/default-avatar.png");
 
   const colors = [
     ["from-red-700", "to-yellow-700"],
@@ -68,7 +68,6 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
         if (error) {
           toast.error(error.message);
         } else {
-          // Ensure data matches UserDetails
           const userDetails: UserDetails = {
             id: data?.id || "",
             first_name: data?.first_name,
@@ -85,6 +84,12 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
 
     fetchUserProfile();
   }, [user, supabaseClient]);
+
+  useEffect(() => {
+    if (avatarUrl) {
+      setCurrentAvatarUrl(avatarUrl);
+    }
+  }, [avatarUrl]);
 
   const handleLogout = async () => {
     const { error } = await supabaseClient.auth.signOut();
@@ -135,15 +140,12 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
                 Logout
               </Button>
               <Button onClick={() => router.push("/account")} className="bg-transparent px-2 pt-2 pb-1 rounded-full">
-                {avatarUrl ? (
-                  <img
-                    src={avatarUrl}
-                    alt="User Avatar"
-                    className="h-10 w-10 rounded-full"
-                  />
-                ) : (
-                  <FaUserAlt />
-                )}
+                <img
+                  src={currentAvatarUrl}
+                  alt="User Avatar"
+                  className="h-10 w-10 rounded-full"
+                  onError={() => setCurrentAvatarUrl("/images/default-avatar.png")}
+                />
               </Button>
             </div>
           ) : (

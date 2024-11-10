@@ -44,7 +44,7 @@ const PrivacyPolicyPage = () => {
             <ul className="list-disc list-inside">
               <li><strong>Authentication:</strong> To verify your identity and grant access to the website.</li>
               <li><strong>Personalization:</strong> To customize your experience on the site.</li>
-              <li><strong>Music Uploads:</strong> To allow authenticated users to upload music to the website. The uploaded music is available to all users, but the uploader's identity is kept confidential.</li>
+              <li><strong>Music Uploads:</strong> To allow authenticated users to upload music to the website. The uploaded music is available to all users, but the identity of the uploader is kept confidential.</li>
             </ul>
 
             <h2 className="text-xl font-bold text-purple-500 mt-4">Information Sharing and Disclosure</h2>
