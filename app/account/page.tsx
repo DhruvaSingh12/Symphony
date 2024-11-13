@@ -24,7 +24,7 @@ const AccountsPage = () => {
                 </div>
                 <div className="flex flex-col gap-y-2 mt-0 md:mt-0">
                   <h1 className="text-white text-2xl md:text-5xl lg:text-6xl font-bold">
-                    User Details
+                    Account Details
                   </h1>
                 </div>
               </div>
