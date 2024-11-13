@@ -8,6 +8,7 @@ import ModalProvider from "@/providers/ModalProvider";
 import ToasterProvider from "@/providers/ToasterProvider";  
 import getSongsByUserId from "@/actions/getSongsByUserId";
 import Player from "@/app/player/Player";
+import { Analytics } from "@vercel/analytics/react"
 
 const font = Figtree({ subsets: ["latin"] });
 
