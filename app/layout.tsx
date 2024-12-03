@@ -9,6 +9,7 @@ import ToasterProvider from "@/providers/ToasterProvider";
 import getSongsByUserId from "@/actions/getSongsByUserId";
 import Player from "@/app/player/Player";
 import { Analytics } from "@vercel/analytics/react"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const font = Figtree({ subsets: ["latin"] });
 
@@ -36,6 +37,7 @@ export default async function RootLayout({
             <Sidebar songs={userSongs}>
               {children}
               <Analytics />
+              <SpeedInsights/>
             </Sidebar>
             <Player />
           </UserProvider>

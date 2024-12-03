@@ -1,8 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     images: {
-        domains:["zfpkgfuelpoxebaccqsr.supabase.co"]
-    }
-};
-
-export default nextConfig;
+      remotePatterns: [
+        {
+          protocol: 'https',
+          hostname: 'zfpkgfuelpoxebaccqsr.supabase.co',
+          pathname: '/**',
+        },
+      ],
+    },
+  };
+  
+  export default nextConfig;
+  
