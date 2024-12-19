@@ -9,17 +9,18 @@ interface ListItemProps {
     image: string;
     name: string;
     href: string;
+    requireAuth?: boolean;
 }
 
 const ListItem: React.FC<ListItemProps> = ({
-    image, name, href
+    image, name, href, requireAuth = true
 }) => {
     const router = useRouter();
     const { user } = useUser();
     const authModal = useAuthModal();
 
     const onClick = () => {
-        if (!user) {
+        if (requireAuth && !user) {
             authModal.onOpen();
         } else {
             router.push(href);

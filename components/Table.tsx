@@ -10,13 +10,33 @@ interface TableProps {
     onPlay: (id: string) => void;
 }
 
-const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = String(date.getFullYear()).slice(-2);
-    return `${day}/${month}/${year}`;
+interface FormatRelativeDateOptions {
+    month: 'short';
+    day: 'numeric';
+    year?: 'numeric';
+}
+
+const formatRelativeDate = (from: Date): string => {
+    const currentDate = new Date();
+    const timeDifferenceInSeconds = (currentDate.getTime() - from.getTime()) / 1000;
+    const timeDifferenceInDays = timeDifferenceInSeconds / (24 * 60 * 60);
+
+    if (timeDifferenceInSeconds < 60) {
+        return "less than a minute ago";
+    } else if (timeDifferenceInSeconds < 24 * 60 * 60) {
+        const hours = Math.floor(timeDifferenceInSeconds / 3600);
+        return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    } else if (timeDifferenceInDays <= 14) {
+        return `${Math.floor(timeDifferenceInDays)} day${Math.floor(timeDifferenceInDays) > 1 ? 's' : ''} ago`;
+    } else {
+        const options: FormatRelativeDateOptions = { month: 'short', day: 'numeric', year: 'numeric' };
+        if (currentDate.getFullYear() === from.getFullYear()) {
+            delete options.year;
+        }
+        return from.toLocaleDateString(undefined, options);
+    }
 };
+
 
 const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
     const [selectedArtist, setSelectedArtist] = useState<string | null>(null);
@@ -121,7 +141,7 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
                                     {song.album}
                                 </span>
                             </td>
-                            <td className="hidden xl:table-cell py-3 px-2">{formatDate(song.created_at)}</td>
+                            <td className="hidden xl:table-cell py-3 px-2">{formatRelativeDate(new Date(song.created_at))}</td>
                             <td className="py-3 pl-1 pr-2">
                                 <LikeButton songId={song.id} />
                             </td>
@@ -141,7 +161,7 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
                                                 dropdownRefs.current[song.id] = ref;
                                             }
                                         }}
-                                        className="absolute bg-neutral-700 p-2 mt-1 rounded shadow-lg z-10 right-0"
+                                        className="absolute bg-neutral-700 w-[120px] p-2 mt-1 rounded shadow-lg z-10 right-1"
                                     >
                                         <div className="py-1">
                                             <span
@@ -153,7 +173,7 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
                                         </div>
                                         <div className="py-1">
                                             <span className="block text-white">
-                                                {formatDate(song.created_at)}
+                                                {formatRelativeDate(new Date(song.created_at))}
                                             </span>
                                         </div>
                                     </div>

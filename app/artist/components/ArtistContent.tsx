@@ -5,8 +5,6 @@ import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { Song } from '@/types';
 import SortArtist from './sortartist';
 import ArtistModal from '@/components/ArtistModal';
-import { useRouter } from 'next/navigation';
-import { useUser } from '@/hooks/useUser';
 import ArtistSearch from './ArtistSearch';
 
 const ArtistContent = () => {
@@ -14,8 +12,6 @@ const ArtistContent = () => {
     const [filteredArtists, setFilteredArtists] = useState<{ [key: string]: { songs: Song[]; albums: Set<string> } }>({});
     const [selectedArtist, setSelectedArtist] = useState<string | null>(null);
     const supabase = useSupabaseClient();
-    const router = useRouter();
-    const { isLoading, user } = useUser();
 
     const colorClasses = [
         { base: 'bg-purple-500', hover: 'hover:bg-purple-800' },
@@ -34,11 +30,6 @@ const ArtistContent = () => {
         { base: 'bg-rose-500', hover: 'hover:bg-rose-800' },
     ];
 
-    useEffect(() => {
-        if (!isLoading && !user) {
-            router.replace("/");
-        }
-    }, [isLoading, user, router]);
 
     useEffect(() => {
         const fetchArtists = async () => {

@@ -58,6 +58,7 @@ export default async function Home() {
                 image="/images/artists.webp"
                 name="Artists"
                 href="artist"
+                requireAuth={false} 
               />
               <ListItem 
                 image="/images/liked.png"
