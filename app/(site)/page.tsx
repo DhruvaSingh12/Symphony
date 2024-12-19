@@ -55,18 +55,18 @@ export default async function Home() {
               mt-4
             ">
               <ListItem 
-                image="/images/artists.webp"
+                image="/images/artists.avif"
                 name="Artists"
                 href="artist"
                 requireAuth={false} 
               />
               <ListItem 
-                image="/images/liked.png"
+                image="/images/liked.jpg"
                 name="Liked Songs"
                 href="liked"
               />
               <ListItem 
-                image="/images/lib2.png"
+                image="/images/library.jpeg"
                 name="Library"
                 href="library"
               />
