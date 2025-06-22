@@ -10,3 +10,40 @@ body,
   background-color: black;
   color-scheme: dark;
 }
+
+* {
+  scrollbar-width: thin;
+  -ms-overflow-style: none;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #000000; 
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent; 
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.text-wrap-clamp {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
