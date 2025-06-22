@@ -5,7 +5,9 @@ import { twMerge } from "tailwind-merge";
 import { RxCaretLeft, RxCaretRight } from "react-icons/rx";
 import { HiHome } from "react-icons/hi";
 import { BiSearch } from "react-icons/bi";
-import Button from "./Button";
+import { Button } from "./ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import useAuthModal from "@/hooks/useAuthModal";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useUser } from "@/hooks/useUser";
@@ -13,6 +15,7 @@ import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
 import useLoadAvatar from "@/hooks/useLoadAvatar";
 import { UserDetails } from "@/types";
+import { cn } from "@/lib/utils";
 
 interface HeaderProps {
   children: React.ReactNode;
@@ -24,37 +27,9 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
   const router = useRouter();
   const supabaseClient = useSupabaseClient();
   const { user } = useUser();
-  const [bgColor, setBgColor] = useState<string>("");
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const avatarUrl = useLoadAvatar(userDetails);
   const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string>("/images/default-avatar.png");
-
-  const colors = [
-    ["from-red-700", "to-yellow-700"],
-    ["from-green-700", "to-blue-700"],
-    ["from-indigo-700", "to-purple-700"],
-    ["from-pink-700", "to-orange-700"],
-    ["from-teal-700", "to-cyan-700"],
-    ["from-lime-700", "to-amber-700"],
-    ["from-emerald-700", "to-violet-700"],
-    ["from-fuchsia-700", "to-rose-700"],
-    ["from-sky-700", "to-teal-900"],
-    ["from-red-700", "to-pink-700"],
-    ["from-purple-700", "to-indigo-700"],
-    ["from-blue-700", "to-cyan-700"],
-    ["from-green-700", "to-lime-700"],
-    ["from-amber-700", "to-orange-700"],
-    ["from-emerald-700", "to-fuchsia-700"],
-    ["from-indigo-700", "to-teal-700"],
-    ["from-red-700", "to-amber-700"],
-    ["from-purple-700", "to-pink-700"],
-    ["from-green-700", "to-fuchsia-700"],
-  ];
-
-  useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * colors.length);
-    setBgColor(`bg-gradient-to-b ${colors[randomIndex][0]} ${colors[randomIndex][1]}`);
-  }, []);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -103,54 +78,82 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
   };
 
   return (
-    <div className={twMerge(`${bgColor} px-5 pb-5 pt-2 rounded-lg`, className, "w-full h-full")}>
+    <div className={twMerge("px-5 pb-5 pt-2 rounded-lg bg-background/20 backdrop-blur-sm", className, "w-full h-full")}>
       <div className="w-full mb-4 flex items-center justify-between">
         <div className="hidden md:flex gap-x-2 items-center">
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => router.back()}
-            className="rounded-full bg-black flex items-center justify-center hover:opacity-75 transition"
+            className="rounded-full bg-foreground/10 hover:bg-foreground/20 transition"
           >
-            <RxCaretLeft className="text-white" size={35} />
-          </button>
-          <button
+            <RxCaretLeft className="text-foreground" size={35} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => router.forward()}
-            className="rounded-full bg-black flex items-center justify-center hover:opacity-75 transition"
+            className="rounded-full bg-foreground/10 hover:bg-foreground/20 transition"
           >
-            <RxCaretRight className="text-white" size={35} />
-          </button>
+            <RxCaretRight className="text-foreground" size={35} />
+          </Button>
         </div>
         <div className="flex md:hidden gap-x-2 items-center">
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => router.push("/")}
-            className="rounded-full bg-white p-2 flex items-center justify-center hover:opacity-75 transition"
+            className="rounded-full bg-foreground/10 hover:bg-foreground/20 transition"
           >
-            <HiHome className="text-black" size={20} />
-          </button>
-          <button
+            <HiHome className="text-foreground" size={20} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => router.push("/search")}
-            className="rounded-full bg-white p-2 flex items-center justify-center hover:opacity-75 transition"
+            className="rounded-full bg-foreground/10 hover:bg-foreground/20 transition"
           >
-            <BiSearch className="text-black" size={20} />
-          </button>
+            <BiSearch className="text-foreground" size={20} />
+          </Button>
         </div>
         <div className="flex items-center gap-x-4">
           {user ? (
             <div className="flex gap-x-1 items-center">
-              <Button onClick={handleLogout} className="bg-white px-4 py-2 text-black rounded-full">
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="bg-foreground/10 hover:bg-foreground/20 text-foreground border-foreground/20"
+              >
                 Logout
               </Button>
-              <Button onClick={() => router.push("/account")} className="bg-transparent px-2 pt-2 pb-1 rounded-full">
-                <img
-                  src={currentAvatarUrl}
-                  alt="User Avatar"
-                  className="h-10 w-10 rounded-full"
-                  onError={() => setCurrentAvatarUrl("/images/default-avatar.png")}
-                />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={currentAvatarUrl} alt="User Avatar" />
+                      <AvatarFallback>
+                        {userDetails?.first_name?.[0] || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-background/95 backdrop-blur-sm">
+                  <DropdownMenuItem onClick={() => router.push("/account")}>
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout}>
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           ) : (
             <div className="flex gap-x-4 items-center">
-              <Button onClick={authModal.onOpen} className="bg-white text-black rounded-full px-6 py-2">
+              <Button
+                variant="outline"
+                onClick={authModal.onOpen}
+                className="bg-foreground/10 hover:bg-foreground/20 text-foreground border-foreground/20"
+              >
                 Log In
               </Button>
             </div>

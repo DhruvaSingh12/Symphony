@@ -7,13 +7,17 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
+import { Button } from "./ui/button";
+import { cn } from "@/lib/utils";
 
 interface LikeButtonProps {
     songId: string;
+    className?: string;
 };
 
 const LikeButton: React.FC<LikeButtonProps> =({
-    songId
+    songId,
+    className
 }) => {
     const router = useRouter();
     const {supabaseClient} = useSessionContext();
@@ -86,14 +90,22 @@ const LikeButton: React.FC<LikeButtonProps> =({
     };
 
     return (
-        <button 
-        onClick={handleLike}
-        className="
-           hover:opacity-75
-           transition
-        ">
-            <Icon color={isLiked ? 'violet' : 'white'} size={25} />
-        </button>
+        <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLike}
+            className={cn(
+                "hover:bg-foreground/10 transition-colors",
+                className
+            )}
+        >
+            <Icon 
+                className={cn(
+                    "h-6 w-6 transition-colors",
+                    isLiked ? "text-foreground" : "text-foreground/70"
+                )} 
+            />
+        </Button>
     );
 }
 
