@@ -6,14 +6,19 @@ import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
+import { Heart } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 interface LikeButtonProps {
     songId: string;
-};
+    className?: string;
+}
 
 const LikeButton: React.FC<LikeButtonProps> =({
-    songId
+    songId,
+    className
 }) => {
     const router = useRouter();
     const supabaseClient = useSupabaseClient();
@@ -44,8 +49,6 @@ const LikeButton: React.FC<LikeButtonProps> =({
         fetchData();
     }, [songId, supabaseClient, user?.id]);
 
-    const Icon = isLiked ? AiFillHeart : AiOutlineHeart;
-
     const handleLike = async () => {
         if(!user){
             return authModal.onOpen();
@@ -63,6 +66,7 @@ const LikeButton: React.FC<LikeButtonProps> =({
                 } 
                 else {
                     setIsLiked(false);
+                    toast.success('Removed from Liked Songs');
                 }
         } 
         else {
@@ -86,14 +90,25 @@ const LikeButton: React.FC<LikeButtonProps> =({
     };
 
     return (
-        <button 
-        onClick={handleLike}
-        className="
-           hover:opacity-75
-           transition
-        ">
-            <Icon color={isLiked ? 'violet' : 'white'} size={25} />
-        </button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                onClick={handleLike}
+                size="icon"
+                variant="ghost"
+                className={cn("hover:opacity-75 transition rounded-full", className)}
+                aria-label={isLiked ? "Unlike" : "Like"}
+              >
+                <Heart className={cn("h-5 w-5", isLiked ? "fill-primary text-primary" : "text-muted-foreground")} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {isLiked ? "Remove from liked songs" : "Add to liked songs"}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
     );
 }
 

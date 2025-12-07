@@ -2,6 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { Song } from '@/types';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface SortProps<T> {
   songs: Song[];
@@ -42,33 +49,26 @@ const Sort = <T extends { songs: Song[] }>({ songs, ContentComponent }: SortProp
     setSortedSongs(sortSongs(songs, sortOption));
   }, [songs, sortOption]);
 
-  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSortOption(e.target.value);
-  };
-
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-white text-2xl font-semibold mt-4">Discover Music</h1>
-        <div className='mt-4'>
-          <label htmlFor="sort-options" className="sr-only">Sort by</label>
-          <select
-            id="sort-options"
-            className="bg-neutral-500 text-white p-2 rounded-lg"
-            value={sortOption}
-            onChange={handleSortChange}
-          >
-            <option value="lastUpdated">Last Updated</option>
-            <option value="dateAddedAsc">Date Added ↑</option>
-            <option value="dateAddedDesc">Date Added ↓</option>
-            <option value="titleAsc">Name ↑</option>
-            <option value="titleDesc">Name ↓</option>
-            <option value="authorAsc">Artist ↑</option>
-            <option value="authorDesc">Artist ↓</option>
-            <option value="albumAsc">Album ↑</option>
-            <option value="albumDesc">Album ↓</option>
-          </select>
-        </div>
+        <h1 className="text-2xl font-semibold text-foreground">Discover Music</h1>
+        <Select value={sortOption} onValueChange={setSortOption}>
+          <SelectTrigger className="w-[180px] bg-background border-border">
+            <SelectValue placeholder="Sort by..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="lastUpdated">Last Updated</SelectItem>
+            <SelectItem value="dateAddedAsc">Date Added ↑</SelectItem>
+            <SelectItem value="dateAddedDesc">Date Added ↓</SelectItem>
+            <SelectItem value="titleAsc">Name ↑</SelectItem>
+            <SelectItem value="titleDesc">Name ↓</SelectItem>
+            <SelectItem value="authorAsc">Artist ↑</SelectItem>
+            <SelectItem value="authorDesc">Artist ↓</SelectItem>
+            <SelectItem value="albumAsc">Album ↑</SelectItem>
+            <SelectItem value="albumDesc">Album ↓</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <ContentComponent songs={sortedSongs} />
     </div>

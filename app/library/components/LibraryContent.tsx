@@ -6,10 +6,11 @@ import useAuthModal from "@/hooks/useAuthModal";
 import useUploadModal from "@/hooks/useUploadModal";
 import useOnPlay from "@/hooks/useOnPlay";
 import { useUser } from "@/hooks/useUser";
-import { TbPlaylist } from "react-icons/tb";
-import { AiOutlinePlus } from "react-icons/ai";
+import { ListMusic, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Table from '@/components/Table';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface LibraryContentProps {
     songs: Song[];
@@ -38,24 +39,31 @@ const LibraryContent: React.FC<LibraryContentProps> = ({ songs: initialSongs }) 
     };
 
     return (
-        <div className="flex flex-col">
-            <div className="flex items-center justify-between px-5 py-4">
+        <div className="flex flex-col p-4">
+            <div className="flex items-center justify-between mb-4">
                 <div className="inline-flex items-center gap-x-2">
-                    <TbPlaylist className="text-neutral-400" size={26} />
+                    <ListMusic className="text-muted-foreground" size={26} />
                 </div>
-                <div className="flex flex-row gap-x-2">
-                    <h1 className="text-neutral-300">Add new songs</h1>
-                    <AiOutlinePlus
-                        onClick={onClick}
-                        size={20}
-                        className="text-neutral-400 hover:text-white cursor-pointer transition"
-                    />
-                </div>
+                <Button variant="ghost" onClick={onClick} className="gap-x-2">
+                    <span className="text-muted-foreground">Add new songs</span>
+                    <Plus size={20} className="text-muted-foreground" />
+                </Button>
             </div>
             {songs.length === 0 || !user ? (
-                <div className="flex flex-col gap-y-2 mt-4 w-full px-6 text-neutral-400">
-                    {songs.length === 0 && user ? 'Songs you add appear here.' : 'Please log in to view your library.'}
-                </div>
+                <Card className="bg-card/40 border-border">
+                    <CardHeader>
+                        <CardTitle>Your Library</CardTitle>
+                        <CardDescription>
+                            {songs.length === 0 && user ? 'Songs you add appear here.' : 'Please log in to view your library.'}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button onClick={onClick}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            {user ? 'Upload Song' : 'Sign In'}
+                        </Button>
+                    </CardContent>
+                </Card>
             ) : (
                 <Table songs={songs} onPlay={onPlay} />
             )}

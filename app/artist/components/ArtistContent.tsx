@@ -6,30 +6,14 @@ import { Song } from '@/types';
 import SortArtist from './sortartist';
 import ArtistModal from '@/components/ArtistModal';
 import ArtistSearch from './ArtistSearch';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Music } from 'lucide-react';
 
 const ArtistContent = () => {
     const [artists, setArtists] = useState<{ [key: string]: { songs: Song[]; albums: Set<string> } }>({});
     const [filteredArtists, setFilteredArtists] = useState<{ [key: string]: { songs: Song[]; albums: Set<string> } }>({});
     const [selectedArtist, setSelectedArtist] = useState<string | null>(null);
     const supabase = useSupabaseClient();
-
-    const colorClasses = [
-        { base: 'bg-purple-500', hover: 'hover:bg-purple-800' },
-        { base: 'bg-blue-500', hover: 'hover:bg-blue-800' },
-        { base: 'bg-green-500', hover: 'hover:bg-green-800' },
-        { base: 'bg-red-500', hover: 'hover:bg-red-800' },
-        { base: 'bg-yellow-500', hover: 'hover:bg-yellow-800' },
-        { base: 'bg-pink-500', hover: 'hover:bg-pink-800' },
-        { base: 'bg-indigo-500', hover: 'hover:bg-indigo-800' },
-        { base: 'bg-teal-500', hover: 'hover:bg-teal-800' },
-        { base: 'bg-orange-500', hover: 'hover:bg-orange-800' },
-        { base: 'bg-lime-500', hover: 'hover:bg-lime-800' },
-        { base: 'bg-cyan-500', hover: 'hover:bg-cyan-800' },
-        { base: 'bg-amber-500', hover: 'hover:bg-amber-800' },
-        { base: 'bg-fuchsia-500', hover: 'hover:bg-fuchsia-800' },
-        { base: 'bg-rose-500', hover: 'hover:bg-rose-800' },
-    ];
-
 
     useEffect(() => {
         const fetchArtists = async () => {
@@ -85,32 +69,34 @@ const ArtistContent = () => {
     };
 
     return (
-        <div>
-            <div className='px-4 mt-4'><ArtistSearch onSearch={handleSearch} /></div>
+        <div className="p-4">
+            <div className='mb-4'><ArtistSearch onSearch={handleSearch} /></div>
             <SortArtist
                 artists={filteredArtists}
                 ContentComponent={({ artists }) => (
-                    <div className="bg-neutral-900 p-4 rounded-lg">
-                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                            {Object.keys(artists).map((artist) => {
-                                const randomColor = colorClasses[Math.floor(Math.random() * colorClasses.length)];
-                                const songCount = artists[artist].songs.length;
-                                return (
-                                    <div
-                                        key={artist}
-                                        className={`p-4 rounded-lg ${randomColor.base} ${randomColor.hover} cursor-pointer flex flex-col justify-between items-start`}
-                                        onClick={() => openArtistModal(artist)}
-                                    >
-                                        <div className="flex items-baseline">
-                                            <h2 className="text-lg font-bold text-black">{artist}</h2>
+                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {Object.keys(artists).map((artist) => {
+                            const songCount = artists[artist].songs.length;
+                            return (
+                                <Card
+                                    key={artist}
+                                    className="bg-card hover:bg-accent/80 cursor-pointer transition-all border-border"
+                                    onClick={() => openArtistModal(artist)}
+                                >
+                                    <CardHeader className="pb-3">
+                                        <div className="flex items-center gap-2">
+                                            <Music className="h-5 w-5 text-muted-foreground" />
+                                            <CardTitle className="text-lg">{artist}</CardTitle>
                                         </div>
-                                        <div className="text-sm text-black">
+                                    </CardHeader>
+                                    <CardContent>
+                                        <CardDescription>
                                             {songCount} {songCount === 1 ? 'song' : 'songs'}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
+                                        </CardDescription>
+                                    </CardContent>
+                                </Card>
+                            );
+                        })}
                     </div>
                 )}
             />

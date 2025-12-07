@@ -1,45 +1,22 @@
 import { forwardRef } from "react";
-import { twMerge } from 'tailwind-merge';
+import { Input as UiInput } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
-interface InputProps 
-   extends React.InputHTMLAttributes<HTMLInputElement> {}
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 
-const Input = forwardRef<HTMLInputElement, InputProps>(({
-    className,
-    type,
-    disabled,
-    ...props
-}, ref) => {
-    return(
-        <input 
-          type={type}
-          className={twMerge(`
-             flex
-             w-full
-             rounded-full
-             bg-neutral-200/35
-             border
-             border-transparent
-             px-3
-             py-3
-             text-sm
-             file:border-0
-             file:bg-transparent
-             file:text-sm
-             file:font-medium
-             placeholder:text-neutral-800
-             disabled:cursor-not-allowed
-             disabled:opacity-50
-             focus:outline-none
-          `,
-          className
-        )}
-        disabled={disabled}
-        ref={ref}
-        {...props}
+const Input = forwardRef<HTMLInputElement, InputProps>(({ className, ...props }, ref) => {
+    return (
+        <UiInput
+            ref={ref}
+            className={cn(
+                "w-full rounded-full bg-card text-foreground placeholder:text-muted-foreground",
+                "border border-border focus-visible:ring-2 focus-visible:ring-ring",
+                className
+            )}
+            {...props}
         />
-    )
+    );
 });
 
-Input.displayName = 'Input';
-export default Input;   
+Input.displayName = "Input";
+export default Input;

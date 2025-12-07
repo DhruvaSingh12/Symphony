@@ -7,9 +7,10 @@ import useLoadAvatar from "@/hooks/useLoadAvatar";
 import { UserDetails } from "@/types";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/hooks/useUser";
-import { FaUser, FaBirthdayCake, FaTransgender } from "react-icons/fa";
+import { User, Cake, Users } from "lucide-react";
 import DetailsForm from "./DetailsForm";
-import Image from 'next/image';
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const AccountsContent = () => {
   const supabaseClient = useSupabaseClient();
@@ -95,7 +96,7 @@ const AccountsContent = () => {
   };
 
   return (
-    <div className="bg-neutral-900 p-6 rounded-lg shadow-md">
+    <Card className="bg-card border-border">
       {isNewUser ? (
         <DetailsForm
           firstName={firstName}
@@ -110,41 +111,34 @@ const AccountsContent = () => {
           handleSave={handleSave}
         />
       ) : (
-        <div className="flex items-center space-x-4">
-          {avatarUrl ? (
-            <div className="relative h-32 w-32">
-              <Image
-                src={avatarUrl}
-                alt="Avatar"
-                className="rounded-full"
-                layout="fill"
-                objectFit="cover"
-              />
-            </div>
-          ) : (
-            <div className="h-32 w-32 bg-gray-200 rounded-full flex items-center justify-center">
-              <span className="text-gray-400">No image</span>
-            </div>
-          )}
-          <div className="space-y-2">
-            <div className="flex items-center space-x-2">
-              <FaUser className="text-gray-300" />
-              <span className="text-lg font-medium text-gray-300">
-                {userDetails?.first_name} {userDetails?.last_name}
-              </span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <FaBirthdayCake className="text-gray-300" />
-              <span className="text-lg text-gray-300">{userDetails?.dateOfBirth}</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <FaTransgender className="text-gray-300" />
-              <span className="text-lg text-gray-300">{userDetails?.gender}</span>
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-4">
+            <Avatar className="h-32 w-32">
+              <AvatarImage src={avatarUrl || undefined} alt="Avatar" />
+              <AvatarFallback>
+                <User className="h-16 w-16" />
+              </AvatarFallback>
+            </Avatar>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-muted-foreground" />
+                <span className="text-lg font-medium">
+                  {userDetails?.first_name} {userDetails?.last_name}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Cake className="h-4 w-4 text-muted-foreground" />
+                <span className="text-lg">{userDetails?.dateOfBirth}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <span className="text-lg">{userDetails?.gender}</span>
+              </div>
             </div>
           </div>
-        </div>
+        </CardContent>
       )}
-    </div>
+    </Card>
   );
 };
 

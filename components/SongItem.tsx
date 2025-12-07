@@ -3,9 +3,22 @@
 import useLoadImage from "@/hooks/useLoadImage";
 import { Song } from "@/types";
 import Image from "next/image";
-import React, { useState, useEffect, useRef } from "react";
+import React from "react";
 import PlayButton from "./PlayButton";
 import LikeButton from "./LikeButton";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { MoreVertical, Calendar } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SongItemProps {
   data: Song;
@@ -13,8 +26,6 @@ interface SongItemProps {
 }
 
 const SongItem: React.FC<SongItemProps> = ({ data, onClick }) => {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const imagePath = useLoadImage(data);
 
   const getDayWithSuffix = (day: number) => {
@@ -41,82 +52,59 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick }) => {
 
   const formattedDate = formatDate(data.created_at);
 
-  const toggleDropdown = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsDropdownOpen(!isDropdownOpen);
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
   return (
-    <div
-      className="
-        relative
-        group
-        flex
-        flex-col
-        items-center
-        justify-center
-        rounded-md
-        overflow-hidden
-        gap-x-4
-        bg-neutral-400/35
-        cursor-pointer
-        hover:bg-neutral-400/15
-        transition
-        p-3
-      "
-    >
-      <div className="relative w-full h-full aspect-square rounded-md overflow-hidden">
+    <Card className="group relative flex flex-col bg-card/60 hover:bg-card border-border transition p-3 cursor-pointer">
+      <div className="relative w-full aspect-square rounded-md overflow-hidden mb-4">
         <Image
           className="object-cover"
           src={imagePath || '/images/liked.png'}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          alt="Image"
+          alt={data.title || "Song"}
         />
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
           <PlayButton onClick={() => onClick(data.id)} />
         </div>
       </div>
-      <div className="flex flex-col items-start w-full pt-4 gap-y-1">
-        <p className="font-semibold truncate w-full">{data.title}</p>
-        <div className="relative flex flex-col items-center justify-between w-full pt-1">
-          <p className="text-neutral-200 text-sm w-full truncate">{data.artist.join(', ')}</p>
-          <button
-            type="button"  
-            className="text-neutral-200 ml-28"
-            onClick={toggleDropdown}  
-            aria-haspopup="true"
-          >
-            &#x22EE; 
-          </button>
-          {isDropdownOpen && (
-            <div
-              ref={dropdownRef}
-              className="mt-2 w-30 bg-neutral-400/25 text-white rounded-md z-10"
-            >
-              <div className="py-2">
-                <p className="px-4 py-2 text-sm border-b border-neutral-500">{data.album}</p>  
-                <p className="px-4 py-2 text-sm border-t border-neutral-500">{formattedDate}</p>
-                <div className="px-4 py-2 text-sm border-t border-neutral-500">Add to liked <LikeButton songId={data.id} /></div>
-              </div>
-            </div>
-          )}
+      <div className="flex flex-col gap-y-2">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold truncate text-foreground">{data.title}</p>
+            <p className="text-muted-foreground text-sm truncate">{data.artist.join(', ')}</p>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuLabel>Song details</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {data.album && (
+                <DropdownMenuItem disabled>
+                  <Badge variant="outline" className="mr-2">{data.album}</Badge>
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem disabled>
+                <Calendar className="mr-2 h-4 w-4" />
+                {formattedDate}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                <LikeButton songId={data.id} className="h-6 w-6" />
+                <span className="ml-2">Like</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }
 

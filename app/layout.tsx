@@ -10,6 +10,7 @@ import getSongsByUserId from "@/actions/getSongsByUserId";
 import Player from "@/app/player/Player";
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { ThemeProvider } from "@/components/theme-provider";
 
 const font = Figtree({ subsets: ["latin"] });
 
@@ -28,20 +29,22 @@ export default async function RootLayout({
   const userSongs = await getSongsByUserId();
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${font.className} w-full h-full`}>
-        <ToasterProvider />
-        <SupabaseProvider>
-          <UserProvider>
-            <ModalProvider />
-            <Sidebar songs={userSongs}>
-              {children}
-              <Analytics />
-              <SpeedInsights/>
-            </Sidebar>
-            <Player />
-          </UserProvider>
-        </SupabaseProvider>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+          <ToasterProvider />
+          <SupabaseProvider>
+            <UserProvider>
+              <ModalProvider />
+              <Sidebar songs={userSongs}>
+                {children}
+                <Analytics />
+                <SpeedInsights/>
+              </Sidebar>
+              <Player />
+            </UserProvider>
+          </SupabaseProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

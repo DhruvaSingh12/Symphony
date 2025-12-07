@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useUser } from "@/hooks/useUser";
 import useAuthModal from "@/hooks/useAuthModal";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface ListItemProps {
     image: string;
@@ -28,40 +30,26 @@ const ListItem: React.FC<ListItemProps> = ({
     };
 
     return (
-        <div 
+        <Card
             onClick={onClick}
-            className="
-                relative
-                group
-                flex
-                items-center
-                rounded-md
-                overflow-hidden
-                gap-x-1
-                bg-neutral-200/20
-                hover:bg-neutral-600/35
-                transition
-                pr-1
-                cursor-pointer
-            "
+            className={cn(
+                "group relative flex items-center gap-x-2 overflow-hidden cursor-pointer",
+                "bg-card/60 hover:bg-accent/80 border-border transition p-0"
+            )}
         >
-            <div className="
-                relative
-                min-h-[64px]
-                min-w-[64px]
-            ">
+            <div className="relative min-h-[64px] min-w-[64px]">
                 <Image
                     className="object-cover"
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     src={image}
-                    alt="Image"
+                    alt={name}
                 />
             </div>
-            <p className="font-medium truncate py-5">
+            <p className="font-medium truncate py-5 px-2 text-foreground">
                 {name}
             </p>
-        </div>
+        </Card>
     );
 };
 

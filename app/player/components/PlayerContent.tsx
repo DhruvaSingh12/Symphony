@@ -1,18 +1,15 @@
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { BsPauseFill, BsPlayFill } from 'react-icons/bs';
-import { AiFillStepBackward, AiFillStepForward } from 'react-icons/ai';
-import { HiSpeakerWave, HiSpeakerXMark } from 'react-icons/hi2';
-import { IoMdRewind, IoMdFastforward } from 'react-icons/io';
-import { FaRandom } from 'react-icons/fa';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faRepeat } from '@fortawesome/free-solid-svg-icons';
+import { Pause, Play, SkipBack, SkipForward, Rewind, FastForward, Volume2, VolumeX, Shuffle, Repeat } from 'lucide-react';
 import usePlayer from '@/hooks/usePlayer';
 import { Song } from '@/types';
-import Box from '@/components/Box';
+import { Card } from '@/components/ui/card';
 import MediaItem from '@/components/MediaItem';
 import LikeButton from '@/components/LikeButton';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Slider from './Slider';
+import { cn } from '@/lib/utils';
 
 interface PlayerContentProps {
   song: Song;
@@ -31,8 +28,8 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
 
-  const Icon = isPlaying ? BsPauseFill : BsPlayFill;
-  const VolumeIcon = volume === 0 ? HiSpeakerXMark : HiSpeakerWave;
+  const Icon = isPlaying ? Pause : Play;
+  const VolumeIcon = volume === 0 ? VolumeX : Volume2;
 
   const onPlayNext = useCallback(() => {
     if (player.ids.length === 0) {
@@ -161,134 +158,174 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   }, [songUrl, isPlaying]);
 
   return (
-    <div className="mx-1 flex flex-row gap-x-1">
-      <Box className="bg-neutral-800 h-16 items-center w-2/6 md:w-1/5">
-        <div className="flex items-center gap-x-4 mb-1">
-          <MediaItem data={song} />
-        </div>
-      </Box>
-      <Box className="w-4/6 bg-neutral-800 h-16 md:w-4/5">
-        <div className="flex flex-row w-full justify-center mr-2 gap-x-1 mb-1">
-          <div className="flex px-1 gap-x-4 justify-center md:hidden mt-4 items-center">
-            <LikeButton songId={song.id} />
-          </div>
-          <div className="flex px-1 gap-x-2 mt-4 justify-center items-center md:hidden">
-            <FaRandom
-              onClick={() => setIsShuffle((prev) => !prev)}
-              size={20}
-              className={`text-neutral-400 cursor-pointer hover:text-white transition ${isShuffle ? 'text-purple-400' : ''}`}
-              aria-label="Shuffle"
-            />
-            <AiFillStepBackward
-              onClick={onPlayPrevious}
-              size={26}
-              className="text-neutral-400 cursor-pointer hover:text-white transition"
-              aria-label="Previous"
-            />
-            <div
-              onClick={handlePlayPause}
-              className="h-8 w-8 flex items-center justify-center rounded-full bg-white p-1 cursor-pointer"
-              aria-label={isPlaying ? 'Pause' : 'Play'}
-            >
-              <Icon size={20} className="text-black" />
-            </div>
-            <AiFillStepForward
-              onClick={onPlayNext}
-              size={26}
-              className="text-neutral-400 cursor-pointer hover:text-white transition"
-              aria-label="Next"
-            />
-            <FontAwesomeIcon
-              icon={faRepeat}
-              onClick={() => setIsRepeat((prev) => !prev)}
-              size="1x"
-              className={`text-neutral-400 cursor-pointer hover:text-white transition ${isRepeat ? 'text-purple-400' : ''}`}
-              aria-label="Repeat"
-            />
-            <VolumeIcon onClick={toggleMute} className="cursor-pointer" size={24} />
-          </div>
-          <div className="md:flex hidden mx-3 px-1 gap-x-4 justify-center items-center">
-            <LikeButton songId={song.id} />
-          </div>
-          <div className="hidden md:flex flex-col items-center justify-center w-[1000px] gap-x-6 max-w-[722px] mx-6">
-            <div className="flex items-center justify-center gap-x-2">
-              <FaRandom
-                onClick={() => setIsShuffle((prev) => !prev)}
-                size={20}
-                className={`text-neutral-500 cursor-pointer hover:text-white transition ${isShuffle ? 'text-violet-500' : ''}`}
-                aria-label="Shuffle"
-              />
-              <AiFillStepBackward
-                onClick={onPlayPrevious}
-                size={26}
-                className="text-neutral-500 cursor-pointer hover:text-white transition"
-                aria-label="Previous"
-              />
-              <IoMdRewind
-                onClick={skipBackward}
-                size={26}
-                className="text-neutral-500 cursor-pointer hover:text-white transition"
-                aria-label="Rewind 10 seconds"
-              />
-              <div
+    <TooltipProvider>
+      <div className="flex gap-2 mx-1">
+        <Card className="bg-card border-border h-16 flex items-center w-2/6 md:w-1/5 p-2">
+          <MediaItem data={song} onClick={() => {}} />
+        </Card>
+        <Card className="bg-card border-border w-4/6 md:w-4/5 h-16 p-2">
+          <div className="flex w-full justify-center items-center h-full">
+            <div className="flex gap-2 justify-center items-center md:hidden">
+              <LikeButton songId={song.id} />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsShuffle((prev) => !prev)}
+                    className={cn(isShuffle && "text-primary")}
+                  >
+                    <Shuffle className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Shuffle</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={onPlayPrevious}>
+                    <SkipBack className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Previous</TooltipContent>
+              </Tooltip>
+              <Button
+                variant="secondary"
+                size="icon"
+                className="rounded-full h-8 w-8"
                 onClick={handlePlayPause}
-                className="h-8 w-8 flex items-center justify-center rounded-full bg-white p-1 cursor-pointer"
-                aria-label={isPlaying ? 'Pause' : 'Play'}
               >
-                <Icon size={24} className="text-black" />
+                <Icon className="h-4 w-4" />
+              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={onPlayNext}>
+                    <SkipForward className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Next</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsRepeat((prev) => !prev)}
+                    className={cn(isRepeat && "text-primary")}
+                  >
+                    <Repeat className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Repeat</TooltipContent>
+              </Tooltip>
+              <Button variant="ghost" size="icon" onClick={toggleMute}>
+                <VolumeIcon className="h-5 w-5" />
+              </Button>
+            </div>
+            <div className="hidden md:flex items-center gap-4 w-full px-4">
+              <LikeButton songId={song.id} />
+              <div className="flex flex-col items-center justify-center flex-1 max-w-[722px]">
+                <div className="flex items-center gap-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsShuffle((prev) => !prev)}
+                        className={cn(isShuffle && "text-primary")}
+                      >
+                        <Shuffle className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Shuffle</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" onClick={onPlayPrevious}>
+                        <SkipBack className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Previous</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" onClick={skipBackward}>
+                        <Rewind className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Rewind 10s</TooltipContent>
+                  </Tooltip>
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="rounded-full h-8 w-8"
+                    onClick={handlePlayPause}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" onClick={skipForward}>
+                        <FastForward className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Forward 10s</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" onClick={onPlayNext}>
+                        <SkipForward className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Next</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsRepeat((prev) => !prev)}
+                        className={cn(isRepeat && "text-primary")}
+                      >
+                        <Repeat className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Repeat</TooltipContent>
+                  </Tooltip>
+                </div>
+                <div
+                  ref={timelineRef}
+                  className="relative w-full mt-2 h-1 bg-muted rounded cursor-pointer"
+                  onClick={handleTimelineClick}
+                >
+                  <div
+                    className="absolute h-full bg-primary rounded"
+                    style={{ width: `${(currentTime / (duration || 1)) * 100}%` }}
+                  />
+                </div>
+                <div className="w-full flex justify-between text-muted-foreground text-xs mt-1">
+                  <span>{formatTime(currentTime)}</span>
+                  <span>{duration ? formatTime(duration) : '00:00'}</span>
+                </div>
               </div>
-              <IoMdFastforward
-                onClick={skipForward}
-                size={26}
-                className="text-neutral-500 cursor-pointer hover:text-white transition"
-                aria-label="Forward 10 seconds"
-              />
-              <AiFillStepForward
-                onClick={onPlayNext}
-                size={26}
-                className="text-neutral-500 cursor-pointer hover:text-white transition"
-                aria-label="Next"
-              />
-              <FontAwesomeIcon
-                icon={faRepeat}
-                onClick={() => setIsRepeat((prev) => !prev)}
-                size="lg"
-                className={`text-neutral-500 cursor-pointer hover:text-white transition ${isRepeat ? 'text-violet-500' : ''}`}
-                aria-label="Repeat"
-              />
-            </div>
-            <div
-              ref={timelineRef}
-              className="relative w-full mt-2 h-1 bg-neutral-600 rounded cursor-pointer"
-              onClick={handleTimelineClick}
-            >
               <div
-                className="absolute h-full bg-violet-500 rounded"
-                style={{ width: `${(currentTime / (duration || 1)) * 100}%` }}
-              />
-            </div>
-            <div className="w-full flex justify-between text-neutral-300 text-xs mt-1">
-              <span>{formatTime(currentTime)}</span>
-              <span>{duration ? formatTime(duration) : '00:00'}</span>
-            </div>
-          </div>
-          <div className="hidden md:flex w-full justify-end items-center pr-2">
-            <div
-              className="flex flex-row items-center mt-2 gap-x-2 w-[120px]"
-              onMouseEnter={() => setIsVolumeHovered(true)}
-              onMouseLeave={() => setIsVolumeHovered(false)}
-            >
-              <VolumeIcon onClick={toggleMute} className="cursor-pointer" size={32} />
-              <Slider value={volume} onChange={(value) => setVolume(value)} />
-              {isVolumeHovered && (
-                <span className="text-neutral-400 text-sm">{Math.round(volume * 100)}</span>
-              )}
+                className="flex items-center gap-2 w-[120px]"
+                onMouseEnter={() => setIsVolumeHovered(true)}
+                onMouseLeave={() => setIsVolumeHovered(false)}
+              >
+                <Button variant="ghost" size="icon" onClick={toggleMute}>
+                  <VolumeIcon className="h-5 w-5" />
+                </Button>
+                <Slider value={volume} onChange={(value) => setVolume(value)} />
+                {isVolumeHovered && (
+                  <span className="text-muted-foreground text-sm">{Math.round(volume * 100)}</span>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </Box>
-      <audio ref={audioRef} src={songUrl} />
-    </div>
+        </Card>
+        <audio ref={audioRef} src={songUrl} />
+      </div>
+    </TooltipProvider>
   );
 };
 

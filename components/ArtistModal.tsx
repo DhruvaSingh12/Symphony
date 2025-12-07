@@ -4,6 +4,17 @@ import React from 'react';
 import { Song } from '@/types';
 import MediaItem from './MediaItem';
 import LikeButton from './LikeButton';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Music } from 'lucide-react';
 
 interface ArtistModalProps {
   artist: string;
@@ -15,40 +26,41 @@ const ArtistModal: React.FC<ArtistModalProps> = ({ artist, artistData, onClose }
   const songCount = artistData.songs.length;
 
   return (
-    <div className="fixed inset-0 mx-1 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-neutral-900 p-6 rounded-lg shadow-lg max-w-2xl w-full max-h-[70vh] overflow-y-auto relative">
-        <button
-          type="button"
-          className="absolute top-4 right-4 text-white text-3xl"
-          onClick={onClose}
-        >
-          &times;
-        </button>
-        <div className='flex flex-row gap-x-5 items-center'>
-          <h2 className="text-2xl font-bold text-white">
+    <Sheet open={true} onOpenChange={onClose}>
+      <SheetContent className="w-full sm:max-w-2xl">
+        <SheetHeader>
+          <SheetTitle className="flex items-center gap-2">
+            <Music className="h-5 w-5" />
             {artist}
-          </h2>
-          <h4 className='text-neutral-500'>
-            {songCount} {songCount === 1 ? 'song' : 'songs'}
-          </h4>
-        </div>
-        {Array.from(artistData.albums).map((album) => (
-          <div key={album} className="mt-4">
-            <h3 className="text-l font-semibold text-white">{album}</h3>
-            <ul className="mt-2 space-y-2">
-              {artistData.songs
-                .filter((song) => song.album === album)
-                .map((song) => (
-                  <li key={song.id} className="flex items-center space-x-2 mx-2">
-                    <MediaItem data={song} />
-                    <LikeButton songId={song.id} />
-                  </li>
-                ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-    </div>
+          </SheetTitle>
+          <SheetDescription>
+            <Badge variant="secondary">
+              {songCount} {songCount === 1 ? 'song' : 'songs'}
+            </Badge>
+          </SheetDescription>
+        </SheetHeader>
+        <ScrollArea className="h-[calc(100vh-8rem)] mt-4">
+          {Array.from(artistData.albums).map((album) => (
+            <div key={album} className="mb-6">
+              <h3 className="text-lg font-semibold mb-2">{album}</h3>
+              <Separator className="mb-2" />
+              <div className="space-y-2">
+                {artistData.songs
+                  .filter((song) => song.album === album)
+                  .map((song) => (
+                    <div key={song.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-accent/50">
+                      <div className="flex-1">
+                        <MediaItem data={song} onClick={() => {}} />
+                      </div>
+                      <LikeButton songId={song.id} />
+                    </div>
+                  ))}
+              </div>
+            </div>
+          ))}
+        </ScrollArea>
+      </SheetContent>
+    </Sheet>
   );
 };
 

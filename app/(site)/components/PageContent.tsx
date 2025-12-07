@@ -4,6 +4,8 @@ import React from 'react';
 import SongItem from '@/components/SongItem';
 import useOnPlay from '@/hooks/useOnPlay';
 import { Song } from '@/types';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface PageContentProps {
   songs: Song[];
@@ -14,9 +16,17 @@ const PageContent: React.FC<PageContentProps> = ({ songs }) => {
 
   if (songs.length === 0) {
     return (
-      <div className="mt-4 h-full text-neutral-400">
-        No songs available.
-      </div>
+      <Card className="bg-card/40 border-border">
+        <CardHeader>
+          <CardTitle>No songs available</CardTitle>
+          <CardDescription>Start by uploading your first track!</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
+        </CardContent>
+      </Card>
     );
   }
 

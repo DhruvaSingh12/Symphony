@@ -5,13 +5,16 @@ import usePlayer from "@/hooks/usePlayer";
 import { Song } from "@/types";
 import Image from "next/image";
 import React from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 interface MediaItemProps {
     data: Song;
     onClick?: (id: string) => void;
+    className?: string;
 }
 
-const MediaItem: React.FC<MediaItemProps> = ({ data, onClick }) => {
+const MediaItem: React.FC<MediaItemProps> = ({ data, onClick, className }) => {
     const imageUrl = useLoadImage(data);
     const player = usePlayer();
 
@@ -25,46 +28,25 @@ const MediaItem: React.FC<MediaItemProps> = ({ data, onClick }) => {
     return (
         <div
             onClick={handleClick}
-            className="
-                flex
-                items-center
-                gap-x-3
-                cursor-pointer
-                hover:bg-neutral-800
-                w-full
-                p-2
-                rounded-md
-            "
+            className={cn(
+                "flex items-center gap-x-3 cursor-pointer hover:bg-accent/50 w-full p-2 rounded-md transition",
+                className
+            )}
         >
-            <div
-                className="
-                    relative
-                    rounded-md
-                    min-h-[48px]
-                    min-w-[48px]
-                    overflow-hidden
-                "
-            >
-                <Image
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            <Avatar className="h-12 w-12 border border-border">
+                <AvatarImage
                     src={imageUrl || '/images/liked.png'}
-                    alt="Media item"
-                    className="object-cover"
+                    alt={data.title || "Media item"}
                 />
-            </div>
-            <div
-                className="
-                    flex
-                    flex-col
-                    gap-y-0.5
-                    overflow-hidden
-                "
-            >
-                <p className="text-white truncate">
+                <AvatarFallback>
+                    {data.title?.charAt(0) || "?"}
+                </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col gap-y-0.5 overflow-hidden flex-1">
+                <p className="text-foreground truncate font-medium">
                     {data.title}
                 </p>
-                <p className="text-neutral-300 truncate text-[14px]">
+                <p className="text-muted-foreground truncate text-sm">
                     {data.artist.join(', ')}
                 </p>
             </div>

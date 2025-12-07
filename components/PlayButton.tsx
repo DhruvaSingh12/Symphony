@@ -1,29 +1,30 @@
-import { FaPlay } from "react-icons/fa";
+"use client";
+
+import { Play } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface PlayButtonProps {
   onClick: () => void;
+  className?: string;
 }
 
-const PlayButton: React.FC<PlayButtonProps> = ({onClick}) => {
+const PlayButton: React.FC<PlayButtonProps> = ({ onClick, className }) => {
   return (
-    <button onClick={onClick}
-      className="
-        transition 
-        opacity-0
-        rounded-full
-        flex
-        items-center
-        bg-violet-500
-        p-4
-        drop-shadow-md
-        translate-y-1/4
-        group-hover:opacity-100
-        group-hover:translate-y-0
-        hover:scale-110
-      "
+    <Button
+      type="button"
+      onClick={onClick}
+      size="icon"
+      className={cn(
+        "transition opacity-0 rounded-full bg-primary text-primary-foreground shadow-lg",
+        "translate-y-1/4 group-hover:opacity-100 group-hover:translate-y-0 hover:scale-110",
+        "h-12 w-12",
+        className
+      )}
+      aria-label="Play"
     >
-      <FaPlay className="text-black" />
-    </button>
+      <Play className="h-5 w-5 fill-current" />
+    </Button>
   );
 };
 

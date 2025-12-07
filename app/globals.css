@@ -7,8 +7,8 @@ body,
 :root
 {
   height: 100%;
-  background-color: black;
-  color-scheme: dark;
+  background-color: hsl(var(--background));
+  color-scheme: light;
 }
 
 * {
@@ -46,4 +46,70 @@ body,
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
   line-clamp: 3;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 98%; /* off-white */
+    --foreground: 0 0% 5%; /* near-black text */
+    --card: 0 0% 100%; /* white card */
+    --card-foreground: 0 0% 6%; /* deep charcoal text on cards */
+    --popover: 0 0% 100%; /* white popovers */
+    --popover-foreground: 0 0% 6%; /* deep charcoal in popovers */
+    --primary: 0 0% 8%; /* primary black */
+    --primary-foreground: 0 0% 96%; /* light text on primary */
+    --secondary: 0 0% 92%; /* light gray surface */
+    --secondary-foreground: 0 0% 8%; /* black on secondary */
+    --muted: 0 0% 90%; /* muted gray background */
+    --muted-foreground: 0 0% 40%; /* medium gray text */
+    --accent: 0 0% 88%; /* subtle accent gray */
+    --accent-foreground: 0 0% 10%; /* dark text on accent */
+    --destructive: 0 0% 30%; /* dark gray destructive */
+    --destructive-foreground: 0 0% 96%; /* light text on destructive */
+    --border: 0 0% 82%; /* light border */
+    --input: 0 0% 82%; /* light input background */
+    --ring: 0 0% 16%; /* dark focus ring */
+    --chart-1: 0 0% 20%; /* charcoal series 1 */
+    --chart-2: 0 0% 35%; /* mid-dark gray series 2 */
+    --chart-3: 0 0% 50%; /* medium gray series 3 */
+    --chart-4: 0 0% 65%; /* mid-light gray series 4 */
+    --chart-5: 0 0% 80%; /* light gray series 5 */
+    --radius: 0.5rem;
+  }
+  .dark {
+    color-scheme: dark;
+    --background: 0 0% 6%; /* near-black */
+    --foreground: 0 0% 92%; /* off-white text */
+    --card: 0 0% 8%; /* very dark card */
+    --card-foreground: 0 0% 92%; /* off-white on cards */
+    --popover: 0 0% 8%; /* very dark popover */
+    --popover-foreground: 0 0% 92%; /* off-white in popovers */
+    --primary: 0 0% 92%; /* primary off-white */
+    --primary-foreground: 0 0% 8%; /* deep charcoal on primary */
+    --secondary: 0 0% 16%; /* dark gray surface */
+    --secondary-foreground: 0 0% 92%; /* off-white on secondary */
+    --muted: 0 0% 20%; /* muted dark gray */
+    --muted-foreground: 0 0% 68%; /* mid-light gray text */
+    --accent: 0 0% 20%; /* accent dark gray */
+    --accent-foreground: 0 0% 92%; /* off-white on accent */
+    --destructive: 0 0% 38%; /* charcoal destructive */
+    --destructive-foreground: 0 0% 94%; /* pale text on destructive */
+    --border: 0 0% 18%; /* dark border */
+    --input: 0 0% 18%; /* dark input background */
+    --ring: 0 0% 70%; /* light ring */
+    --chart-1: 0 0% 18%; /* series 1 dark */
+    --chart-2: 0 0% 32%; /* series 2 gray */
+    --chart-3: 0 0% 48%; /* series 3 mid-gray */
+    --chart-4: 0 0% 64%; /* series 4 light gray */
+    --chart-5: 0 0% 78%; /* series 5 pale gray */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
