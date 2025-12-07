@@ -2,7 +2,7 @@
 
 import useAuthModal from "@/hooks/useAuthModal";
 import { useUser } from "@/hooks/useUser";
-import { useSessionContext } from "@supabase/auth-helpers-react";
+import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -16,7 +16,7 @@ const LikeButton: React.FC<LikeButtonProps> =({
     songId
 }) => {
     const router = useRouter();
-    const {supabaseClient} = useSessionContext();
+    const supabaseClient = useSupabaseClient();
 
     const authModal = useAuthModal();
     const {user} = useUser();
@@ -33,7 +33,7 @@ const LikeButton: React.FC<LikeButtonProps> =({
             .from('liked_songs')
             .select('*')
             .eq('user_id', user.id)
-            .eq('song_id', songId)
+            .eq('song_id', Number(songId))
             .single();
 
             if(!error && data){
@@ -56,7 +56,7 @@ const LikeButton: React.FC<LikeButtonProps> =({
                 .from('liked_songs')
                 .delete()
                 .eq('user_id', user.id)
-                .eq('song_id', songId);
+                .eq('song_id', Number(songId));
 
                 if(error) {
                     toast.error(error.message);
@@ -70,7 +70,7 @@ const LikeButton: React.FC<LikeButtonProps> =({
             .from('liked_songs')
             .insert({
                 user_id: user.id,
-                song_id: songId
+                song_id: Number(songId)
             });
 
             if(error) {

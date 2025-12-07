@@ -7,7 +7,7 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useUser } from '@/hooks/useUser';
 import uniqid from 'uniqid';
-import { useSupabaseClient } from '@supabase/auth-helpers-react';
+import { useSupabaseClient } from '@/providers/SupabaseProvider';
 import { useRouter } from 'next/navigation';
 import Input from '@/app/search/components/Input';
 import Button from '@/components/Button';

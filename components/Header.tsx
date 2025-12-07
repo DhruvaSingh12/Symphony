@@ -7,7 +7,7 @@ import { HiHome } from "react-icons/hi";
 import { BiSearch } from "react-icons/bi";
 import Button from "./Button";
 import useAuthModal from "@/hooks/useAuthModal";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { useUser } from "@/hooks/useUser";
 import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
@@ -68,13 +68,14 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
         if (error) {
           toast.error(error.message);
         } else {
+          const typedData = data as unknown as UserDetails;
           const userDetails: UserDetails = {
-            id: data?.id || "",
-            first_name: data?.first_name,
-            last_name: data?.last_name,
-            avatar_url: data?.avatar_url,
-            gender: data?.gender,
-            dateOfBirth: data?.dateOfBirth,
+            id: typedData?.id || "",
+            first_name: typedData?.first_name,
+            last_name: typedData?.last_name,
+            avatar_url: typedData?.avatar_url,
+            gender: typedData?.gender,
+            dateOfBirth: typedData?.dateOfBirth,
           };
 
           setUserDetails(userDetails);

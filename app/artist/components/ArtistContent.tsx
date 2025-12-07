@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { useSupabaseClient } from '@supabase/auth-helpers-react';
+import { useSupabaseClient } from '@/providers/SupabaseProvider';
 import { Song } from '@/types';
 import SortArtist from './sortartist';
 import ArtistModal from '@/components/ArtistModal';
@@ -43,9 +43,10 @@ const ArtistContent = () => {
             }
 
             const artistData: { [key: string]: { songs: Song[]; albums: Set<string> } } = {};
+            const typedSongs = (songs as unknown as Song[]) || [];
 
-            songs.forEach((song) => {
-                song.artist.forEach((artist: string) => {
+            typedSongs.forEach((song) => {
+                (song.artist || []).forEach((artist: string) => {
                     if (!artistData[artist]) {
                         artistData[artist] = { songs: [], albums: new Set() };
                     }

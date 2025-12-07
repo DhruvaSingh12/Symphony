@@ -1,25 +1,60 @@
 "use client";
 
-import {Database} from "@/types_db";
-
-import {createClientComponentClient} from "@supabase/auth-helpers-nextjs";
-import {useState} from "react"
-import {SessionContextProvider} from "@supabase/auth-helpers-react"
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import type { SupabaseClient, Session } from "@supabase/supabase-js";
+import type { Database } from "@/types_db";
+import { createClient } from "@/supabase/client";
 
 interface SupabaseProviderProps {
-    children: React.ReactNode;
+  children: React.ReactNode;
+}
+
+type SupabaseContextValue = {
+  supabase: SupabaseClient<Database>;
+  session: Session | null;
+  isLoading: boolean;
 };
 
-const SupabaseProvider: React.FC<SupabaseProviderProps> = ({
-    children
-}) => {
-    const [supabaseClient] = useState(() => createClientComponentClient<Database>()
-  );
-  return (
-    <SessionContextProvider supabaseClient={supabaseClient}>
-        {children}
-    </SessionContextProvider>
-  )
-}
+const SupabaseContext = createContext<SupabaseContextValue | undefined>(undefined);
+
+const SupabaseProvider: React.FC<SupabaseProviderProps> = ({ children }) => {
+  const [supabase] = useState(() => createClient());
+  const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!isMounted) return;
+      setSession(data.session ?? null);
+      setIsLoading(false);
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+    });
+
+    return () => {
+      isMounted = false;
+      authListener?.subscription.unsubscribe();
+    };
+  }, [supabase]);
+
+  const value = useMemo(() => ({ supabase, session, isLoading }), [supabase, session, isLoading]);
+
+  return <SupabaseContext.Provider value={value}>{children}</SupabaseContext.Provider>;
+};
+
+export const useSupabase = () => {
+  const context = useContext(SupabaseContext);
+  if (!context) {
+    throw new Error("useSupabase must be used within SupabaseProvider");
+  }
+  return context;
+};
+
+export const useSupabaseClient = () => useSupabase().supabase;
+export const useSupabaseSession = () => useSupabase().session;
 
 export default SupabaseProvider;

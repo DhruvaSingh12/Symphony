@@ -1,4 +1,4 @@
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { UserDetails } from "@/types";
 
 const useLoadAvatar = (user: UserDetails | null) => {

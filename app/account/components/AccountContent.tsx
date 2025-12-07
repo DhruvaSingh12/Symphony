@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import toast from "react-hot-toast";
 import useLoadAvatar from "@/hooks/useLoadAvatar";
 import { UserDetails } from "@/types";
@@ -42,12 +42,13 @@ const AccountsContent = () => {
       if (error) {
         toast.error(error.message);
       } else if (data) {
-        setUserDetails(data);
-        setIsNewUser(!data.first_name || !data.last_name || !data.gender || !data.dateOfBirth);
-        setFirstName(data.first_name || "");
-        setLastName(data.last_name || "");
-        setGender(data.gender || "");
-        setDateOfBirth(data.dateOfBirth || "");
+        const typedData = data as unknown as UserDetails;
+        setUserDetails(typedData);
+        setIsNewUser(!typedData.first_name || !typedData.last_name || !typedData.gender || !typedData.dateOfBirth);
+        setFirstName(typedData.first_name || "");
+        setLastName(typedData.last_name || "");
+        setGender(typedData.gender || "");
+        setDateOfBirth(typedData.dateOfBirth || "");
       }
     };
 

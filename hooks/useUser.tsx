@@ -1,9 +1,9 @@
 import { UserDetails } from "@/types";
 import { Subscription } from "@/types";
-import { User } from "@supabase/auth-helpers-nextjs";
-import { useContext} from "react";
+import { User } from "@supabase/supabase-js";
+import { useContext } from "react";
 import { createContext, useEffect, useState } from "react";
-import {useSessionContext, useUser as useSupaUser} from "@supabase/auth-helpers-react";
+import { useSupabase } from "@/providers/SupabaseProvider";
 
 type UserContextType = {
 accessToken: string | null;
@@ -22,17 +22,15 @@ export interface Props {
 };
 
 export const MyUserContextProvider = (props: Props) => {
-const {
-session, isLoading: isLoadingUser, supabaseClient: supabase
-} = useSessionContext();
-const user = useSupaUser();
+const { supabase, session, isLoading: isLoadingSession } = useSupabase();
+const user = session?.user ?? null;
 const accessToken = session?.access_token ?? null;
 const [isLoadingData, setIsLoadingData]= useState(false);
 const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
 const [subscription, setSubscription] = useState<Subscription | null>(null);
 
 const getUserDetails = () => supabase.from('users').select('*').single();
-const getSubscription = () => supabase.from('subscriptions').select('*,prices(*, products(*))').in('status', ['trailing', 'active']).single();
+const getSubscription = () => supabase.from('subscriptions').select('*,prices(*, products(*))').in('status', ['trialing', 'active']).single();
 
 useEffect(() => {
     if (user && !isLoadingData && !userDetails && !subscription) {
@@ -49,17 +47,17 @@ useEffect(() => {
                 setIsLoadingData(false);
             });
     }
-    else if (!user && !isLoadingUser && !isLoadingData ) {
+    else if (!user && !isLoadingSession && !isLoadingData ) {
         setUserDetails(null);
         setSubscription(null);
     }
-}, [user, isLoadingUser]);
+}, [user, isLoadingSession, isLoadingData, userDetails, subscription]);
 
 const value = {
     accessToken,
     user,
     userDetails,
-    isLoading: isLoadingUser || isLoadingData,
+    isLoading: isLoadingSession || isLoadingData,
     subscription
 };
 
