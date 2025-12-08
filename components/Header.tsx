@@ -24,6 +24,7 @@ import useLoadAvatar from "@/hooks/useLoadAvatar";
 import { UserDetails } from "@/types";
 import { ThemeToggleButton } from "@/components/ThemeToggleButton";
 import { cn } from "@/lib/utils";
+import { Progress } from "@/components/ui/progress";
 
 interface HeaderProps {
   children: React.ReactNode;
@@ -38,6 +39,7 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const avatarUrl = useLoadAvatar(userDetails);
   const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string>("/images/default-avatar.png");
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -76,19 +78,26 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
   }, [avatarUrl]);
 
   const handleLogout = async () => {
+    setIsLoading(true);
     const { error } = await supabaseClient.auth.signOut();
     router.refresh();
 
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Logged out successfully");
+      toast.success("Logged out successfully!");
     }
+    setIsLoading(false);
   };
 
   return (
-    <div className={cn("px-5 pb-5 pt-2 rounded-lg bg-gradient-to-b from-neutral-100/80 via-neutral-200 to-neutral-300 dark:from-neutral-900/90 dark:via-neutral-950 dark:to-neutral-900", className, "w-full h-full")}>
-      <div className="w-full mb-4 flex items-center justify-between">
+    <div className="w-full px-5 pb-5 pt-5 rounded-lg bg-gradient-to-b border border-border relative">
+      {isLoading && (
+        <div className="absolute top-0 left-0 right-0 z-50 rounded-t-lg overflow-hidden">
+          <Progress value={undefined} className="h-1 rounded-none" />
+        </div>
+      )}
+      <div className="w-full mb-2 flex items-center justify-between">
         <div className="hidden md:flex gap-x-2 items-center">
           <Button
             type="button"

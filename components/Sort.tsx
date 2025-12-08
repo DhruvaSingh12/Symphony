@@ -51,8 +51,7 @@ const Sort = <T extends { songs: Song[] }>({ songs, ContentComponent }: SortProp
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-semibold text-foreground">Discover Music</h1>
+      <div className="flex justify-end items-center mb-2 pb-2">
         <Select value={sortOption} onValueChange={setSortOption}>
           <SelectTrigger className="w-[180px] bg-background border-border">
             <SelectValue placeholder="Sort by..." />

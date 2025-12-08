@@ -3,11 +3,12 @@
 import useLoadImage from "@/hooks/useLoadImage";
 import { Song } from "@/types";
 import Image from "next/image";
-import React from "react";
+import React, { useState } from "react";
 import PlayButton from "./PlayButton";
 import LikeButton from "./LikeButton";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +28,7 @@ interface SongItemProps {
 
 const SongItem: React.FC<SongItemProps> = ({ data, onClick }) => {
   const imagePath = useLoadImage(data);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const getDayWithSuffix = (day: number) => {
     if (day > 3 && day < 21) return `${day}th`;
@@ -53,14 +55,18 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick }) => {
   const formattedDate = formatDate(data.created_at);
 
   return (
-    <Card className="group relative flex flex-col bg-card/60 hover:bg-card border-border transition p-3 cursor-pointer">
-      <div className="relative w-full aspect-square rounded-md overflow-hidden mb-4">
+    <Card className="group relative flex flex-col bg-card/60 hover:bg-card hover:shadow-md border-border transition-all p-3 cursor-pointer">
+      <div className="relative w-full aspect-square rounded-md overflow-hidden mb-4 bg-muted">
+        {!imageLoaded && (
+          <Skeleton className="absolute inset-0" />
+        )}
         <Image
-          className="object-cover"
+          className="object-cover transition-transform group-hover:scale-105"
           src={imagePath || '/images/liked.png'}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           alt={data.title || "Song"}
+          onLoad={() => setImageLoaded(true)}
         />
         <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
           <PlayButton onClick={() => onClick(data.id)} />

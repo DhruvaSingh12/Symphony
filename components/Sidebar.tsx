@@ -2,46 +2,62 @@
 
 import { usePathname } from "next/navigation";
 import React, { useMemo } from "react";
-import { HiHome } from "react-icons/hi";
-import { BiSearch } from "react-icons/bi";
+import { Heart, Home, Library, Search } from "lucide-react";
 import Link from "next/link";
 import { Song } from "@/types";
 import usePlayer from "@/hooks/usePlayer";
 import { cn } from "@/lib/utils";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { RxPerson } from "react-icons/rx";
 
 interface SidebarProps {
   children: React.ReactNode;
   songs: Song[];
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ children, songs = [] }) => {
+const Sidebar: React.FC<SidebarProps> = ({ children }) => {
   const pathname = usePathname();
   const player = usePlayer();
 
   const routes = useMemo(
     () => [
       {
-        icon: HiHome,
+        icon: Home,
         label: "Home",
-        active: pathname !== "/search",
+        active: pathname == "/",
         href: "/",
       },
       {
-        icon: BiSearch,
+        icon: Search,
         label: "Search",
         active: pathname === "/search",
         href: "/search",
+      },
+      {
+        icon: Library,
+        label: "Library",
+        active: pathname === "/library",
+        href: "/library",
+      },
+      {
+        icon: Heart,
+        label: "Liked",
+        active: pathname === "/liked",
+        href: "/liked",
+      },
+      {
+        icon: RxPerson,
+        label: "Artists",
+        active: pathname === "/artist",
+        href: "/artist",
       },
     ],
     [pathname]
   );
 
   return (
-    <div className={cn("flex w-full h-full fixed", player.activeId && "h-[calc(100%-80px)]")}>
+    <div className={cn("flex w-full h-full fixed", player.activeId && "h-[calc(100%-77px)]")}>
       <div
         className="
           w-[300px]
@@ -53,7 +69,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children, songs = [] }) => {
           h-full
           px-2
           pt-2
-          pb-1
+          pb-2
         "
       >
         <Card className="bg-card/60 border-border">
@@ -74,14 +90,14 @@ const Sidebar: React.FC<SidebarProps> = ({ children, songs = [] }) => {
           </CardContent>
         </Card>
         <Card className="flex-1 bg-card/60 border-border overflow-hidden">
-          <CardContent className="flex flex-col items-center justify-center h-full px-4 py-6">
+          <CardContent className="flex flex-col items-center justify-center h-full px-4 py-6 gap-y-3">
             <p className="text-sm text-muted-foreground text-center">
               Playlist functionality in a future update. Stay tuned.
             </p>
           </CardContent>
         </Card>
       </div>
-      <main className="h-full w-full flex pt-2 pb-1 overflow-y-auto">{children}</main>
+      <main className="h-full w-full flex-1 overflow-hidden">{children}</main>
     </div>
   );
 };

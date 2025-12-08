@@ -25,11 +25,28 @@ const SupabaseProvider: React.FC<SupabaseProviderProps> = ({ children }) => {
   useEffect(() => {
     let isMounted = true;
 
-    supabase.auth.getSession().then(({ data }) => {
-      if (!isMounted) return;
-      setSession(data.session ?? null);
-      setIsLoading(false);
-    });
+    const setupSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session) {
+        const {
+          data: { user },
+          error,
+        } = await supabase.auth.getUser();
+
+        if (error || !user) {
+          if (isMounted) setSession(null);
+        } else {
+          if (isMounted) setSession(session);
+        }
+      }
+
+      if (isMounted) setIsLoading(false);
+    };
+
+    setupSession();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);

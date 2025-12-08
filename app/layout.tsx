@@ -5,7 +5,7 @@ import Sidebar from '@/components/Sidebar';
 import SupabaseProvider from "@/providers/SupabaseProvider";
 import UserProvider from "@/providers/UserProvider";
 import ModalProvider from "@/providers/ModalProvider";
-import ToasterProvider from "@/providers/ToasterProvider";  
+import ToasterProvider from "@/providers/ToasterProvider";
 import getSongsByUserId from "@/actions/getSongsByUserId";
 import Player from "@/app/player/Player";
 import { Analytics } from "@vercel/analytics/react"
@@ -15,7 +15,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 const font = Figtree({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Symphony",
+  title: "Quivery",
   description: "Discover Music",
 };
 
@@ -39,7 +39,7 @@ export default async function RootLayout({
               <Sidebar songs={userSongs}>
                 {children}
                 <Analytics />
-                <SpeedInsights/>
+                <SpeedInsights />
               </Sidebar>
               <Player />
             </UserProvider>

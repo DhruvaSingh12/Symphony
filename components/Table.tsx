@@ -86,9 +86,9 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
     const memoizedSongs = useMemo(() => songs, [songs]);
 
     return (
-        <div className="w-full px-2">
+        <div className="w-full">
             <ShadcnTable>
-                <TableHeader>
+                <TableHeader className="sticky top-0 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 z-10">
                     <TableRow className="border-border hover:bg-transparent">
                         <TableHead className="hidden sm:table-cell w-12">#</TableHead>
                         <TableHead className="w-16"></TableHead>
