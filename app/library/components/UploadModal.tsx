@@ -32,7 +32,7 @@ const UploadModal = () => {
     const onChange = (open: boolean) => {
         if (!open) {
             reset();
-            setArtists(['']); 
+            setArtists(['']);
             uploadModal.onClose();
         }
     };
@@ -50,6 +50,38 @@ const UploadModal = () => {
             }
 
             const uniqueID = uniqid();
+
+            // Extract duration from audio file
+            let songDuration: number | null = null;
+            try {
+                toast.loading('Processing audio file...');
+                songDuration = await new Promise<number>((resolve, reject) => {
+                    const audio = new Audio();
+                    audio.preload = 'metadata';
+
+                    audio.onloadedmetadata = () => {
+                        window.URL.revokeObjectURL(audio.src);
+                        const duration = Math.floor(audio.duration);
+                        if (isNaN(duration) || duration === 0) {
+                            reject(new Error('Invalid audio duration'));
+                        } else {
+                            resolve(duration);
+                        }
+                    };
+
+                    audio.onerror = () => {
+                        window.URL.revokeObjectURL(audio.src);
+                        reject(new Error('Failed to load audio metadata'));
+                    };
+
+                    audio.src = URL.createObjectURL(songFile);
+                });
+                toast.dismiss();
+            } catch (error) {
+                console.warn('Could not extract audio duration:', error);
+                toast.dismiss();
+                // Continue without duration - it's nullable
+            }
 
             const { data: songData, error: songError } = await supabaseClient
                 .storage
@@ -85,7 +117,8 @@ const UploadModal = () => {
                     artist: artists,
                     image_path: imageData.path,
                     song_path: songData.path,
-                    user_id: user.id
+                    user_id: user.id,
+                    duration: songDuration // Add duration to database
                 });
 
             if (supabaseError) {
@@ -97,7 +130,7 @@ const UploadModal = () => {
             setIsLoading(false);
             toast.success('Song uploaded successfully');
             reset();
-            setArtists(['']); 
+            setArtists(['']);
             uploadModal.onClose();
         } catch (error) {
             toast.error("Something went wrong");
@@ -149,9 +182,9 @@ const UploadModal = () => {
                 <div>
                     <div className='pb-1 flex items-center'>
                         <span className="font-semibold">Song Artists</span>
-                        <button 
-                            type="button" 
-                            onClick={addArtistField} 
+                        <button
+                            type="button"
+                            onClick={addArtistField}
                             className="ml-2 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-blue-600 transition"
                         >
                             +
@@ -167,9 +200,9 @@ const UploadModal = () => {
                                 placeholder={`Artist ${index + 1}`}
                             />
                             {artists.length > 1 && (
-                                <button 
-                                    type="button" 
-                                    onClick={() => removeArtistField(index)} 
+                                <button
+                                    type="button"
+                                    onClick={() => removeArtistField(index)}
                                     className="text-white hover:text-purple-500 text-xl transition"
                                 >
                                     x
