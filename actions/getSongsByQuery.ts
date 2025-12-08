@@ -22,8 +22,8 @@ const getSongsByQuery = async (query: string): Promise<Song[]> => {
 
     const queryLower = query.toLowerCase();
     const filteredData = (data as Song[]).filter((song) =>
-        song.title.toLowerCase().includes(queryLower) ||
-        song.album.toLowerCase().includes(queryLower) ||
+        song.title?.toLowerCase().includes(queryLower) ||
+        song.album?.toLowerCase().includes(queryLower) ||
         (song.artist && song.artist.some((artist: string) =>
             artist.toLowerCase().includes(queryLower)
         ))

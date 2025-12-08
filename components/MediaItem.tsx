@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 interface MediaItemProps {
     data: Song;
-    onClick?: (id: string) => void;
+    onClick?: (id: number) => void;
     className?: string;
 }
 
@@ -47,7 +47,7 @@ const MediaItem: React.FC<MediaItemProps> = ({ data, onClick, className }) => {
                     {data.title}
                 </p>
                 <p className="text-muted-foreground truncate text-sm">
-                    {data.artist.join(', ')}
+                    {data.artist?.join(', ') || 'Unknown'}
                 </p>
             </div>
         </div>

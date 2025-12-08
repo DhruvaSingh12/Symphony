@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Song } from "@/types"; 
+import { Song } from "@/types";
 import useAuthModal from "@/hooks/useAuthModal";
 import useUploadModal from "@/hooks/useUploadModal";
 import useOnPlay from "@/hooks/useOnPlay";
@@ -11,7 +11,6 @@ import { useRouter } from "next/navigation";
 import Table from '@/components/Table';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface LibraryContentProps {
     songs: Song[];
@@ -27,10 +26,10 @@ const LibraryContent: React.FC<LibraryContentProps> = ({ songs: initialSongs }) 
 
     useEffect(() => {
         if (!isLoading && !user) {
-          router.replace("/");
+            router.replace("/");
         }
     }, [isLoading, user, router]);
-    
+
 
     const onClick = () => {
         if (!user) {

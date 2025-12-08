@@ -33,8 +33,8 @@ const SortArtist: React.FC<SortArtistProps> = ({ artists, ContentComponent }) =>
             return dataB.songs.length - dataA.songs.length || artistA.localeCompare(artistB);
           case 'lastUpdated':
           default:
-            return Math.max(...dataB.songs.map(song => new Date(song.updated_at).getTime())) -
-                   Math.max(...dataA.songs.map(song => new Date(song.updated_at).getTime()));
+            return Math.max(...dataB.songs.map(song => new Date(song.updated_at || '').getTime())) -
+              Math.max(...dataA.songs.map(song => new Date(song.updated_at || '').getTime()));
         }
       });
 

@@ -10,18 +10,25 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Play } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface SearchContentProps {
     songs: Song[];
 }
 
-const SongRow: React.FC<{ song: Song; onPlay: (id: string) => void }> = ({ song, onPlay }) => {
+const SongRow: React.FC<{ song: Song; onPlay: (id: number) => void }> = ({ song, onPlay }) => {
     const imageUrl = useLoadImage(song) || "/images/liked.png";
     const initials = (song.title || "?").slice(0, 2).toUpperCase();
-    const artists = Array.isArray(song.artist) ? song.artist.join(", ") : song.artist;
+    const router = useRouter();
+    const artists = song.artist ? (Array.isArray(song.artist) ? song.artist : [song.artist]) : [];
+
+    const handleArtistClick = (e: React.MouseEvent, artistName: string) => {
+        e.stopPropagation();
+        router.push(`/artists/${encodeURIComponent(artistName)}`);
+    };
 
     return (
-        <div className="flex items-center my-1 gap-3 py-3 w-full hover:bg-neutral-800/10 rounded-md transition p-2">
+        <div className="flex items-center my-1 gap-3 py-3 w-full hover:bg-neutral-800/10 rounded-md transition p-2 group/row">
             <Button size="icon" variant="ghost" onClick={() => onPlay(song.id)}
                 aria-label={`Play ${song.title}`} className="relative group">
                 <Avatar className="h-12 w-12 border border-border rounded-full flex-shrink-0">
@@ -33,13 +40,46 @@ const SongRow: React.FC<{ song: Song; onPlay: (id: string) => void }> = ({ song,
                 </div>
             </Button>
 
-            <div className="flex-1 flex flex-col min-w-0 justify-center">
+            <div className="flex-1 flex flex-col min-w-0 justify-center overflow-hidden">
                 <p className="truncate font-semibold text-foreground text-base leading-tight">
-                    {song.title || "Untitled"}
+                    <span className="lg:hidden">
+                        {(song.title || "Untitled").length > 20 ? (song.title || "Untitled").substring(0, 20) + "..." : (song.title || "Untitled")}
+                    </span>
+                    <span className="hidden lg:inline">
+                        {song.title || "Untitled"}
+                    </span>
                 </p>
-                <p className="text-sm text-muted-foreground truncate">
-                    {artists}
-                </p>
+                <div className="text-sm text-muted-foreground whitespace-nowrap overflow-hidden relative w-full group/artist">
+                    <div className="lg:hidden inline-block w-full">
+                        {artists.map((artist, index) => (
+                            <span key={artist + index} className="inline-block">
+                                <span
+                                    className={`hover:underline cursor-pointer ${(artists.join(", ").length > 20) ? "group-hover/row:animate-marquee inline-block" : ""
+                                        }`}
+                                    onClick={(e) => handleArtistClick(e, artist)}
+                                >
+                                    {artist}
+                                </span>
+                                {index < artists.length - 1 && ", "}
+                            </span>
+                        ))}
+                        {/* Duplicate for seamless infinite scroll if needed, but simple slide requested */}
+                    </div>
+
+                    <div className="hidden lg:block truncate">
+                        {artists.map((artist, index) => (
+                            <span key={index}>
+                                <span
+                                    className="hover:underline cursor-pointer hover:text-foreground transition"
+                                    onClick={(e) => handleArtistClick(e, artist)}
+                                >
+                                    {artist}
+                                </span>
+                                {index < artists.length - 1 && ", "}
+                            </span>
+                        ))}
+                    </div>
+                </div>
             </div>
 
             {song.album && (

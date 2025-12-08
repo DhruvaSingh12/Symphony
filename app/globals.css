@@ -113,3 +113,20 @@ body,
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+.animate-marquee {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.group:hover .animate-marquee.sliding-text {
+  animation: marquee 5s linear infinite;
+}
+.hover-slide:hover {
+  animation: marquee 5s linear infinite;
+}

@@ -34,7 +34,7 @@ const useGetSongById = ( id?: string) => {
 
             const mappedSong: Song = {
                 updated_at: data.created_at ?? '',
-                id: String(data.id),
+                id: Number(data.id),
                 user_id: data.user_id ?? '',
                 author: data.author ?? '',
                 artist: [],

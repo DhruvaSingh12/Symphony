@@ -1,16 +1,17 @@
-import getSongs from '@/actions/getSongs';
+"use client";
+
 import Header from '@/components/Header';
 import Sort from '@/components/Sort';
 import PageContent from './components/PageContent';
+import { useAllSongs } from '@/hooks/queries/useAllSongs';
+import { Skeleton } from '@/components/ui/skeleton';
 
-export const revalidate = 0;
-
-export default async function Home() {
-  const songs = await getSongs();
+export default function Home() {
+  const { data: songs, isLoading, error } = useAllSongs();
 
   return (
     <div className="h-full w-full flex flex-col overflow-hidden">
-      <div className="flex-none pr-2 pt-2">
+      <div className="flex-none px-2 md:px-0 md:pr-2 pt-2">
         <Header className="bg-transparent">
           <div className="px-1">
             <h1 className="text-3xl font-semibold text-foreground">
@@ -18,7 +19,20 @@ export default async function Home() {
             </h1>
           </div>
           <div className="px-0 h-full overflow-hidden">
-            <Sort songs={songs} ContentComponent={PageContent} />
+            {isLoading ? (
+              <div className="space-y-3 p-4">
+                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-48 w-full" />
+              </div>
+            ) : error ? (
+              <div className="p-4">
+                <p className="text-center text-muted-foreground">
+                  Error loading songs. Please try again.
+                </p>
+              </div>
+            ) : (
+              <Sort songs={songs || []} ContentComponent={PageContent} />
+            )}
           </div>
         </Header>
       </div>

@@ -2,28 +2,27 @@ import React, { useState, useMemo } from 'react';
 import { Song } from '@/types';
 import LikeButton from '@/components/LikeButton';
 import MediaItem from '@/components/MediaItem';
-import ArtistModal from './ArtistModal';
 import AlbumModal from './AlbumModal';
 import {
-  Table as ShadcnTable,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table as ShadcnTable,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from '@/components/ui/table';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { MoreVertical } from 'lucide-react';
 
 interface TableProps {
     songs: Song[];
-    onPlay: (id: string) => void;
+    onPlay: (id: number) => void;
 }
 
 interface FormatRelativeDateOptions {
@@ -55,27 +54,14 @@ const formatRelativeDate = (from: Date): string => {
 
 
 const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
-    const [selectedArtist, setSelectedArtist] = useState<string | null>(null);
-    const [artistData, setArtistData] = useState<{ songs: Song[]; albums: Set<string> } | null>(null);
     const [selectedAlbum, setSelectedAlbum] = useState<string | null>(null);
     const [albumData, setAlbumData] = useState<{ songs: Song[] } | null>(null);
 
-    const handleArtistClick = (artist: string) => {
-        const filteredSongs = songs.filter(song => song.artist.includes(artist));
-        const albums = new Set(filteredSongs.map(song => song.album));
-        setArtistData({ songs: filteredSongs, albums });
-        setSelectedArtist(artist);
-    };
 
     const handleAlbumClick = (album: string) => {
         const filteredSongs = songs.filter(song => song.album === album);
         setAlbumData({ songs: filteredSongs });
         setSelectedAlbum(album);
-    };
-
-    const closeArtistModal = () => {
-        setSelectedArtist(null);
-        setArtistData(null);
     };
 
     const closeAlbumModal = () => {
@@ -114,24 +100,25 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
                             </TableCell>
                             <TableCell>{song.title}</TableCell>
                             <TableCell>
-                                {song.artist.map((artist, i) => (
+                                {song.artist?.map((artist, i) => (
                                     <span
                                         key={artist}
                                         className="cursor-pointer hover:text-primary transition"
-                                        onClick={() => handleArtistClick(artist)}
                                     >
                                         {i > 0 && ', '}
                                         {artist}
                                     </span>
-                                ))}
+                                )) || 'Unknown'}
                             </TableCell>
                             <TableCell className="hidden md:table-cell">
-                                <span
-                                    className="cursor-pointer hover:text-primary transition"
-                                    onClick={() => handleAlbumClick(song.album)}
-                                >
-                                    {song.album}
-                                </span>
+                                {song.album && (
+                                    <span
+                                        className="cursor-pointer hover:text-primary transition"
+                                        onClick={() => handleAlbumClick(song.album!)}
+                                    >
+                                        {song.album}
+                                    </span>
+                                )}
                             </TableCell>
                             <TableCell className="hidden xl:table-cell">{formatRelativeDate(new Date(song.created_at))}</TableCell>
                             <TableCell>
@@ -145,9 +132,11 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuItem onClick={() => handleAlbumClick(song.album)}>
-                                            {song.album}
-                                        </DropdownMenuItem>
+                                        {song.album && (
+                                            <DropdownMenuItem onClick={() => handleAlbumClick(song.album!)}>
+                                                {song.album}
+                                            </DropdownMenuItem>
+                                        )}
                                         <DropdownMenuItem className="cursor-default">
                                             {formatRelativeDate(new Date(song.created_at))}
                                         </DropdownMenuItem>
@@ -158,13 +147,6 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
                     ))}
                 </TableBody>
             </ShadcnTable>
-            {selectedArtist && artistData && (
-                <ArtistModal
-                    artist={selectedArtist}
-                    artistData={artistData}
-                    onClose={closeArtistModal}
-                />
-            )}
             {selectedAlbum && albumData && (
                 <AlbumModal
                     album={selectedAlbum}

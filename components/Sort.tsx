@@ -2,13 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Song } from '@/types';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface SortProps<T> {
   songs: Song[];
@@ -24,24 +18,24 @@ const Sort = <T extends { songs: Song[] }>({ songs, ContentComponent }: SortProp
       return songs.slice().sort((a, b) => {
         switch (option) {
           case 'titleAsc':
-            return a.title.localeCompare(b.title);
+            return a.title?.localeCompare(b.title ?? '') ?? 0;
           case 'titleDesc':
-            return b.title.localeCompare(a.title);
+            return b.title?.localeCompare(a.title ?? '') ?? 0;
           case 'authorAsc':
-            return a.artist[0].localeCompare(b.artist[0]) || a.title.localeCompare(b.title);
+            return a.artist?.[0]?.localeCompare(b.artist?.[0] ?? '') ?? a.title?.localeCompare(b.title ?? '') ?? 0;
           case 'authorDesc':
-            return b.artist[0].localeCompare(a.artist[0]) || b.title.localeCompare(a.title);
+            return b.artist?.[0]?.localeCompare(a.artist?.[0] ?? '') ?? b.title?.localeCompare(a.title ?? '') ?? 0;
           case 'albumAsc':
-            return a.album.localeCompare(b.album) || a.title.localeCompare(b.title);
+            return a.album?.localeCompare(b.album ?? '') ?? a.title?.localeCompare(b.title ?? '') ?? 0;
           case 'albumDesc':
-            return b.album.localeCompare(a.album) || b.title.localeCompare(a.title);
+            return b.album?.localeCompare(a.album ?? '') ?? b.title?.localeCompare(a.title ?? '') ?? 0;
           case 'dateAddedAsc':
             return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
           case 'dateAddedDesc':
             return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
           case 'lastUpdated':
           default:
-            return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+            return new Date(b.updated_at ?? '').getTime() - new Date(a.updated_at ?? '').getTime();
         }
       });
     };

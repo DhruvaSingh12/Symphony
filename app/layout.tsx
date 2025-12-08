@@ -11,6 +11,7 @@ import Player from "@/app/player/Player";
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ThemeProvider } from "@/components/theme-provider";
+import QueryProvider from "@/providers/QueryProvider";
 
 const font = Figtree({ subsets: ["latin"] });
 
@@ -32,18 +33,20 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${font.className} w-full h-full`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          <ToasterProvider />
-          <SupabaseProvider>
-            <UserProvider>
-              <ModalProvider />
-              <Sidebar songs={userSongs}>
-                {children}
-                <Analytics />
-                <SpeedInsights />
-              </Sidebar>
-              <Player />
-            </UserProvider>
-          </SupabaseProvider>
+          <QueryProvider>
+            <ToasterProvider />
+            <SupabaseProvider>
+              <UserProvider>
+                <ModalProvider />
+                <Sidebar songs={userSongs}>
+                  {children}
+                  <Analytics />
+                  <SpeedInsights />
+                </Sidebar>
+                <Player />
+              </UserProvider>
+            </SupabaseProvider>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

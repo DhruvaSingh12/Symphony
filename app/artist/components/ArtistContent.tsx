@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { Song } from "@/types";
 import SortArtist from "./sortartist";
-import ArtistModal from "@/components/ArtistModal";
 import ArtistSearch from "./ArtistSearch";
 import {
   Card,
@@ -14,7 +13,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Music } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const ArtistContent = () => {
@@ -47,7 +45,9 @@ const ArtistContent = () => {
             artistData[artist] = { songs: [], albums: new Set() };
           }
           artistData[artist].songs.push(song);
-          artistData[artist].albums.add(song.album);
+          if (song.album) {
+            artistData[artist].albums.add(song.album);
+          }
         });
       });
 
@@ -124,14 +124,6 @@ const ArtistContent = () => {
           </div>
         </ScrollArea>
       </div>
-
-      {selectedArtist && (
-        <ArtistModal
-          artist={selectedArtist}
-          artistData={artists[selectedArtist]}
-          onClose={closeArtistModal}
-        />
-      )}
     </div>
   );
 };

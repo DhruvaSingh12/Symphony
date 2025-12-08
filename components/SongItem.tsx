@@ -69,14 +69,14 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick }) => {
           onLoad={() => setImageLoaded(true)}
         />
         <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
-          <PlayButton onClick={() => onClick(data.id)} />
+          <PlayButton onClick={() => onClick(String(data.id))} />
         </div>
       </div>
       <div className="flex flex-col gap-y-2">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <p className="font-semibold truncate text-foreground">{data.title}</p>
-            <p className="text-muted-foreground text-sm truncate">{data.artist.join(', ')}</p>
+            <p className="text-muted-foreground text-sm truncate">{data.artist?.join(', ')}</p>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>

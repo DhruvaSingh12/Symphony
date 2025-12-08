@@ -14,11 +14,11 @@ const ModalProvider = () => {
     if (!isMounted) {
         return null;
     }
-    
+
     return (
         <>
-          <AuthModal />
-          <UploadModal />
+            <AuthModal />
+            <UploadModal />
         </>
     );
 }
