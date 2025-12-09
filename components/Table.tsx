@@ -10,8 +10,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Play, MoreHorizontal, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Play, MoreHorizontal, ArrowUp, ArrowDown, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useInView } from 'react-intersection-observer';
 
 interface TableProps {
     songs: Song[];
@@ -20,6 +21,8 @@ interface TableProps {
 
 type SortField = 'title' | 'artist' | 'album' | 'duration' | null;
 type SortDirection = 'asc' | 'desc';
+
+const items_per_page = 25;
 
 const formatTime = (seconds: number | null): string => {
     if (seconds === null || seconds === undefined) return "--:--";
@@ -82,14 +85,23 @@ const SongRow: React.FC<SongRowProps> = ({ song, index, onPlay, onAlbumClick }) 
             <div className="hidden md:flex flex-col justify-center overflow-hidden">
                 <div className="text-sm text-muted-foreground truncate">
                     {artists.map((artist, artistIndex) => (
-                        <span key={artistIndex}>
-                            <span
-                                className="hover:underline cursor-pointer hover:text-foreground transition"
-                                onClick={(e) => handleArtistClick(e, artist)}>
-                                {artist}
-                            </span>
-                            {artistIndex < artists.length - 1 && ", "}
-                        </span>
+                        <TooltipProvider key={artistIndex}>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <span>
+                                        <span
+                                            className="hover:underline cursor-pointer hover:text-foreground transition"
+                                            onClick={(e) => handleArtistClick(e, artist)}>
+                                            {artist}
+                                        </span>
+                                        {artistIndex < artists.length - 1 && ", "}
+                                    </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p className="text-xs">View more by {artist}.</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                     ))}
                 </div>
             </div>
@@ -197,9 +209,7 @@ const SortHeader: React.FC<SortHeaderProps> = ({ label, field, currentSortField,
                 ) : (
                     <ArrowDown className="h-4 w-4" />
                 )
-            ) : (
-                ""
-            )}
+            ) : ("")}
         </button>
     );
 };
@@ -207,8 +217,32 @@ const SortHeader: React.FC<SortHeaderProps> = ({ label, field, currentSortField,
 const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
     const [selectedAlbum, setSelectedAlbum] = useState<string | null>(null);
     const [albumData, setAlbumData] = useState<{ songs: Song[] } | null>(null);
-    const [sortField, setSortField] = useState<SortField>(null);
-    const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+    const storageKey = typeof window !== 'undefined' ? window.location.pathname.includes('liked') ? 'liked-table-state' : 'library-table-state' : 'table-state';
+
+    // Initialize state from sessionStorage
+    const [sortField, setSortField] = useState<SortField>(() => {
+        if (typeof window === 'undefined') return null;
+        const saved = sessionStorage.getItem(`${storageKey}-sort-field`);
+        return saved as SortField || null;
+    });
+
+    const [sortDirection, setSortDirection] = useState<SortDirection>(() => {
+        if (typeof window === 'undefined') return 'asc';
+        const saved = sessionStorage.getItem(`${storageKey}-sort-direction`);
+        return (saved as SortDirection) || 'asc';
+    });
+
+    const [displayCount, setDisplayCount] = useState(() => {
+        if (typeof window === 'undefined') return items_per_page;
+        const saved = sessionStorage.getItem(`${storageKey}-display-count`);
+        return saved ? parseInt(saved, 10) : items_per_page;
+    });
+
+    const { ref: loadMoreRef, inView } = useInView({
+        threshold: 0,
+        rootMargin: '100px',
+    });
 
     const handleAlbumClick = (album: string) => {
         const filteredSongs = songs.filter(song => song.album === album);
@@ -223,13 +257,18 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
 
     const handleSort = (field: SortField) => {
         if (sortField === field) {
-            // Toggle direction if clicking the same field
-            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-        } else {
-            // Set new field and default to ascending
+            const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            setSortDirection(newDirection);
+            sessionStorage.setItem(`${storageKey}-sort-direction`, newDirection);
+        }
+        else {
             setSortField(field);
             setSortDirection('asc');
+            sessionStorage.setItem(`${storageKey}-sort-field`, field || '');
+            sessionStorage.setItem(`${storageKey}-sort-direction`, 'asc');
         }
+        setDisplayCount(items_per_page);
+        sessionStorage.setItem(`${storageKey}-display-count`, items_per_page.toString());
     };
 
     const sortedSongs = useMemo(() => {
@@ -259,19 +298,34 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
         });
     }, [songs, sortField, sortDirection]);
 
+    const displayedSongs = useMemo(() => {
+        return sortedSongs.slice(0, displayCount);
+    }, [sortedSongs, displayCount]);
+
+    const hasMore = displayCount < sortedSongs.length;
+
+    React.useEffect(() => {
+        if (inView && hasMore) {
+            const timer = setTimeout(() => {
+                const newCount = Math.min(displayCount + items_per_page, sortedSongs.length);
+                setDisplayCount(newCount);
+                sessionStorage.setItem(`${storageKey}-display-count`, newCount.toString());
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [inView, hasMore, sortedSongs.length, displayCount, storageKey]);
+
     return (
         <div className="w-full">
             <div>
                 <Card className="bg-card/60 border-border">
                     <CardContent className="p-0">
                         {/* Sticky Sort Headers */}
-                        <div className="sticky top-0 z-10 grid grid-cols-[auto_auto_1fr_auto_auto] 
-                        md:grid-cols-[auto_auto_minmax(200px,1fr)_minmax(150px,1fr)_80px_minmax(150px,1fr)_auto_auto] 
-                        items-center gap-3 px-8 py-3 border-b rounded-t-lg border-border bg-card backdrop-blur-sm">
+                        <div className="sticky top-0 z-10 rounded-lg grid grid-cols-[auto_auto_1fr_auto_auto] md:grid-cols-[auto_auto_minmax(200px,1fr)_minmax(150px,1fr)_80px_minmax(150px,1fr)_auto_auto] items-center gap-3 px-8 py-3 border-b border-border bg-card backdrop-blur-sm">
                             <div className="w-8 text-center">
                                 <span className="text-xs text-muted-foreground font-medium">#</span>
                             </div>
-                            <div className="w-12" />
+                            <div className="w-12"></div>
                             <SortHeader
                                 label="Title"
                                 field="title"
@@ -303,17 +357,28 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
                                 onSort={handleSort}
                                 className="hidden md:flex"
                             />
-                            <div className="w-8" />
-                            <div className="w-8" />
+                            <div className="w-8"></div>
+                            <div className="w-8"></div>
                         </div>
 
                         {/* Song Rows */}
                         <div className="h-full px-6">
-                            {sortedSongs.map((song, index) => (
+                            {displayedSongs.map((song, index) => (
                                 <div key={song.id} className="border-b border-border last:border-b-0">
                                     <SongRow song={song} index={index} onPlay={onPlay} onAlbumClick={handleAlbumClick} />
                                 </div>
                             ))}
+
+                            {/* Loading Sentinel */}
+                            {hasMore && (
+                                <div
+                                    ref={loadMoreRef}
+                                    className="flex items-center justify-center py-8"
+                                >
+                                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                                    <span className="ml-2 text-sm text-muted-foreground">Loading more songs...</span>
+                                </div>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
