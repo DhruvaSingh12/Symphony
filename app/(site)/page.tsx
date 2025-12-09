@@ -1,13 +1,11 @@
 "use client";
 
 import Header from '@/components/Header';
-import Sort from '@/components/Sort';
 import PageContent from './components/PageContent';
 import { useAllSongs } from '@/hooks/queries/useAllSongs';
-import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Home() {
-  const { data: songs, isLoading, error } = useAllSongs();
+  const { data: songs, error } = useAllSongs();
 
   return (
     <div className="h-full w-full flex flex-col overflow-hidden">
@@ -18,20 +16,15 @@ export default function Home() {
               Welcome Listener
             </h1>
           </div>
-          <div className="px-0 h-full overflow-hidden">
-            {isLoading ? (
-              <div className="space-y-3 p-4">
-                <Skeleton className="h-48 w-full" />
-                <Skeleton className="h-48 w-full" />
-              </div>
-            ) : error ? (
+          <div className="px-0 pt-4 pb-3 h-full overflow-hidden">
+            {error ? (
               <div className="p-4">
                 <p className="text-center text-muted-foreground">
                   Error loading songs. Please try again.
                 </p>
               </div>
             ) : (
-              <Sort songs={songs || []} ContentComponent={PageContent} />
+              <PageContent songs={songs || []} />
             )}
           </div>
         </Header>

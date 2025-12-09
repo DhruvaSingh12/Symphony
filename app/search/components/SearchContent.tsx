@@ -6,17 +6,19 @@ import useOnPlay from '@/hooks/useOnPlay';
 import useLoadImage from '@/hooks/useLoadImage';
 import LikeButton from "@/components/LikeButton";
 import AlbumModal from "@/components/AlbumModal";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Play, MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Box from '@/components/Box';
 
 interface SearchContentProps {
     songs: Song[];
+    query: string;
+    isLoading: boolean;
 }
 
 const formatTime = (seconds: number | null): string => {
@@ -127,7 +129,6 @@ const SongRow: React.FC<SongRowProps> = ({ song, onPlay, onAlbumClick }) => {
                 <LikeButton songId={song.id} />
             </div>
 
-            {/* More Button - Desktop: simple button, Mobile: dropdown with album */}
             <div className="flex items-center justify-center">
                 <div className="hidden md:block">
                     <Button
@@ -188,17 +189,12 @@ const SearchContent: React.FC<SearchContentProps> = ({ songs }) => {
 
     if (songs.length === 0) {
         return (
-            <Card className="bg-card/60 border-border">
-                <CardHeader>
-                    <CardTitle>No results found</CardTitle>
-                    <CardDescription>Try adjusting your search or check back soon.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                    <Skeleton className="h-4 w-2/3" />
-                    <Skeleton className="h-4 w-1/2" />
-                    <Skeleton className="h-4 w-3/4" />
-                </CardContent>
-            </Card>
+            <Box className="bg-card/60 border-border">
+                <div className="p-6 items-center flex flex-col">
+                    <h1 className="text-2xl font-semibold text-foreground">No results found</h1>
+                    <p className="text-muted-foreground">Try adjusting your search or check back soon.</p>
+                </div>
+            </Box>
         );
     }
 

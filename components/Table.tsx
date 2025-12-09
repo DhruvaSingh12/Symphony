@@ -22,7 +22,7 @@ interface TableProps {
 type SortField = 'title' | 'artist' | 'album' | 'duration' | null;
 type SortDirection = 'asc' | 'desc';
 
-const items_per_page = 25;
+const items_per_page = 50;
 
 const formatTime = (seconds: number | null): string => {
     if (seconds === null || seconds === undefined) return "--:--";

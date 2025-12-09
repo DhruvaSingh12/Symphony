@@ -49,8 +49,8 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
       {
         icon: RxPerson,
         label: "Artists",
-        active: pathname === "/artist",
-        href: "/artist",
+        active: pathname === "/artists",
+        href: "/artists",
       },
     ],
     [pathname]

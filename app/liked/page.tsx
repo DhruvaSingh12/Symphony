@@ -6,7 +6,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import LikedContent from "./components/LikedContent";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLikedSongs } from "@/hooks/queries/useLikedSongs";
-import { Skeleton } from "@/components/ui/skeleton";
+import Box from "@/components/Box";
+import { BounceLoader } from "react-spinners";
 
 const scroll_key = 'liked-scroll-position';
 
@@ -72,7 +73,7 @@ const LikedPage = () => {
         <Header className="bg-transparent">
           <div className="flex items-start flex-col gap-1">
             <h1 className="text-2xl md:text-5xl lg:text-6xl font-bold text-foreground">
-              ♥ Liked Songs
+              Liked Songs
             </h1>
             {!isLoading && songs && (
               <div>
@@ -85,13 +86,9 @@ const LikedPage = () => {
       <div className="w-full overflow-hidden px-2 md:px-0 md:pr-2 mt-2 pb-2">
         <ScrollArea className="h-full" ref={scrollAreaRef}>
           {isLoading ? (
-            <Card className="bg-card/60 border-border">
-              <CardContent className="p-6 space-y-3">
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-16 w-full" />
-              </CardContent>
-            </Card>
+            <Box className="flex mt-20 h-full w-full items-center justify-center">
+              <BounceLoader className="text-foreground" size={40} />
+            </Box>
           ) : error ? (
             <Card className="bg-card/60 border-border">
               <CardContent className="p-6">

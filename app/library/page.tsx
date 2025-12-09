@@ -6,7 +6,8 @@ import Header from "@/components/Header";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useUserSongs } from "@/hooks/queries/useUserSongs";
-import { Skeleton } from "@/components/ui/skeleton";
+import Box from "@/components/Box";
+import { BounceLoader } from "react-spinners";
 
 const scroll_key = 'library-scroll-position';
 
@@ -81,13 +82,9 @@ const LibraryPage = () => {
             <div className="w-full overflow-hidden px-2 md:px-0 md:pr-2 mt-2 pb-2">
                 <ScrollArea className="h-full" ref={scrollAreaRef}>
                     {isLoading ? (
-                        <Card className="bg-card/60 border-border">
-                            <CardContent className="p-6 space-y-3">
-                                <Skeleton className="h-16 w-full" />
-                                <Skeleton className="h-16 w-full" />
-                                <Skeleton className="h-16 w-full" />
-                            </CardContent>
-                        </Card>
+                        <Box className="flex mt-20 h-full w-full items-center justify-center">
+                            <BounceLoader className="text-foreground" size={40} />
+                        </Box>
                     ) : error ? (
                         <Card className="bg-card/60 border-border">
                             <CardContent className="p-6">
