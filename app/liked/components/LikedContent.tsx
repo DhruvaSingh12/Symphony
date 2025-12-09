@@ -1,11 +1,11 @@
 "use client";
 
+import React, { useEffect } from "react";
 import useOnPlay from "@/hooks/useOnPlay";
 import { useUser } from "@/hooks/useUser";
 import { Song } from "@/types";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import Table from '@/components/Table'; 
+import Table from '@/components/Table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heart } from "lucide-react";
 
@@ -15,7 +15,6 @@ interface LikedContentProps {
 
 const LikedContent: React.FC<LikedContentProps> = ({ songs }) => {
   const onPlay = useOnPlay(songs);
-
   const router = useRouter();
   const { isLoading, user } = useUser();
 
@@ -27,7 +26,7 @@ const LikedContent: React.FC<LikedContentProps> = ({ songs }) => {
 
   if (songs.length === 0) {
     return (
-      <Card className="bg-card/40 border-border">
+      <Card className="bg-card/60 border-border">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Heart className="h-5 w-5" />

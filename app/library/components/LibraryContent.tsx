@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Song } from "@/types";
 import useAuthModal from "@/hooks/useAuthModal";
 import useUploadModal from "@/hooks/useUploadModal";
 import useOnPlay from "@/hooks/useOnPlay";
 import { useUser } from "@/hooks/useUser";
-import { ListMusic, Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
 import Table from '@/components/Table';
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface LibraryContentProps {
     songs: Song[];
@@ -30,7 +30,6 @@ const LibraryContent: React.FC<LibraryContentProps> = ({ songs: initialSongs }) 
         }
     }, [isLoading, user, router]);
 
-
     const onClick = () => {
         if (!user) {
             return authModal.onOpen();
@@ -38,36 +37,27 @@ const LibraryContent: React.FC<LibraryContentProps> = ({ songs: initialSongs }) 
         return uploadModal.onOpen();
     };
 
+    if (songs.length === 0 || !user) {
+        return (
+            <Card className="bg-card/60 border-border">
+                <CardHeader>
+                    <CardTitle>Your Library</CardTitle>
+                    <CardDescription>
+                        {songs.length === 0 && user ? 'Songs you add appear here.' : 'Please log in to view your library.'}
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Button onClick={onClick}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        {user ? 'Upload Song' : 'Sign In'}
+                    </Button>
+                </CardContent>
+            </Card>
+        );
+    }
+
     return (
-        <div className="flex flex-col p-4">
-            <div className="flex items-center justify-between mb-4">
-                <div className="inline-flex items-center gap-x-2">
-                    <ListMusic className="text-muted-foreground" size={26} />
-                </div>
-                <Button variant="ghost" onClick={onClick} className="gap-x-2">
-                    <span className="text-muted-foreground">Add new songs</span>
-                    <Plus size={20} className="text-muted-foreground" />
-                </Button>
-            </div>
-            {songs.length === 0 || !user ? (
-                <Card className="bg-card/40 border-border">
-                    <CardHeader>
-                        <CardTitle>Your Library</CardTitle>
-                        <CardDescription>
-                            {songs.length === 0 && user ? 'Songs you add appear here.' : 'Please log in to view your library.'}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Button onClick={onClick}>
-                            <Plus className="mr-2 h-4 w-4" />
-                            {user ? 'Upload Song' : 'Sign In'}
-                        </Button>
-                    </CardContent>
-                </Card>
-            ) : (
-                <Table songs={songs} onPlay={onPlay} />
-            )}
-        </div>
+        <Table songs={songs} onPlay={onPlay} />
     );
 };
 
