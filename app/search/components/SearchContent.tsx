@@ -10,12 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Play, MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -23,7 +19,6 @@ interface SearchContentProps {
     songs: Song[];
 }
 
-// Format time from seconds to M:SS format
 const formatTime = (seconds: number | null): string => {
     if (seconds === null || seconds === undefined) return "--:--";
     const minutes = Math.floor(seconds / 60);
@@ -105,20 +100,26 @@ const SongRow: React.FC<SongRowProps> = ({ song, onPlay, onAlbumClick }) => {
                 </div>
             </div>
 
-            {/* Duration Column */}
             <div className="hidden md:flex items-center justify-center text-sm text-muted-foreground">
                 {formatTime(song.duration)}
             </div>
 
-            {/* Album Column */}
             {song.album && (
-                <div
-                    className="hidden md:block text-sm text-muted-foreground hover:text-foreground hover:underline cursor-pointer truncate text-left px-2"
-                    onClick={handleAlbumClick}
-                    title={song.album}
-                >
-                    {song.album}
-                </div>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <div
+                                className="hidden md:block text-sm text-muted-foreground hover:text-foreground hover:underline cursor-pointer truncate text-left px-2"
+                                onClick={handleAlbumClick}
+                            >
+                                {song.album}
+                            </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>{song.album}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
             )}
             {!song.album && <div className="hidden md:block w-[180px]"></div>}
 

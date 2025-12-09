@@ -36,13 +36,14 @@ const useGetSongById = ( id?: string) => {
                 updated_at: data.created_at ?? '',
                 id: Number(data.id),
                 user_id: data.user_id ?? '',
-                author: data.author ?? '',
-                artist: [],
+                author: data.artist?.[0] ?? null,
+                artist: data.artist ?? [],
                 title: data.title ?? '',
                 song_path: data.song_path ?? '',
                 image_path: data.image_path ?? '',
                 created_at: data.created_at,
-                album: ''
+                album: data.album ?? '',
+                duration: data.duration ?? 0
             };
 
             setSong(mappedSong);
