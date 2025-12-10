@@ -1,3 +1,5 @@
+"use client";
+
 import AccountContent from "./components/AccountContent";
 import Header from "@/components/Header";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -7,6 +9,7 @@ import { User } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const AccountsPage = () => {
+
   return (
     <div className="h-full w-full flex flex-col overflow-hidden">
       <div className="flex-none px-2 pt-2">

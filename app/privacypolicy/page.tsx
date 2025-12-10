@@ -1,10 +1,10 @@
 "use client";
 
-import React from "react";
 import Header from "@/components/Header";
 import Box from "@/components/Box";
 
 const PrivacyPolicyPage = () => {
+
   const handleEmailClick = () => {
     navigator.clipboard.writeText('symphonyseven7@gmail.com').then(() => {
       alert('Email address copied to clipboard');
@@ -29,7 +29,7 @@ const PrivacyPolicyPage = () => {
           <div className="mt-1 mb-4 text-white">
             <p className="text-purple-500"><strong>Last Updated: 31st July 2024</strong></p>
             <p>Welcome to Symphony! This Privacy Policy explains how I collect, use, and protect your personal information. Symphony is a personal project intended for use by family and friends.</p>
-            
+
             <h2 className="text-xl font-bold text-purple-500 mt-4">Information I Collect</h2>
             <ul className="list-disc list-inside">
               <li>Name (if uploaded)</li>
@@ -63,9 +63,9 @@ const PrivacyPolicyPage = () => {
             <p>I may update this Privacy Policy from time to time. Any changes will be posted on this page with an updated revision date.</p>
 
             <h2 className="text-xl font-bold text-purple-500 mt-4">Contact Me</h2>
-            <p>If you have any questions about this Privacy Policy, please contact me at 
-              <button 
-                onClick={handleEmailClick} 
+            <p>If you have any questions about this Privacy Policy, please contact me at
+              <button
+                onClick={handleEmailClick}
                 className="text-blue-500 underline ml-1"
               >
                 symphonyseven7@gmail.com

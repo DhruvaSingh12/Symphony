@@ -44,8 +44,8 @@ const LikedContent: React.FC<LikedContentProps> = ({ songs }) => {
   }
 
   return (
-    <Table songs={songs} onPlay={onPlay} />
+    <Table songs={songs} onPlay={onPlay} persistenceKey="liked-scroll" />
   );
 };
 
-export default LikedContent;
+export default LikedContent

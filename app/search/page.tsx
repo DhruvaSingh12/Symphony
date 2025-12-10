@@ -14,6 +14,7 @@ const SearchPage = () => {
     const searchParams = useSearchParams();
     const query = searchParams.get('query') || "";
 
+    // Only fetch songs if there's a query
     const { data: songs, isLoading, error } = useSongsByQuery(query);
 
     return (
@@ -28,7 +29,7 @@ const SearchPage = () => {
                     </div>
                 </Header>
             </div>
-            <div className="w-full overflow-hidden px-2 md:px-0 md:pr-2 pb-2">
+            <div className="flex-1 overflow-hidden px-2 md:px-0 md:pr-2 pb-2">
                 <ScrollArea className="h-full">
                     {!query ? (
                         <Box className="flex flex-col mt-20 h-full w-full items-center justify-center gap-4">

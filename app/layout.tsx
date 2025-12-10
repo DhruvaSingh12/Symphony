@@ -31,7 +31,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${font.className} w-full h-full`}>
+      <body className={`${font.className} w-full h-full scrollbar-hide`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <QueryProvider>
             <ToasterProvider />

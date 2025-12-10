@@ -14,9 +14,13 @@ import { Play, MoreHorizontal, ArrowUp, ArrowDown, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation';
 import { useInView } from 'react-intersection-observer';
 
+import { useRef } from 'react';
+import useScrollPersistence from '@/hooks/useScrollPersistence';
+
 interface TableProps {
     songs: Song[];
     onPlay: (id: number) => void;
+    persistenceKey?: string;
 }
 
 type SortField = 'title' | 'artist' | 'album' | 'duration' | null;
@@ -214,30 +218,36 @@ const SortHeader: React.FC<SortHeaderProps> = ({ label, field, currentSortField,
     );
 };
 
-const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
+const Table: React.FC<TableProps> = ({ songs, onPlay, persistenceKey }) => {
     const [selectedAlbum, setSelectedAlbum] = useState<string | null>(null);
     const [albumData, setAlbumData] = useState<{ songs: Song[] } | null>(null);
 
-    const storageKey = typeof window !== 'undefined' ? window.location.pathname.includes('liked') ? 'liked-table-state' : 'library-table-state' : 'table-state';
 
-    // Initialize state from sessionStorage
-    const [sortField, setSortField] = useState<SortField>(() => {
-        if (typeof window === 'undefined') return null;
-        const saved = sessionStorage.getItem(`${storageKey}-sort-field`);
-        return saved as SortField || null;
-    });
 
-    const [sortDirection, setSortDirection] = useState<SortDirection>(() => {
-        if (typeof window === 'undefined') return 'asc';
-        const saved = sessionStorage.getItem(`${storageKey}-sort-direction`);
-        return (saved as SortDirection) || 'asc';
-    });
+    const [sortField, setSortField] = useState<SortField>(null);
 
+    const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+    // Initialize displayCount with persisted value if available
     const [displayCount, setDisplayCount] = useState(() => {
-        if (typeof window === 'undefined') return items_per_page;
-        const saved = sessionStorage.getItem(`${storageKey}-display-count`);
-        return saved ? parseInt(saved, 10) : items_per_page;
+        if (typeof window !== 'undefined' && persistenceKey) {
+            const savedCount = sessionStorage.getItem(`count-${persistenceKey}`);
+            if (savedCount) {
+                return parseInt(savedCount, 10);
+            }
+        }
+        return items_per_page;
     });
+
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    useScrollPersistence(persistenceKey || "", scrollContainerRef, !!persistenceKey);
+
+    // Persist displayCount changes
+    React.useEffect(() => {
+        if (persistenceKey) {
+            sessionStorage.setItem(`count-${persistenceKey}`, displayCount.toString());
+        }
+    }, [displayCount, persistenceKey]);
 
     const { ref: loadMoreRef, inView } = useInView({
         threshold: 0,
@@ -259,16 +269,12 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
         if (sortField === field) {
             const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
             setSortDirection(newDirection);
-            sessionStorage.setItem(`${storageKey}-sort-direction`, newDirection);
         }
         else {
             setSortField(field);
             setSortDirection('asc');
-            sessionStorage.setItem(`${storageKey}-sort-field`, field || '');
-            sessionStorage.setItem(`${storageKey}-sort-direction`, 'asc');
         }
         setDisplayCount(items_per_page);
-        sessionStorage.setItem(`${storageKey}-display-count`, items_per_page.toString());
     };
 
     const sortedSongs = useMemo(() => {
@@ -309,17 +315,16 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
             const timer = setTimeout(() => {
                 const newCount = Math.min(displayCount + items_per_page, sortedSongs.length);
                 setDisplayCount(newCount);
-                sessionStorage.setItem(`${storageKey}-display-count`, newCount.toString());
             }, 100);
             return () => clearTimeout(timer);
         }
-    }, [inView, hasMore, sortedSongs.length, displayCount, storageKey]);
+    }, [inView, hasMore, sortedSongs.length, displayCount]);
 
     return (
-        <div className="w-full">
-            <div>
-                <Card className="bg-card/60 border-border">
-                    <CardContent className="p-0">
+        <div className="h-full w-full">
+            <div className="h-full">
+                <Card className="bg-card/60 border-border h-full flex flex-col">
+                    <CardContent ref={scrollContainerRef} className="p-0 flex-1 scrollbar-hide overflow-auto">
                         {/* Sticky Sort Headers */}
                         <div className="sticky top-0 z-10 rounded-lg grid grid-cols-[auto_auto_1fr_auto_auto] md:grid-cols-[auto_auto_minmax(200px,1fr)_minmax(150px,1fr)_80px_minmax(150px,1fr)_auto_auto] items-center gap-3 px-8 py-3 border-b border-border bg-card backdrop-blur-sm">
                             <div className="w-8 text-center">
@@ -362,7 +367,7 @@ const Table: React.FC<TableProps> = ({ songs, onPlay }) => {
                         </div>
 
                         {/* Song Rows */}
-                        <div className="h-full px-6">
+                        <div className="flex-1 overflow-y-auto px-6">
                             {displayedSongs.map((song, index) => (
                                 <div key={song.id} className="border-b border-border last:border-b-0">
                                     <SongRow song={song} index={index} onPlay={onPlay} onAlbumClick={handleAlbumClick} />

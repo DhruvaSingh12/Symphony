@@ -57,7 +57,7 @@ const LibraryContent: React.FC<LibraryContentProps> = ({ songs: initialSongs }) 
     }
 
     return (
-        <Table songs={songs} onPlay={onPlay} />
+        <Table songs={songs} onPlay={onPlay} persistenceKey="library-scroll" />
     );
 };
 
