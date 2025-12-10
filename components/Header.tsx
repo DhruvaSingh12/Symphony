@@ -83,7 +83,7 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
   };
 
   return (
-    <div className="w-full px-5 pb-5 pt-5 rounded-lg bg-gradient-to-b border border-border relative">
+    <div className="w-full px-5 pb-5 pt-5 rounded-lg border border-border relative">
       {isLoading && (
         <div className="absolute top-0 left-0 right-0 z-50 rounded-t-lg overflow-hidden">
           <Progress value={undefined} className="h-1 rounded-none" />

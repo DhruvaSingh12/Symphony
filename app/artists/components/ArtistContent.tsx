@@ -1,54 +1,42 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { useSupabaseClient } from "@/providers/SupabaseProvider";
+import { useState, useMemo } from "react";
 import { Song } from "@/types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Disc } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ArtistControls, { SortOption } from "./ArtistControls";
+import { useAllSongs } from "@/hooks/queries/useAllSongs";
+import Box from "@/components/Box";
+import { BounceLoader } from "react-spinners";
 
 const ArtistContent = () => {
-  const [artists, setArtists] = useState<{
-    [key: string]: { songs: Song[]; albums: Set<string> };
-  }>({});
+  const { data: songs, isLoading } = useAllSongs();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOption, setSortOption] = useState<SortOption>("lastUpdated");
-
-  const supabase = useSupabaseClient();
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchArtists = async () => {
-      const { data: songs, error } = await supabase.from("songs").select("*");
+  const artists = useMemo(() => {
+    if (!songs) return {};
 
-      if (error) {
-        console.error(error);
-        return;
-      }
+    const artistData: {
+      [key: string]: { songs: Song[]; albums: Set<string> };
+    } = {};
 
-      const artistData: {
-        [key: string]: { songs: Song[]; albums: Set<string> };
-      } = {};
-      const typedSongs = (songs as unknown as Song[]) || [];
-
-      typedSongs.forEach((song) => {
-        (song.artist || []).forEach((artist: string) => {
-          if (!artistData[artist]) {
-            artistData[artist] = { songs: [], albums: new Set() };
-          }
-          artistData[artist].songs.push(song);
-          if (song.album) {
-            artistData[artist].albums.add(song.album);
-          }
-        });
+    songs.forEach((song) => {
+      (song.artist || []).forEach((artist: string) => {
+        if (!artistData[artist]) {
+          artistData[artist] = { songs: [], albums: new Set() };
+        }
+        artistData[artist].songs.push(song);
+        if (song.album) {
+          artistData[artist].albums.add(song.album);
+        }
       });
+    });
 
-      setArtists(artistData);
-    };
-
-    fetchArtists();
-  }, [supabase]);
+    return artistData;
+  }, [songs]);
 
   const processedArtists = useMemo(() => {
     let filtered = Object.entries(artists);
@@ -82,6 +70,14 @@ const ArtistContent = () => {
   const handleArtistClick = (artist: string) => {
     router.push(`/artists/${encodeURIComponent(artist)}`);
   };
+
+  if (isLoading) {
+    return (
+      <Box className="flex h-full w-full items-center justify-center">
+        <BounceLoader className="text-foreground" size={40} />
+      </Box>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full">

@@ -2,17 +2,10 @@
 
 import React from "react";
 import { Song } from "@/types";
-import MediaItem from "./MediaItem";
-import LikeButton from "./LikeButton";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import SongRow from "./SongRow";
+import useOnPlay from "@/hooks/useOnPlay";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Disc } from "lucide-react";
 
 interface AlbumModalProps {
   album: string;
@@ -25,31 +18,26 @@ const AlbumModal: React.FC<AlbumModalProps> = ({
   albumData,
   onClose,
 }) => {
-  const songCount = albumData.songs.length;
+  const onPlay = useOnPlay(albumData.songs);
 
   return (
     <Sheet open={true} onOpenChange={onClose}>
-      <SheetContent className="w-full sm:max-w-lg">
+      <SheetContent className="w-full sm:max-w-3xl overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <Disc className="h-5 w-5" />
+          <SheetTitle className="flex text-lg items-center gap-2">
             {album}
           </SheetTitle>
-          <SheetDescription className="flex-1">
-            {songCount} {songCount === 1 ? "song" : "songs"}
-          </SheetDescription>
         </SheetHeader>
-        <ScrollArea className="h-[calc(100vh-8rem)] mt-4">
-          <div className="space-y-2">
-            {albumData.songs.map((song) => (
-              <div
-                key={song.id}
-                className="flex items-center gap-0 rounded-lg"
-              >
-                <div className="flex-1">
-                  <MediaItem data={song} onClick={() => {}} />
-                </div>
-                <LikeButton songId={song.id} />
+        <ScrollArea className="w-full h-[calc(100vh-8rem)] mt-4">
+          <div className="flex flex-col">
+            {albumData.songs.map((song, index) => (
+              <div key={song.id} className="border-b border-border/50 last:border-b-0">
+                <SongRow
+                  song={song}
+                  index={index}
+                  onPlay={onPlay}
+                  showAlbum={false}
+                />
               </div>
             ))}
           </div>

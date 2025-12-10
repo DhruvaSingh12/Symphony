@@ -3,12 +3,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryKeys';
 import { fetchAllSongs } from '@/lib/api/songs';
+import { Song } from '@/types';
 
 export function useAllSongs() {
-  return useQuery({
-    queryKey: queryKeys.songs.lists(),
+  return useQuery<Song[]>({
+    queryKey: queryKeys.songs.all,
     queryFn: fetchAllSongs,
-    // Keep data fresh for 5 minutes
-    staleTime: 5 * 60 * 1000,
+    staleTime: 60 * 60 * 1000, // 1 hour
+    gcTime: 24 * 60 * 60 * 1000, // 24 hours
   });
 }

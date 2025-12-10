@@ -10,7 +10,9 @@ export function useSongsByArtist(artistName: string) {
     queryFn: () => fetchSongsByArtist(artistName),
     // Only fetch if we have an artist name
     enabled: !!artistName,
-    // Keep data fresh for 5 minutes
-    staleTime: 5 * 60 * 1000,
+    // Keep data fresh for 30 minutes
+    staleTime: 30 * 60 * 1000,
+    // Keep unused data in cache for 24 hours
+    gcTime: 24 * 60 * 60 * 1000,
   });
 }
