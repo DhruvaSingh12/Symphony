@@ -31,8 +31,19 @@ export function useLikeSong() {
 
         if (error) throw error;
         return { action: 'unlike', songId };
-      } else {
-        // Like
+      } 
+      else {
+        const { data: existingLike, error: checkError } = await supabaseClient
+            .from('liked_songs')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('song_id', songId)
+            .single();
+
+        if (existingLike) {
+            return { action: 'like', songId };
+        }
+
         const { error } = await supabaseClient
           .from('liked_songs')
           .insert({

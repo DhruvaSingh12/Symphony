@@ -7,9 +7,12 @@ const config: Config = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
-  theme: {
-	extend: {
-		colors: {
+	theme: {
+		extend: {
+            fontFamily: {
+                sans: ["var(--figtree)", "sans-serif"],
+            },
+			colors: {
 			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {

@@ -2,20 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { RxCaretLeft, RxCaretRight } from "react-icons/rx";
+import { RxCaretLeft, RxCaretRight, RxPerson } from "react-icons/rx";
 import { HiHome } from "react-icons/hi";
 import { BiSearch } from "react-icons/bi";
-import { LogOut, User as UserIcon } from "lucide-react";
+import { Heart, Library, LogOut, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
 import useAuthModal from "@/hooks/useAuthModal";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { useUser } from "@/hooks/useUser";
@@ -23,7 +16,6 @@ import toast from "react-hot-toast";
 import useLoadAvatar from "@/hooks/useLoadAvatar";
 import { UserDetails } from "@/types";
 import { ThemeToggleButton } from "@/components/ThemeToggleButton";
-import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 
 interface HeaderProps {
@@ -31,14 +23,14 @@ interface HeaderProps {
   className?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ children, className }) => {
+const Header: React.FC<HeaderProps> = ({ children }) => {
   const authModal = useAuthModal();
   const router = useRouter();
   const supabaseClient = useSupabaseClient();
   const { user } = useUser();
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const avatarUrl = useLoadAvatar(userDetails);
-  const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string>("/images/default-avatar.png");
+  const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string>("/images/accounts.png");
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -136,6 +128,33 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
             className="rounded-full"
           >
             <BiSearch className="h-5 w-5" />
+          </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="outline"
+            onClick={() => router.push("/library")}
+            className="rounded-full"
+          >
+            <Library className="h-5 w-5" />
+          </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="outline"
+            onClick={() => router.push("/liked")}
+            className="rounded-full"
+          >
+            <Heart className="h-5 w-5" />
+          </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="outline"
+            onClick={() => router.push("/artists")}
+            className="rounded-full"
+          >
+            <RxPerson className="h-5 w-5" />
           </Button>
         </div>
         <div className="flex items-center gap-x-3">

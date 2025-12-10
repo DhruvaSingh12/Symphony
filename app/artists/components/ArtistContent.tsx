@@ -1,29 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { Song } from "@/types";
-import SortArtist from "./sortartist";
-import ArtistSearch from "./ArtistSearch";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Music } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Disc } from "lucide-react";
+import { useRouter } from "next/navigation";
+import ArtistControls, { SortOption } from "./ArtistControls";
 
 const ArtistContent = () => {
   const [artists, setArtists] = useState<{
     [key: string]: { songs: Song[]; albums: Set<string> };
   }>({});
-  const [filteredArtists, setFilteredArtists] = useState<{
-    [key: string]: { songs: Song[]; albums: Set<string> };
-  }>({});
-  const [selectedArtist, setSelectedArtist] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortOption, setSortOption] = useState<SortOption>("lastUpdated");
+
   const supabase = useSupabaseClient();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchArtists = async () => {
@@ -52,75 +45,82 @@ const ArtistContent = () => {
       });
 
       setArtists(artistData);
-      setFilteredArtists(artistData);
     };
 
     fetchArtists();
   }, [supabase]);
 
-  const openArtistModal = (artist: string) => {
-    setSelectedArtist(artist);
-  };
+  const processedArtists = useMemo(() => {
+    let filtered = Object.entries(artists);
 
-  const closeArtistModal = () => {
-    setSelectedArtist(null);
-  };
-
-  const handleSearch = (searchTerm: string) => {
-    if (searchTerm === "") {
-      setFilteredArtists(artists);
-    } else {
-      const filtered = Object.keys(artists)
-        .filter((artist) =>
-          artist.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-        .reduce((obj, key) => {
-          obj[key] = artists[key];
-          return obj;
-        }, {} as { [key: string]: { songs: Song[]; albums: Set<string> } });
-      setFilteredArtists(filtered);
+    if (searchTerm) {
+      filtered = filtered.filter(([artist]) =>
+        artist.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
+
+    return filtered.sort(([artistA, dataA], [artistB, dataB]) => {
+      switch (sortOption) {
+        case 'nameAsc':
+          return artistA.localeCompare(artistB);
+        case 'nameDesc':
+          return artistB.localeCompare(artistA);
+        case 'songCountAsc':
+          return dataA.songs.length - dataB.songs.length || artistA.localeCompare(artistB);
+        case 'songCountDesc':
+          return dataB.songs.length - dataA.songs.length || artistA.localeCompare(artistB);
+        case 'lastUpdated':
+        default:
+          const timeA = Math.max(...dataA.songs.map(s => new Date(s.updated_at || 0).getTime()));
+          const timeB = Math.max(...dataB.songs.map(s => new Date(s.updated_at || 0).getTime()));
+          return (timeB || 0) - (timeA || 0);
+      }
+    });
+
+  }, [artists, searchTerm, sortOption]);
+
+  const handleArtistClick = (artist: string) => {
+    router.push(`/artists/${encodeURIComponent(artist)}`);
   };
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-none p-4 pb-0">
-        <ArtistSearch onSearch={handleSearch} />
+      <div className="flex-none px-4 pt-4 pb-2">
+        <ArtistControls
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          sortOption={sortOption}
+          onSortChange={setSortOption}
+        />
       </div>
       <div className="flex-1 min-h-0">
         <ScrollArea className="h-full">
-          <div className="px-4 pb-4">
-            <SortArtist
-              artists={filteredArtists}
-              ContentComponent={({ artists }) => (
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                  {Object.keys(artists).map((artist) => {
-                    const songCount = artists[artist].songs.length;
-                    return (
-                      <Card
-                        key={artist}
-                        className="bg-card hover:bg-accent/80 cursor-pointer transition-all border-border"
-                        onClick={() => openArtistModal(artist)}
-                      >
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center gap-2">
-                            <Music className="h-5 w-5 text-muted-foreground" />
-                            <CardTitle className="text-lg truncate">
-                              {artist}
-                            </CardTitle>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <CardDescription>
-                            {songCount} {songCount === 1 ? "song" : "songs"}
-                          </CardDescription>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              )}
-            />
+          <div className="px-4 py-4">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-6">
+              {processedArtists.map(([artist]) => {
+                return (
+                  <div
+                    key={artist}
+                    className="flex flex-col items-center gap-2 group cursor-pointer"
+                    onClick={() => handleArtistClick(artist)}
+                  >
+                    <div
+                      className={`relative h-28 w-28 md:h-36 md:w-36 border border-border bg-secondary rounded-full flex items-center justify-center shadow-lg group-hover:scale-105 transition transform duration-300`}
+                    >
+                      <Disc className="w-12 h-12 md:w-16 md:h-16 text-background" />
+                    </div>
+                    <span className="text-center text-foreground truncate w-full px-2">
+                      {artist}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            {processedArtists.length === 0 && (
+              <div className="text-center text-muted-foreground mt-10">
+                No artists found.
+              </div>
+            )}
           </div>
         </ScrollArea>
       </div>

@@ -13,7 +13,10 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ThemeProvider } from "@/components/theme-provider";
 import QueryProvider from "@/providers/QueryProvider";
 
-const font = Figtree({ subsets: ["latin"] });
+const font = Figtree({
+  subsets: ["latin"],
+  variable: "--figtree"
+});
 
 export const metadata: Metadata = {
   title: "Quivery",
@@ -31,7 +34,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${font.className} w-full h-full scrollbar-hide`}>
+      <body className={`${font.variable} font-sans w-full h-full scrollbar-hide`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <QueryProvider>
             <ToasterProvider />

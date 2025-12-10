@@ -14,7 +14,7 @@ const LibraryPage = () => {
             <div className="flex-none px-2 md:px-0 md:pr-2 pt-2">
                 <Header className="bg-transparent">
                     <div className="flex flex-col items-start gap-1">
-                        <h1 className="text-2xl md:text-5xl lg:text-6xl font-bold text-foreground">
+                        <h1 className="text-3xl font-semibold text-foreground">
                             Library
                         </h1>
                         {!isLoading && songs && (
@@ -27,7 +27,7 @@ const LibraryPage = () => {
             </div>
             <div className="flex-1 overflow-auto px-2 md:px-0 md:pr-2 mt-2 pb-2">
                 {isLoading ? (
-                    <Box className="flex mt-20 h-full w-full items-center justify-center">
+                    <Box className="flex h-full w-full scrollbar-hide items-center justify-center">
                         <BounceLoader className="text-foreground" size={40} />
                     </Box>
                 ) : error ? (
