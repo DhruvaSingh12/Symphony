@@ -176,7 +176,10 @@ const SearchContent: React.FC<SearchContentProps> = ({ songs, query }) => {
                             <div
                                 key={artist}
                                 className="flex flex-col items-center gap-2 group cursor-pointer"
-                                onClick={() => router.push(`/artists/${encodeURIComponent(artist)}`)}
+                                onClick={() => {
+                                    sessionStorage.setItem("keep-search-persistence", "true");
+                                    router.push(`/artists/${encodeURIComponent(artist)}`);
+                                }}
                             >
                                 <div className="relative h-20 w-20 md:h-28 md:w-28 border border-border bg-secondary rounded-full flex items-center justify-center shadow-lg group-hover:scale-105 transition transform duration-300">
                                     <Disc className="w-8 h-8 md:w-14 md:h-14 text-background" />

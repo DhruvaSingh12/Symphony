@@ -21,16 +21,14 @@ export interface UserDetails {
     dateOfBirth?: string; 
 }
 
-export interface Playlists {
+export interface Playlist {
     id: string;
     user_id: string;
     name: string;
     created_at: string;
-    updated_at: string;
-    playlist_id: string;
 }
 
-export interface PlaylistSongs {
+export interface PlaylistSong {
     id: number;
     playlist_id: string;
     song_id: number;

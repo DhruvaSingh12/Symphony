@@ -45,7 +45,7 @@ const SearchPage = () => {
                                 </div>
                             </Box>
                         ) : isLoading ? (
-                            <Box className="flex mt-20 h-full w-full items-center justify-center">
+                            <Box className="flex h-full w-full items-center justify-center">
                                 <BounceLoader className="text-foreground" size={40} />
                             </Box>
                         ) : error ? (

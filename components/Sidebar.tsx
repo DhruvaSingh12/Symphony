@@ -79,7 +79,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
         <Card className="flex-1 bg-card/60 border-border overflow-hidden">
           <CardContent className="flex flex-col items-center justify-center h-full px-4 py-6 gap-y-3">
             <p className="text-sm text-muted-foreground text-center">
-              Playlist functionality in a future update. Stay tuned.
+              Playlist functionality has finally been added!
             </p>
           </CardContent>
         </Card>

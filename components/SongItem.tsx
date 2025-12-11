@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { MoreVertical, PlusCircle, ListPlus, Disc, User, Heart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import useAuthModal from "@/hooks/useAuthModal";
+import usePlaylistModal from "@/hooks/usePlaylistModal";
 import { useUser } from "@/hooks/useUser";
 import { useLikeSong, useIsLiked } from "@/hooks/mutations/useLikeSong";
 import { useLikedSongs } from "@/hooks/queries/useLikedSongs";
@@ -27,6 +28,7 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick, onAlbumClick }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const router = useRouter();
   const authModal = useAuthModal();
+  const playlistModal = usePlaylistModal();
   const { user } = useUser();
   const isLiked = useIsLiked(data.id);
   const likeMutation = useLikeSong();
@@ -46,6 +48,14 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick, onAlbumClick }) => {
 
   const formattedDate = formatDate(data.created_at);
   const artists = data.artist ? (Array.isArray(data.artist) ? data.artist : [data.artist]) : [];
+
+  const handleAddToPlaylist = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user) {
+      return authModal.onOpen();
+    }
+    playlistModal.onOpen(data.id);
+  };
 
   const handleArtistClick = (e: React.MouseEvent, artistName: string) => {
     e.stopPropagation();
@@ -118,7 +128,7 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick, onAlbumClick }) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-48" align="end">
-              <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+              <DropdownMenuItem onClick={handleAddToPlaylist}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add to playlist
               </DropdownMenuItem>

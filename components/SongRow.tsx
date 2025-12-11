@@ -11,6 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import LikeButton from "@/components/LikeButton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import useAuthModal from "@/hooks/useAuthModal";
+import usePlaylistModal from "@/hooks/usePlaylistModal";
 import { useUser } from "@/hooks/useUser";
 import { useLikeSong, useIsLiked } from "@/hooks/mutations/useLikeSong";
 
@@ -49,6 +50,7 @@ const SongRow: React.FC<SongRowProps> = ({
 
     // Auth & Like Logic
     const authModal = useAuthModal();
+    const playlistModal = usePlaylistModal();
     const { user } = useUser();
     const isLiked = useIsLiked(song.id);
     const likeMutation = useLikeSong();
@@ -64,8 +66,17 @@ const SongRow: React.FC<SongRowProps> = ({
         });
     };
 
+    const handleAddToPlaylist = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!user) {
+            return authModal.onOpen();
+        }
+        playlistModal.onOpen(song.id);
+    };
+
     const handleArtistClick = (e: React.MouseEvent, artistName: string) => {
         e.stopPropagation();
+        sessionStorage.setItem("keep-search-persistence", "true");
         router.push(`/artists/${encodeURIComponent(artistName)}`);
     };
 
@@ -192,7 +203,7 @@ const SongRow: React.FC<SongRowProps> = ({
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="md:w-48 w-42">
-                        <DropdownMenuItem onClick={() => console.log('Add to playlist')}>
+                        <DropdownMenuItem onClick={handleAddToPlaylist} className="cursor-pointer">
                             <PlusCircle className="md:mr-2 mr-1 md:h-4 md:w-4 h-3 w-3" />
                             Add to playlist
                         </DropdownMenuItem>

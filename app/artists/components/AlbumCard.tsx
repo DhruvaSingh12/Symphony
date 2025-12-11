@@ -10,6 +10,8 @@ interface AlbumCardProps {
     albumName: string;
     songs: Song[];
     onClick: () => void;
+    description?: string;
+    showYear?: boolean;
 }
 
 const AlbumImage = ({ song, className }: { song: Song, className?: string }) => {
@@ -26,13 +28,19 @@ const AlbumImage = ({ song, className }: { song: Song, className?: string }) => 
     );
 }
 
-const AlbumCard: React.FC<AlbumCardProps> = ({ albumName, songs, onClick }) => {
+const AlbumCard: React.FC<AlbumCardProps> = ({
+    albumName,
+    songs,
+    onClick,
+    description = "Album",
+    showYear = true
+}) => {
     const songsToDisplay = songs.slice(0, 4);
     const isGrid = songs.length >= 4;
     const onPlay = useOnPlay(songs);
 
     // Get year from the first song
-    const year = songs[0]?.created_at ? new Date(songs[0].created_at).getFullYear() : "";
+    const year = showYear && songs[0]?.created_at ? new Date(songs[0].created_at).getFullYear() : "";
 
     const handleAlbumClick = () => {
         if (albumName && onClick) {
@@ -57,7 +65,7 @@ const AlbumCard: React.FC<AlbumCardProps> = ({ albumName, songs, onClick }) => {
                         ))}
                     </div>
                 ) : (
-                    <AlbumImage song={songs[0]} className="w-full h-full" />
+                    <AlbumImage song={songs[0] || {}} className="w-full h-full" />
                 )}
 
                 {/* Play overlay */}
@@ -86,7 +94,7 @@ const AlbumCard: React.FC<AlbumCardProps> = ({ albumName, songs, onClick }) => {
                     </TooltipProvider>
                 </div>
                 <p className="text-xs md:text-sm text-muted-foreground">
-                    {year} • Album
+                    {[year, description].filter(Boolean).join(" • ")}
                 </p>
 
             </div>

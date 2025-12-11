@@ -36,13 +36,22 @@ const SearchInput = () => {
         if (debouncedQuery) {
             localStorage.setItem("quivery-last-search", debouncedQuery);
         } else if (query === "" && !searchParams.get("query")) {
-            // Only remove if user explicitly cleared it (query is empty)
-            // and we are not in a transition state
             localStorage.removeItem("quivery-last-search");
         }
 
         router.push(url);
     }, [debouncedQuery, router]);
+
+    // Handle persistence cleanup on unmount
+    useEffect(() => {
+        return () => {
+            const shouldPersist = sessionStorage.getItem("keep-search-persistence");
+            if (!shouldPersist) {
+                localStorage.removeItem("quivery-last-search");
+            }
+            sessionStorage.removeItem("keep-search-persistence");
+        };
+    }, []);
 
     return (
         <div className="flex items-center gap-2">

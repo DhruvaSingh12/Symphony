@@ -12,11 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-interface LibraryContentProps {
+interface UploadedContentProps {
     songs: Song[];
 }
 
-const LibraryContent: React.FC<LibraryContentProps> = ({ songs: initialSongs }) => {
+const UploadedContent: React.FC<UploadedContentProps> = ({ songs: initialSongs }) => {
     const [songs] = useState<Song[]>(initialSongs);
     const authModal = useAuthModal();
     const uploadModal = useUploadModal();
@@ -41,9 +41,9 @@ const LibraryContent: React.FC<LibraryContentProps> = ({ songs: initialSongs }) 
         return (
             <Card className="bg-card/60 border-border">
                 <CardHeader>
-                    <CardTitle>Your Library</CardTitle>
+                    <CardTitle>Your Uploads</CardTitle>
                     <CardDescription>
-                        {songs.length === 0 && user ? 'Songs you add appear here.' : 'Please log in to view your library.'}
+                        {songs.length === 0 && user ? 'Songs you upload appear here.' : 'Please log in to view your uploads.'}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -57,8 +57,8 @@ const LibraryContent: React.FC<LibraryContentProps> = ({ songs: initialSongs }) 
     }
 
     return (
-        <Table songs={songs} onPlay={onPlay} persistenceKey="library-scroll" />
+        <Table songs={songs} onPlay={onPlay} persistenceKey="uploaded-scroll" />
     );
 };
 
-export default LibraryContent;
+export default UploadedContent;
