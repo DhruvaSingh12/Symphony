@@ -6,10 +6,13 @@ import { useRouter } from "next/navigation";
 import useLoadImage from "@/hooks/useLoadImage";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Play, MoreHorizontal } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Play, MoreHorizontal, PlusCircle, ListPlus, Disc, User, Heart } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import LikeButton from "@/components/LikeButton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import useAuthModal from "@/hooks/useAuthModal";
+import { useUser } from "@/hooks/useUser";
+import { useLikeSong, useIsLiked } from "@/hooks/mutations/useLikeSong";
 
 interface SongRowProps {
     song: Song;
@@ -42,6 +45,23 @@ const SongRow: React.FC<SongRowProps> = ({
     const router = useRouter();
     const artists = song.artist ? (Array.isArray(song.artist) ? song.artist : [song.artist]) : [];
 
+    // Auth & Like Logic
+    const authModal = useAuthModal();
+    const { user } = useUser();
+    const isLiked = useIsLiked(song.id);
+    const likeMutation = useLikeSong();
+
+    const handleLike = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!user) {
+            return authModal.onOpen();
+        }
+        likeMutation.mutate({
+            songId: song.id,
+            isCurrentlyLiked: isLiked
+        });
+    };
+
     const handleArtistClick = (e: React.MouseEvent, artistName: string) => {
         e.stopPropagation();
         router.push(`/artists/${encodeURIComponent(artistName)}`);
@@ -58,28 +78,28 @@ const SongRow: React.FC<SongRowProps> = ({
         : "md:grid-cols-[auto_auto_minmax(200px,1fr)_minmax(150px,1fr)_80px_auto_auto]";
 
     return (
-        <div className={`grid grid-cols-[auto_auto_1fr_auto_auto] ${gridCols} 
-        items-center gap-3 py-3 w-full hover:bg-muted/30 rounded-md transition my-1 p-2 group/row`}>
+        <div className={`grid grid-cols-[auto_auto_1fr_auto_auto_auto] ${gridCols} 
+        items-center gap-2 md:gap-3 py-3 w-full hover:bg-muted/30 rounded-md transition my-1 p-1 md:p-2 group/row`}>
             {/* Index Column */}
-            <div className="flex items-center justify-center w-8 text-sm text-muted-foreground font-medium">
+            <div className="flex items-center justify-center w-8 text-xs md:text-sm text-muted-foreground font-medium">
                 {index + 1}
             </div>
 
             {/* Play Button with Avatar */}
             <Button size="icon" variant="ghost" onClick={() => onPlay(song.id)}
                 aria-label={`Play ${song.title}`} className="relative group">
-                <Avatar className="h-12 w-12 border border-border rounded-full flex-shrink-0">
+                <Avatar className="md:h-12 md:w-12 h-10 w-10 border border-border rounded-full flex-shrink-0">
                     <AvatarImage src={imageUrl} alt={song.title || "Song artwork"} />
                     <AvatarFallback>{initials}</AvatarFallback>
                 </Avatar>
                 <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
-                    <Play className="h-8 w-8 text-white fill-white translate-x-0.5" />
+                    <Play className="md:h-8 md:w-8 h-6 w-6 text-white fill-white translate-x-0.5" />
                 </div>
             </Button>
 
             {/* Title */}
             <div className="flex flex-col justify-center overflow-hidden">
-                <p className="truncate font-semibold text-foreground text-base leading-tight">
+                <p className="truncate font-semibold text-foreground text-sm md:text-base leading-tight">
                     {song.title || "Untitled"}
                 </p>
             </div>
@@ -108,8 +128,8 @@ const SongRow: React.FC<SongRowProps> = ({
                 </div>
             </div>
 
-            {/* Duration - Hidden on mobile, shown on md+ */}
-            <div className={`${showDuration ? 'hidden md:flex' : 'hidden'} items-center justify-center text-sm text-muted-foreground`}>
+            {/* Duration - Always shown now */}
+            <div className={`${showDuration ? 'flex' : 'hidden'} items-center justify-center text-xs md:text-sm text-muted-foreground`}>
                 {formatTime(song.duration)}
             </div>
 
@@ -150,25 +170,53 @@ const SongRow: React.FC<SongRowProps> = ({
                         <Button
                             size="icon"
                             variant="ghost"
-                            className="h-8 w-8 transition-opacity"
+                            className="h-6 w-6 md:h-8 md:w-8 transition-opacity"
                         >
-                            <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
+                            <MoreHorizontal className="md:h-5 md:w-5 h-4 w-4 text-muted-foreground" />
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem disabled className="text-xs md:hidden font-semibold">
-                            {artists.join(", ")}
+                    <DropdownMenuContent align="end" className="md:w-48 w-42">
+                        <DropdownMenuItem onClick={() => console.log('Add to playlist')}>
+                            <PlusCircle className="md:mr-2 mr-1 md:h-4 md:w-4 h-3 w-3" />
+                            Add to playlist
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => console.log('Add to queue')}>
+                            <ListPlus className="md:mr-2 mr-1 md:h-4 md:w-4 h-3 w-3" />
+                            Add to Queue
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+
                         {song.album && (
-                            <DropdownMenuItem onClick={handleAlbumClick}>
-                                {song.album}
+                            <DropdownMenuItem onClick={handleAlbumClick} className="cursor-pointer">
+                                <Disc className="md:mr-2 mr-1 md:h-4 md:w-4 h-3 w-3" />
+                                Go to album
                             </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem disabled className="text-xs text-muted-foreground">
-                            {formatTime(song.duration)}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => console.log('Add to playlist')}>
-                            Add to Playlist
+
+                        <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>
+                                <User className="md:mr-2 mr-1 md:h-4 md:w-4 h-3 w-3" />
+                                Go to artists
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent>
+                                {artists.map((artist, i) => (
+                                    <DropdownMenuItem
+                                        key={i}
+                                        onClick={(e) => handleArtistClick(e, artist)}
+                                        className="cursor-pointer"
+                                    >
+                                        <User className="md:mr-2 mr-1 md:h-4 md:w-4 h-3 w-3" />
+                                        {artist}
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+
+                        <DropdownMenuSeparator />
+
+                        <DropdownMenuItem onClick={handleLike} className="cursor-pointer">
+                            <Heart className={`md:mr-2 mr-1 md:h-4 md:w-4 h-3 w-3 ${isLiked ? "fill-primary text-primary" : ""}`} />
+                            <span>{isLiked ? "Remove from Liked" : "Add to Liked"}</span>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

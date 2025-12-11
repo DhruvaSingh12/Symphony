@@ -5,24 +5,52 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Song } from "@/types";
 import { useSongsByArtist } from "@/hooks/queries/useSongsByArtist";
-import { useParams } from "next/navigation";
-import Box from "@/components/Box";
-import { BounceLoader } from "react-spinners";
-import { useMemo, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useMemo, useState, useEffect } from "react";
 import AlbumCard from "../components/AlbumCard";
 import AlbumModal from "@/components/AlbumModal";
 import useOnPlay from "@/hooks/useOnPlay";
 import SongRow from "@/components/SongRow";
+import { Disc, Play } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 
 const ArtistPage = () => {
     const params = useParams();
+    const router = useRouter();
     const artistName = decodeURIComponent(params.name as string);
 
-    const { data: songs, isLoading, error } = useSongsByArtist(artistName);
-    const songCount = songs?.length || 0;
-
+    const { data: songs, error } = useSongsByArtist(artistName);
     const [selectedAlbum, setSelectedAlbum] = useState<string | null>(null);
     const [albumData, setAlbumData] = useState<{ songs: Song[] } | null>(null);
+    const [isMobile, setIsMobile] = useState(false);
+    const [showAllAlbums, setShowAllAlbums] = useState(false);
+    const [showAllArtists, setShowAllArtists] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    const relatedArtists = useMemo(() => {
+        if (!songs) return [];
+        const artistsSet = new Set<string>();
+        songs.forEach((song) => {
+            if (song.artist) {
+                const songArtists = Array.isArray(song.artist) ? song.artist : [song.artist];
+                songArtists.forEach((a) => {
+                    if (a !== artistName) {
+                        artistsSet.add(a);
+                    }
+                });
+            }
+        });
+        return Array.from(artistsSet);
+    }, [songs, artistName]);
 
     const albums = useMemo(() => {
         if (!songs) return {};
@@ -48,7 +76,8 @@ const ArtistPage = () => {
         setSelectedAlbum(albumName);
         if (albumSongs) {
             setAlbumData({ songs: albumSongs });
-        } else if (songs) {
+        }
+        else if (songs) {
             const filtered = songs.filter(s => s.album === albumName);
             setAlbumData({ songs: filtered });
         }
@@ -59,14 +88,40 @@ const ArtistPage = () => {
         setAlbumData(null);
     };
 
+    const displayedAlbums = useMemo(() => {
+        const entries = Object.entries(albums);
+        if (isMobile && !showAllAlbums) {
+            return entries.slice(0, 3);
+        }
+        return entries;
+    }, [albums, isMobile, showAllAlbums]);
+
+    const displayedRelatedArtists = useMemo(() => {
+        if (isMobile && !showAllArtists) {
+            return relatedArtists.slice(0, 3);
+        }
+        return relatedArtists;
+    }, [relatedArtists, isMobile, showAllArtists]);
+
     return (
         <div className="h-full w-full flex flex-col overflow-hidden">
             <div className="flex-none px-2 md:px-0 md:pr-2 pt-2">
                 <Header>
-                    <div className="flex flex-col gap-y-2">
-                        <h1 className="text-2xl md:text-5xl lg:text-6xl font-bold text-foreground">
-                            {artistName}
-                        </h1>
+                    <div className="flex flex-col">
+                        <div className="flex items-center mt-3 justify-between">
+                            <h1 className="text-2xl md:text-5xl lg:text-6xl font-bold text-foreground">
+                                {artistName}
+                            </h1>
+                            {songs && songs.length > 0 && (
+                                <Button
+                                    onClick={() => onPlay(songs[0].id)}
+                                    size="icon"
+                                    className="rounded-full bg-foreground hover:bg-primary/90 transition w-10 h-10 md:w-12 md:h-12"
+                                >
+                                    <Play className="text-background fill-background w-8 h-8 md:w-12 md:h-12" />
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 </Header>
             </div>
@@ -107,7 +162,7 @@ const ArtistPage = () => {
                                     <div className="w-full px-4 py-2 min-w-0">
                                         <h2 className="text-2xl font-bold mb-2">Albums</h2>
                                         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
-                                            {Object.entries(albums).map(([albumName, albumSongs]) => (
+                                            {displayedAlbums.map(([albumName, albumSongs]) => (
                                                 <AlbumCard
                                                     key={albumName}
                                                     albumName={albumName}
@@ -116,6 +171,57 @@ const ArtistPage = () => {
                                                 />
                                             ))}
                                         </div>
+                                        {isMobile && Object.keys(albums).length > 3 && (
+                                            <div className="flex justify-center mt-4">
+                                                <button
+                                                    onClick={() => setShowAllAlbums(!showAllAlbums)}
+                                                    className="text-sm text-muted-foreground hover:text-foreground hover:underline transition"
+                                                >
+                                                    {showAllAlbums ? "Show Less" : "View More"}
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {relatedArtists.length > 0 && (
+                                    <div className="w-full px-4 pt-2 pb-4 min-w-0">
+                                        <h2 className="text-2xl font-bold mb-4">Related Artists</h2>
+                                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2">
+                                            {displayedRelatedArtists.map((artist) => (
+                                                <div
+                                                    key={artist}
+                                                    className="flex flex-col items-center gap-2 group cursor-pointer"
+                                                    onClick={() => router.push(`/artists/${encodeURIComponent(artist)}`)}
+                                                >
+                                                    <div className="relative h-28 w-28 md:h-32 md:w-32 border border-border bg-secondary rounded-full flex items-center justify-center shadow-lg group-hover:scale-105 transition transform duration-300">
+                                                        <Disc className="w-12 h-12 md:w-16 md:h-16 text-background" />
+                                                    </div>
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <div className="text-center text-foreground truncate w-28 md:w-32 px-1">
+                                                                    {artist}
+                                                                </div>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                                <p>{artist}</p>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {isMobile && relatedArtists.length > 3 && (
+                                            <div className="flex justify-center mt-4">
+                                                <button
+                                                    onClick={() => setShowAllArtists(!showAllArtists)}
+                                                    className="text-sm text-muted-foreground hover:text-foreground hover:underline transition"
+                                                >
+                                                    {showAllArtists ? "Show Less" : "View More"}
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>

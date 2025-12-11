@@ -120,7 +120,7 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick, onAlbumClick }) => {
             <DropdownMenuContent className="w-48" align="end">
               <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Add to other playlist
+                Add to playlist
               </DropdownMenuItem>
               <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
                 <ListPlus className="mr-2 h-4 w-4" />

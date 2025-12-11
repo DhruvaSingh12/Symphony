@@ -70,15 +70,12 @@ const AlbumCard: React.FC<AlbumCardProps> = ({ albumName, songs, onClick }) => {
                     </div>
                 </div>
             </div>
-            <div>
+            <div onClick={handleAlbumClick}>
                 <div className="font-semibold text-sm md:text-base truncate">
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <div
-                                    className="text-sm text-foreground cursor-pointer truncate"
-                                    onClick={handleAlbumClick}
-                                >
+                                <div className="text-sm text-foreground cursor-pointer truncate">
                                     {albumName}
                                 </div>
                             </TooltipTrigger>

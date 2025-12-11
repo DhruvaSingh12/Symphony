@@ -196,7 +196,7 @@ const Table: React.FC<TableProps> = ({ songs, onPlay, persistenceKey }) => {
                         </div>
 
                         {/* Song Rows */}
-                        <div className="flex-1 overflow-y-auto px-6">
+                        <div className="flex-1 overflow-y-auto px-3 md:px-5">
                             {displayedSongs.map((song, index) => (
                                 <div key={song.id} className="border-b border-border last:border-b-0">
                                     <SongRow song={song} index={index} onPlay={onPlay} onAlbumClick={handleAlbumClick} />

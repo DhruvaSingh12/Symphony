@@ -45,7 +45,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
             aria-label={isLiked ? "Unlike" : "Like"}
             disabled={likeMutation.isPending}
         >
-            <Heart className={cn("h-5 w-5", isLiked ? "fill-primary text-primary" : "text-muted-foreground")} />
+            <Heart className={cn("md:h-5 md:w-5 h-4 w-4", isLiked ? "fill-primary text-primary" : "text-muted-foreground")} />
         </Button>
     );
 }
