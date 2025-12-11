@@ -185,7 +185,7 @@ const ArtistPage = () => {
                                 )}
 
                                 {relatedArtists.length > 0 && (
-                                    <div className="w-full px-4 pt-2 pb-4 min-w-0">
+                                    <div className="w-full px-2 md:px-4 pt-2 pb-4 min-w-0">
                                         <h2 className="text-2xl font-bold mb-4">Related Artists</h2>
                                         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-1 md:gap-2">
                                             {displayedRelatedArtists.map((artist) => (
