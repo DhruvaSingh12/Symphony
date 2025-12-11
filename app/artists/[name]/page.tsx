@@ -98,7 +98,7 @@ const ArtistPage = () => {
 
     const displayedRelatedArtists = useMemo(() => {
         if (isMobile && !showAllArtists) {
-            return relatedArtists.slice(0, 3);
+            return relatedArtists.slice(0, 4);
         }
         return relatedArtists;
     }, [relatedArtists, isMobile, showAllArtists]);
@@ -136,8 +136,8 @@ const ArtistPage = () => {
                             </CardContent>
                         ) : (
                             <div className="p-4">
-                                <div className="px-4">
-                                    <h2 className="text-2xl font-bold mb-2">Top Songs</h2>
+                                <div>
+                                    <h2 className="text-2xl font-bold ml-2 mb-2">Top Songs</h2>
                                     <div className="flex flex-col w-full">
                                         {topSongs.map((song, index) => (
                                             <div key={song.id} className="border-b border-border/50 last:border-b-0">
@@ -159,8 +159,8 @@ const ArtistPage = () => {
                                 )}
 
                                 {Object.keys(albums).length > 0 && (
-                                    <div className="w-full px-4 py-2 min-w-0">
-                                        <h2 className="text-2xl font-bold mb-2">Albums</h2>
+                                    <div className="w-full py-2 min-w-0">
+                                        <h2 className="text-2xl font-bold ml-2 mb-2">Albums</h2>
                                         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
                                             {displayedAlbums.map(([albumName, albumSongs]) => (
                                                 <AlbumCard
@@ -185,22 +185,22 @@ const ArtistPage = () => {
                                 )}
 
                                 {relatedArtists.length > 0 && (
-                                    <div className="w-full px-2 md:px-4 pt-2 pb-4 min-w-0">
-                                        <h2 className="text-2xl font-bold mb-4">Related Artists</h2>
-                                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-1 md:gap-2">
+                                    <div className="w-full pt-2 pb-4 min-w-0">
+                                        <h2 className="text-2xl font-bold ml-2 mb-4">Related Artists</h2>
+                                        <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-3 md:gap-2">
                                             {displayedRelatedArtists.map((artist) => (
                                                 <div
                                                     key={artist}
                                                     className="flex flex-col items-center group cursor-pointer gap-y-2"
                                                     onClick={() => router.push(`/artists/${encodeURIComponent(artist)}`)}
                                                 >
-                                                    <div className="relative h-24 w-24 md:h-32 md:w-32 border border-border bg-secondary rounded-full flex items-center justify-center shadow-lg group-hover:scale-105 transition transform duration-300">
-                                                        <Disc className="w-10 h-10 md:w-16 md:h-16 text-background" />
+                                                    <div className="relative h-20 w-20 md:h-28 md:w-28 border border-border bg-secondary rounded-full flex items-center justify-center shadow-lg group-hover:scale-105 transition transform duration-300">
+                                                        <Disc className="w-8 h-8 md:w-14 md:h-14 text-background" />
                                                     </div>
                                                     <TooltipProvider>
                                                         <Tooltip>
                                                             <TooltipTrigger asChild>
-                                                                <div className="text-center text-foreground truncate w-28 md:w-32 px-1">
+                                                                <div className="text-center text-foreground truncate text-sm md:text-base px-1">
                                                                     {artist}
                                                                 </div>
                                                             </TooltipTrigger>
@@ -212,7 +212,7 @@ const ArtistPage = () => {
                                                 </div>
                                             ))}
                                         </div>
-                                        {isMobile && relatedArtists.length > 3 && (
+                                        {isMobile && relatedArtists.length > 4 && (
                                             <div className="flex justify-center mt-4">
                                                 <button
                                                     onClick={() => setShowAllArtists(!showAllArtists)}
