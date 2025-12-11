@@ -22,6 +22,7 @@ interface SongRowProps {
     showArtist?: boolean;
     showAlbum?: boolean;
     showDuration?: boolean;
+    layout?: 'default' | 'search';
 }
 
 const formatTime = (seconds: number | null): string => {
@@ -38,7 +39,8 @@ const SongRow: React.FC<SongRowProps> = ({
     onAlbumClick,
     showArtist = true,
     showAlbum = true,
-    showDuration = true
+    showDuration = true,
+    layout = 'default'
 }) => {
     const imageUrl = useLoadImage(song) || "/images/liked.png";
     const initials = (song.title || "?").slice(0, 2).toUpperCase();
@@ -102,9 +104,23 @@ const SongRow: React.FC<SongRowProps> = ({
                 <p className="truncate font-semibold text-foreground text-sm md:text-base leading-tight">
                     {song.title || "Untitled"}
                 </p>
+                {layout === 'search' && (
+                    <div className="text-sm text-muted-foreground truncate group/artist">
+                        {artists.map((artist, artistIndex) => (
+                            <span key={artistIndex}>
+                                <span
+                                    className="hover:underline cursor-pointer hover:text-foreground transition"
+                                    onClick={(e) => handleArtistClick(e, artist)}>
+                                    {artist}
+                                </span>
+                                {artistIndex < artists.length - 1 && ", "}
+                            </span>
+                        ))}
+                    </div>
+                )}
             </div>
 
-            <div className={`${showArtist ? 'hidden md:flex' : 'hidden'} flex-col justify-center overflow-hidden`}>
+            <div className={`${showArtist && layout !== 'search' ? 'hidden md:flex' : 'hidden'} flex-col justify-center overflow-hidden`}>
                 <div className="text-sm text-muted-foreground truncate">
                     {artists.map((artist, artistIndex) => (
                         <TooltipProvider key={artistIndex}>

@@ -2,7 +2,7 @@
 
 import qs from "query-string";
 import useDebounce from "@/hooks/useDebounce";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Input from "./Input";
 import { Button } from "@/components/ui/button";
@@ -10,14 +10,37 @@ import { Search as SearchIcon } from "lucide-react";
 
 const SearchInput = () => {
     const router = useRouter();
-    const [query, setQuery] = useState<string>("");
+    const searchParams = useSearchParams();
+
+    // Initialize with URL query if available
+    const [query, setQuery] = useState<string>(searchParams.get("query") || "");
     const debouncedQuery = useDebounce<string>(query, 500);
+
+    // Restore from localStorage on mount if URL query is empty
+    useEffect(() => {
+        if (!searchParams.get("query")) {
+            const savedQuery = localStorage.getItem("quivery-last-search");
+            if (savedQuery) {
+                setQuery(savedQuery);
+            }
+        }
+    }, []); // Run once on mount
 
     useEffect(() => {
         const url = qs.stringifyUrl({
             url: '/search',
             query: { query: debouncedQuery }
         });
+
+        // Persist to localStorage
+        if (debouncedQuery) {
+            localStorage.setItem("quivery-last-search", debouncedQuery);
+        } else if (query === "" && !searchParams.get("query")) {
+            // Only remove if user explicitly cleared it (query is empty)
+            // and we are not in a transition state
+            localStorage.removeItem("quivery-last-search");
+        }
+
         router.push(url);
     }, [debouncedQuery, router]);
 
@@ -37,6 +60,7 @@ const SearchInput = () => {
                 variant="outline"
                 onClick={() => setQuery("")}
                 disabled={!query}
+                className="rounded-full"
             >
                 Clear
             </Button>
