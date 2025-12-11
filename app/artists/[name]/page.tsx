@@ -187,15 +187,15 @@ const ArtistPage = () => {
                                 {relatedArtists.length > 0 && (
                                     <div className="w-full px-4 pt-2 pb-4 min-w-0">
                                         <h2 className="text-2xl font-bold mb-4">Related Artists</h2>
-                                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2">
+                                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-1 md:gap-2">
                                             {displayedRelatedArtists.map((artist) => (
                                                 <div
                                                     key={artist}
-                                                    className="flex flex-col items-center gap-2 group cursor-pointer"
+                                                    className="flex flex-col items-center group cursor-pointer gap-y-2"
                                                     onClick={() => router.push(`/artists/${encodeURIComponent(artist)}`)}
                                                 >
-                                                    <div className="relative h-28 w-28 md:h-32 md:w-32 border border-border bg-secondary rounded-full flex items-center justify-center shadow-lg group-hover:scale-105 transition transform duration-300">
-                                                        <Disc className="w-12 h-12 md:w-16 md:h-16 text-background" />
+                                                    <div className="relative h-24 w-24 md:h-32 md:w-32 border border-border bg-secondary rounded-full flex items-center justify-center shadow-lg group-hover:scale-105 transition transform duration-300">
+                                                        <Disc className="w-10 h-10 md:w-16 md:h-16 text-background" />
                                                     </div>
                                                     <TooltipProvider>
                                                         <Tooltip>
