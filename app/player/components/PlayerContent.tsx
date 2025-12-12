@@ -8,7 +8,7 @@ import MediaItem from '@/components/MediaItem';
 import LikeButton from '@/components/LikeButton';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import Slider from './Slider';
+import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 
 interface PlayerContentProps {
@@ -20,19 +20,33 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   const player = usePlayer();
   const [volume, setVolume] = useState(1);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isVolumeHovered, setIsVolumeHovered] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState<number | null>(null);
-  const [isShuffle, setIsShuffle] = useState(false);
-  const [isRepeat, setIsRepeat] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
+  const { isShuffle, isRepeat, toggleShuffle, toggleRepeat } = player;
 
   const Icon = isPlaying ? Pause : Play;
   const VolumeIcon = volume === 0 ? VolumeX : Volume2;
 
+  useEffect(() => {
+    if (player.activeId && player.ids.includes(player.activeId)) {
+      if (player.lastContextId !== player.activeId) {
+        player.setLastContextId(player.activeId);
+      }
+    }
+  }, [player.activeId, player.ids, player.lastContextId, player.setLastContextId]);
+
   const onPlayNext = useCallback(() => {
     if (player.ids.length === 0) {
+      return;
+    }
+
+    // Check Queue
+    if (player.queue.length > 0) {
+      const nextSongId = player.queue[0];
+      player.setId(nextSongId);
+      player.shiftQueue();
       return;
     }
 
@@ -41,19 +55,32 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
       const randomIndex = Math.floor(Math.random() * player.ids.length);
       nextSongId = player.ids[randomIndex];
     } else {
-      const currentIndex = player.ids.findIndex((id) => id === player.activeId);
-      nextSongId = player.ids[(currentIndex + 1) % player.ids.length];
+      let currentIndex = player.ids.findIndex((id) => id === player.activeId);
+
+      // If playing a song not in context (e.g. from queue), resume from lastContextId
+      if (currentIndex === -1 && player.lastContextId) {
+        currentIndex = player.ids.findIndex((id) => id === player.lastContextId);
+      }
+
+      const nextIndex = (currentIndex + 1) % player.ids.length;
+      nextSongId = player.ids[nextIndex];
     }
 
     player.setId(nextSongId);
-  }, [player, isShuffle]);
+  }, [player, player.isShuffle]);
 
   const onPlayPrevious = useCallback(() => {
     if (player.ids.length === 0) {
       return;
     }
 
-    const currentIndex = player.ids.findIndex((id) => id === player.activeId);
+    let currentIndex = player.ids.findIndex((id) => id === player.activeId);
+
+    // Fallback if current song detached
+    if (currentIndex === -1 && player.lastContextId) {
+      currentIndex = player.ids.findIndex((id) => id === player.lastContextId);
+    }
+
     const previousSongId = player.ids[(currentIndex - 1 + player.ids.length) % player.ids.length];
 
     player.setId(previousSongId);
@@ -114,7 +141,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
 
     const handleLoadedMetadata = () => {
       setDuration(audioElement.duration);
-      audioElement.play(); 
+      audioElement.play();
       setIsPlaying(true);
     };
 
@@ -160,169 +187,182 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   return (
     <TooltipProvider>
       <div className="flex gap-2 mx-1">
-        <Card className="bg-card border-border h-16 flex items-center w-2/6 md:w-1/5 p-2">
-          <MediaItem data={song} onClick={() => {}} />
+        {/* Left Card: Song Info */}
+        <Card className="bg-card border-border h-16 flex items-center w-1/5 p-2">
+          <div className="flex items-center gap-x-2 w-full">
+            <MediaItem data={song} onClick={() => { }} />
+          </div>
         </Card>
-        <Card className="bg-card border-border w-4/6 md:w-4/5 h-16 p-2">
-          <div className="flex w-full justify-center items-center h-full">
-            <div className="flex gap-2 justify-center items-center md:hidden">
-              <LikeButton songId={song.id} />
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsShuffle((prev) => !prev)}
-                    className={cn(isShuffle && "text-primary")}
-                  >
-                    <Shuffle className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Shuffle</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" onClick={onPlayPrevious}>
-                    <SkipBack className="h-5 w-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Previous</TooltipContent>
-              </Tooltip>
+
+        {/* Right Card: Controls */}
+        <Card className="bg-card border-border w-4/5 h-16 p-2">
+          {/* Mobile View */}
+          <div className="flex md:hidden h-full w-full items-center justify-between px-2">
+            <LikeButton songId={song.id} />
+            <div className="flex items-center gap-x-2">
+
               <Button
-                variant="secondary"
+                variant="ghost"
                 size="icon"
-                className="rounded-full h-8 w-8"
+                onClick={toggleShuffle}
+                className={cn("text-muted-foreground rounded-full hover:text-foreground transition", isShuffle && "text-primary bg-primary/10")}
+              >
+                <Shuffle className="h-2 w-2" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={onPlayPrevious}>
+                <SkipBack className="h-2 w-2" />
+              </Button>
+              <Button
+                size="icon"
+                className="h-10 w-10 rounded-full bg-foreground text-background hover:scale-105 transition"
                 onClick={handlePlayPause}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-3 w-3 fill-background" />
               </Button>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" onClick={onPlayNext}>
-                    <SkipForward className="h-5 w-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Next</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsRepeat((prev) => !prev)}
-                    className={cn(isRepeat && "text-primary")}
-                  >
-                    <Repeat className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Repeat</TooltipContent>
-              </Tooltip>
-              <Button variant="ghost" size="icon" onClick={toggleMute}>
-                <VolumeIcon className="h-5 w-5" />
+              <Button variant="ghost" size="icon" onClick={onPlayNext}>
+                <SkipForward className="h-2 w-2" />
               </Button>
             </div>
-            <div className="hidden md:flex items-center gap-4 w-full px-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleRepeat}
+              className={cn("text-muted-foreground rounded-full hover:text-foreground transition", isRepeat && "text-primary bg-primary/10")}
+            >
+              <Repeat className="h-2 w-2" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={toggleMute}>
+              <VolumeIcon className="h-3 w-3" />
+            </Button>
+          </div>
+
+          {/* Desktop View */}
+          <div className="hidden md:flex h-full w-full items-center justify-between px-4">
+            {/* Left: Like Button */}
+            <div className="flex items-center w-[80px]">
               <LikeButton songId={song.id} />
-              <div className="flex flex-col items-center justify-center flex-1 max-w-[722px]">
-                <div className="flex items-center gap-2">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setIsShuffle((prev) => !prev)}
-                        className={cn(isShuffle && "text-primary")}
-                      >
-                        <Shuffle className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Shuffle</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" onClick={onPlayPrevious}>
-                        <SkipBack className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Previous</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" onClick={skipBackward}>
-                        <Rewind className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Rewind 10s</TooltipContent>
-                  </Tooltip>
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    className="rounded-full h-8 w-8"
-                    onClick={handlePlayPause}
-                  >
-                    <Icon className="h-5 w-5" />
-                  </Button>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" onClick={skipForward}>
-                        <FastForward className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Forward 10s</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" onClick={onPlayNext}>
-                        <SkipForward className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Next</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setIsRepeat((prev) => !prev)}
-                        className={cn(isRepeat && "text-primary")}
-                      >
-                        <Repeat className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Repeat</TooltipContent>
-                  </Tooltip>
-                </div>
-                <div
-                  ref={timelineRef}
-                  className="relative w-full mt-2 h-1 bg-muted rounded cursor-pointer"
-                  onClick={handleTimelineClick}
+            </div>
+
+            {/* Center: Controls + Progress */}
+            <div className="flex flex-col items-center justify-center flex-1 max-w-[600px]">
+              <div className="flex items-center gap-x-4">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={toggleShuffle}
+                      className={cn("text-muted-foreground rounded-full hover:text-foreground transition", isShuffle && "text-primary bg-primary/10")}
+                    >
+                      <Shuffle className="h-3 w-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Shuffle</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={onPlayPrevious} className="text-muted-foreground hover:text-foreground rounded-full transition">
+                      <SkipBack className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Previous</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={skipBackward} className="text-muted-foreground hover:text-foreground rounded-full transition">
+                      <Rewind className="h-2 w-2" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>-10s</TooltipContent>
+                </Tooltip>
+
+                <Button
+                  size="icon"
+                  className="h-8 w-8 rounded-full bg-foreground text-background hover:scale-110 transition"
+                  onClick={handlePlayPause}
                 >
-                  <div
-                    className="absolute h-full bg-primary rounded"
-                    style={{ width: `${(currentTime / (duration || 1)) * 100}%` }}
+                  <Icon className="h-4 w-4 fill-background" />
+                </Button>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={skipForward} className="text-muted-foreground hover:text-foreground rounded-full transition">
+                      <FastForward className="h-2 w-2" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>+10s</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={onPlayNext} className="text-muted-foreground rounded-full hover:text-foreground transition">
+                      <SkipForward className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Next</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={toggleRepeat}
+                      className={cn("text-muted-foreground rounded-full hover:text-foreground transition", isRepeat && "text-primary bg-primary/10")}
+                    >
+                      <Repeat className="h-3 w-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Repeat</TooltipContent>
+                </Tooltip>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="flex w-full items-center gap-x-2">
+                <span className="text-[10px] text-muted-foreground w-7 text-right tabular-nums">
+                  {formatTime(currentTime)}
+                </span>
+                <div className="flex-1 bg-background/80 rounded-full px-1.5 py-1 border border-border/20">
+                  <Slider
+                    value={[currentTime]}
+                    max={duration || 100}
+                    step={0.1}
+                    onValueChange={(value) => {
+                      if (audioRef.current) {
+                        audioRef.current.currentTime = value[0];
+                        setCurrentTime(value[0]);
+                      }
+                    }}
+                    className="w-full cursor-pointer [&_[data-radix-slider-track]]:h-1.5 [&_[data-radix-slider-track]]:bg-muted/50 [&_[data-radix-slider-range]]:bg-primary [&_[data-radix-slider-thumb]]:h-2.5 [&_[data-radix-slider-thumb]]:w-2.5 [&_[data-radix-slider-thumb]]:border-background [&_[data-radix-slider-thumb]]:opacity-0 [&_[data-radix-slider-thumb]]:hover:opacity-100 [&:hover_[data-radix-slider-thumb]]:opacity-100 [&_[data-radix-slider-thumb]]:transition-opacity"
                   />
                 </div>
-                <div className="w-full flex justify-between text-muted-foreground text-xs mt-1">
-                  <span>{formatTime(currentTime)}</span>
-                  <span>{duration ? formatTime(duration) : '00:00'}</span>
-                </div>
+                <span className="text-[10px] text-muted-foreground w-7 text-left tabular-nums">
+                  {duration ? formatTime(duration) : '0:00'}
+                </span>
               </div>
-              <div
-                className="flex items-center gap-2 w-[120px]"
-                onMouseEnter={() => setIsVolumeHovered(true)}
-                onMouseLeave={() => setIsVolumeHovered(false)}
-              >
-                <Button variant="ghost" size="icon" onClick={toggleMute}>
-                  <VolumeIcon className="h-5 w-5" />
-                </Button>
-                <Slider value={volume} onChange={(value) => setVolume(value)} />
-                {isVolumeHovered && (
-                  <span className="text-muted-foreground text-sm">{Math.round(volume * 100)}</span>
-                )}
-              </div>
+            </div>
+
+            {/* Right: Volume */}
+            <div className="flex items-center justify-end w-[150px] gap-x-2">
+              <Button variant="ghost" size="icon" onClick={toggleMute} className="text-muted-foreground px-2 rounded-full hover:text-foreground transition">
+                <VolumeIcon className="h-5 w-5" />
+              </Button>
+              <Slider
+                value={[volume]}
+                max={1}
+                step={0.01}
+                onValueChange={(value) => setVolume(value[0])}
+                className="w-16 cursor-pointer [&_[data-radix-slider-track]]:h-1.5 [&_[data-radix-slider-track]]:bg-muted/30 [&_[data-radix-slider-track]]:rounded-full [&_[data-radix-slider-range]]:bg-gradient-to-r [&_[data-radix-slider-range]]:from-violet-500 [&_[data-radix-slider-range]]:to-purple-400 [&_[data-radix-slider-thumb]]:h-3 [&_[data-radix-slider-thumb]]:w-3 [&_[data-radix-slider-thumb]]:bg-white [&_[data-radix-slider-thumb]]:border-violet-500 [&_[data-radix-slider-thumb]]:shadow-sm"
+              />
+              <span className="text-[10px] text-muted-foreground w-6 tabular-nums">
+                {Math.round(volume * 100)}
+              </span>
             </div>
           </div>
         </Card>
+
         <audio ref={audioRef} src={songUrl} />
       </div>
     </TooltipProvider>

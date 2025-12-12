@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import useLoadImage from "@/hooks/useLoadImage";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Play, MoreHorizontal, PlusCircle, ListPlus, Disc, User, Heart } from "lucide-react";
+import { Play, MoreHorizontal, PlusCircle, ListPlus, Disc, User, Heart, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import LikeButton from "@/components/LikeButton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -14,6 +14,9 @@ import useAuthModal from "@/hooks/useAuthModal";
 import usePlaylistModal from "@/hooks/usePlaylistModal";
 import { useUser } from "@/hooks/useUser";
 import { useLikeSong, useIsLiked } from "@/hooks/mutations/useLikeSong";
+import { useRemoveSongFromPlaylist } from "@/hooks/mutations/usePlaylist";
+import usePlayer from "@/hooks/usePlayer";
+import { toast } from "react-hot-toast";
 
 interface SongRowProps {
     song: Song;
@@ -24,6 +27,7 @@ interface SongRowProps {
     showAlbum?: boolean;
     showDuration?: boolean;
     layout?: 'default' | 'search';
+    playlistId?: string;
 }
 
 const formatTime = (seconds: number | null): string => {
@@ -41,7 +45,8 @@ const SongRow: React.FC<SongRowProps> = ({
     showArtist = true,
     showAlbum = true,
     showDuration = true,
-    layout = 'default'
+    layout = 'default',
+    playlistId
 }) => {
     const imageUrl = useLoadImage(song) || "/images/liked.png";
     const initials = (song.title || "?").slice(0, 2).toUpperCase();
@@ -54,6 +59,8 @@ const SongRow: React.FC<SongRowProps> = ({
     const { user } = useUser();
     const isLiked = useIsLiked(song.id);
     const likeMutation = useLikeSong();
+    const removeSongMutation = useRemoveSongFromPlaylist();
+    const player = usePlayer();
 
     const handleLike = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -72,6 +79,21 @@ const SongRow: React.FC<SongRowProps> = ({
             return authModal.onOpen();
         }
         playlistModal.onOpen(song.id);
+    };
+
+    const handleRemoveFromPlaylist = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!playlistId) return;
+        removeSongMutation.mutate({
+            playlistId,
+            songId: song.id
+        });
+    }
+
+    const handleAddToQueue = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        player.addToQueue(song.id);
+        toast.success("Added to queue");
     };
 
     const handleArtistClick = (e: React.MouseEvent, artistName: string) => {
@@ -207,7 +229,13 @@ const SongRow: React.FC<SongRowProps> = ({
                             <PlusCircle className="md:mr-2 mr-1 md:h-4 md:w-4 h-3 w-3" />
                             Add to playlist
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => console.log('Add to queue')}>
+                        {playlistId && (
+                            <DropdownMenuItem onClick={handleRemoveFromPlaylist} className="cursor-pointer focus:text-red-500">
+                                <Trash2 className="md:mr-2 mr-1 md:h-4 md:w-4 h-3 w-3" />
+                                Remove from playlist
+                            </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem onClick={handleAddToQueue} className="cursor-pointer">
                             <ListPlus className="md:mr-2 mr-1 md:h-4 md:w-4 h-3 w-3" />
                             Add to Queue
                         </DropdownMenuItem>

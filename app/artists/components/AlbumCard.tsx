@@ -12,6 +12,7 @@ interface AlbumCardProps {
     onClick: () => void;
     description?: string;
     showYear?: boolean;
+    showPlayButton?: boolean;
 }
 
 const AlbumImage = ({ song, className }: { song: Song, className?: string }) => {
@@ -33,7 +34,8 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
     songs,
     onClick,
     description = "Album",
-    showYear = true
+    showYear = true,
+    showPlayButton = true
 }) => {
     const songsToDisplay = songs.slice(0, 4);
     const isGrid = songs.length >= 4;
@@ -56,7 +58,10 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
     };
 
     return (
-        <div className="group flex flex-col gap-y-3 p-3 rounded-md hover:bg-accent/50 cursor-pointer w-full flex-shrink-0 transition">
+        <div
+            onClick={handleAlbumClick}
+            className="group flex flex-col gap-y-3 p-3 rounded-md hover:bg-accent/50 cursor-pointer w-full flex-shrink-0 transition"
+        >
             <div className="relative aspect-square w-full rounded-md overflow-hidden shadow-lg bg-secondary">
                 {isGrid ? (
                     <div className="grid grid-cols-2 grid-rows-2 w-full h-full">
@@ -69,16 +74,18 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
                 )}
 
                 {/* Play overlay */}
-                <div
-                    onClick={handlePlay}
-                    className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                    <div className="bg-primary rounded-full p-3 drop-shadow-md translate-y-2 group-hover:translate-y-0 transition hover:scale-105">
-                        <Play className="text-primary-foreground fill-primary-foreground h-5 w-5 pl-0.5" />
+                {showPlayButton && (
+                    <div
+                        onClick={handlePlay}
+                        className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                        <div className="bg-primary rounded-full p-3 drop-shadow-md translate-y-2 group-hover:translate-y-0 transition hover:scale-105">
+                            <Play className="text-primary-foreground fill-primary-foreground h-5 w-5 pl-0.5" />
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
-            <div onClick={handleAlbumClick}>
+            <div>
                 <div className="font-semibold text-sm md:text-base truncate">
                     <TooltipProvider>
                         <Tooltip>

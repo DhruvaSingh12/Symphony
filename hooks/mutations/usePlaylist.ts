@@ -72,3 +72,86 @@ export const useAddSongToPlaylist = () => {
         }
     });
 };
+
+export const useRemoveSongFromPlaylist = () => {
+    const supabaseClient = useSupabaseClient();
+    const { user } = useUser();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ playlistId, songId }: { playlistId: string; songId: number }) => {
+            const { error } = await supabaseClient
+                .from("playlist_songs")
+                .delete()
+                .eq("playlist_id", playlistId)
+                .eq("song_id", songId);
+
+            if (error) throw error;
+        },
+        onSuccess: (_, variables) => {
+            toast.success("Removed from playlist");
+            queryClient.invalidateQueries({ queryKey: ["playlists_with_songs", user?.id] });
+            queryClient.invalidateQueries({ queryKey: ["playlist_songs", variables.playlistId] });
+        },
+        onError: (error: any) => {
+            toast.error(error.message);
+        }
+    });
+};
+
+export const useDeletePlaylist = () => {
+    const supabaseClient = useSupabaseClient();
+    const { user } = useUser();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (playlistId: string) => {
+            const { error } = await supabaseClient
+                .from("playlists")
+                .delete()
+                .eq("id", playlistId);
+
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            toast.success("Playlist deleted");
+            queryClient.invalidateQueries({ queryKey: ["playlists", user?.id] });
+            queryClient.invalidateQueries({ queryKey: ["playlists_with_songs", user?.id] });
+        },
+        onError: (error: any) => {
+            toast.error(error.message);
+        }
+    });
+};
+
+export const useRenamePlaylist = () => {
+    const supabaseClient = useSupabaseClient();
+    const { user } = useUser();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ playlistId, newName }: { playlistId: string; newName: string }) => {
+            const { data, error } = await supabaseClient
+                .from("playlists")
+                .update({ name: newName })
+                .eq("id", playlistId)
+                .select();
+
+            if (error) throw error;
+            if (!data || data.length === 0) {
+                throw new Error("Failed to rename: Playlist not found or permission denied.");
+            }
+            return data[0];
+        },
+        onSuccess: (data, variables) => {
+            toast.success("Playlist renamed");
+            queryClient.setQueryData(["playlist", variables.playlistId], data);
+            queryClient.invalidateQueries({ queryKey: ["playlists", user?.id] });
+            queryClient.invalidateQueries({ queryKey: ["playlists_with_songs", user?.id] });
+            queryClient.invalidateQueries({ queryKey: ["playlist", variables.playlistId] });
+        },
+        onError: (error: any) => {
+            toast.error(error.message);
+        }
+    });
+};

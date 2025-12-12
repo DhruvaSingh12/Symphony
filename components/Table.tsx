@@ -11,6 +11,7 @@ interface TableProps {
     songs: Song[];
     onPlay: (id: number) => void;
     persistenceKey?: string;
+    playlistId?: string;
 }
 
 type SortField = 'title' | 'artist' | 'album' | 'duration' | null;
@@ -47,7 +48,7 @@ const SortHeader: React.FC<SortHeaderProps> = ({ label, field, currentSortField,
     );
 };
 
-const Table: React.FC<TableProps> = ({ songs, onPlay, persistenceKey }) => {
+const Table: React.FC<TableProps> = ({ songs, onPlay, persistenceKey, playlistId }) => {
     const [selectedAlbum, setSelectedAlbum] = useState<string | null>(null);
     const [albumData, setAlbumData] = useState<{ songs: Song[] } | null>(null);
 
@@ -199,7 +200,7 @@ const Table: React.FC<TableProps> = ({ songs, onPlay, persistenceKey }) => {
                         <div className="flex-1 overflow-y-auto px-3 md:px-5">
                             {displayedSongs.map((song, index) => (
                                 <div key={song.id} className="border-b border-border last:border-b-0">
-                                    <SongRow song={song} index={index} onPlay={onPlay} onAlbumClick={handleAlbumClick} />
+                                    <SongRow song={song} index={index} onPlay={onPlay} onAlbumClick={handleAlbumClick} playlistId={playlistId} />
                                 </div>
                             ))}
 

@@ -10,15 +10,32 @@ import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import usePlaylistModal from "@/hooks/usePlaylistModal";
 import { Card } from "@/components/ui/card";
+import { useUser } from "@/hooks/useUser";
+import { useEffect } from "react";
 
 const LibraryPage = () => {
     const router = useRouter();
     const playlistModal = usePlaylistModal();
+    const { user, isLoading: isLoadingUser } = useUser();
 
     const { data: userSongs, isLoading: isLoadingSongs } = useUserSongs();
     const { data: playlists, isLoading: isLoadingPlaylists } = usePlaylistsWithSongs();
 
-    const isLoading = isLoadingSongs || isLoadingPlaylists;
+    const isLoading = isLoadingSongs || isLoadingPlaylists || isLoadingUser;
+
+    useEffect(() => {
+        if (!isLoadingUser && !user) {
+            router.replace("/");
+        }
+    }, [isLoadingUser, user, router]);
+
+    if (isLoadingUser || (!user && !isLoadingUser)) {
+        return (
+            <Box className="flex h-full w-full scrollbar-hide items-center justify-center">
+                <BounceLoader className="text-foreground" size={40} />
+            </Box>
+        );
+    }
 
     return (
         <div className="h-full w-full flex flex-col overflow-hidden">
@@ -41,21 +58,22 @@ const LibraryPage = () => {
             </div>
             <div className="flex-1 min-h-0 mt-2 px-2 md:px-0 md:pr-2 pb-2">
                 <Card className="border-border h-full flex flex-col overflow-hidden relative">
-                    <div className="h-full w-full overflow-auto scrollbar-hide p-4">
+                    <div className="h-full w-full overflow-auto scrollbar-hide">
                         {isLoading ? (
                             <Box className="flex h-full w-full scrollbar-hide items-center justify-center">
                                 <BounceLoader className="text-foreground" size={40} />
                             </Box>
                         ) : (
-                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-4">
+                            <div className="p-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-4">
                                 {/* Uploaded Songs Card */}
                                 {userSongs && userSongs.length > 0 && (
                                     <AlbumCard
-                                        albumName="Uploaded Songs"
+                                        albumName="Uploaded"
                                         songs={userSongs}
                                         onClick={() => router.push('/uploaded')}
                                         description=""
                                         showYear={false}
+                                        showPlayButton={false}
                                     />
                                 )}
 
@@ -68,6 +86,7 @@ const LibraryPage = () => {
                                         onClick={() => router.push(`/playlist/${playlist.id}`)}
                                         description=""
                                         showYear={false}
+                                        showPlayButton={false}
                                     />
                                 ))}
                             </div>

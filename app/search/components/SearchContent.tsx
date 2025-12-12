@@ -171,7 +171,7 @@ const SearchContent: React.FC<SearchContentProps> = ({ songs, query }) => {
             {/* Artists Section */}
             {matchingArtists.length > 0 && (
                 <div className="w-full">
-                    <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-3 md:gap-2 mb-10">
+                    <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-3 md:gap-2">
                         {displayedArtists.map((artist) => (
                             <div
                                 key={artist}
@@ -200,7 +200,7 @@ const SearchContent: React.FC<SearchContentProps> = ({ songs, query }) => {
                         ))}
                     </div>
                     {matchingArtists.length > 4 && (
-                        <div className="flex justify-center mt-2">
+                        <div className="flex justify-center mt-4 mb-10">
                             <button
                                 onClick={() => setExpandedArtists(!expandedArtists)}
                                 className="text-sm text-muted-foreground hover:text-foreground hover:underline transition"

@@ -16,6 +16,8 @@ import usePlaylistModal from "@/hooks/usePlaylistModal";
 import { useUser } from "@/hooks/useUser";
 import { useLikeSong, useIsLiked } from "@/hooks/mutations/useLikeSong";
 import { useLikedSongs } from "@/hooks/queries/useLikedSongs";
+import usePlayer from "@/hooks/usePlayer";
+import { toast } from "react-hot-toast";
 
 interface SongItemProps {
   data: Song;
@@ -32,6 +34,7 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick, onAlbumClick }) => {
   const { user } = useUser();
   const isLiked = useIsLiked(data.id);
   const likeMutation = useLikeSong();
+  const player = usePlayer();
   useLikedSongs();
 
   const formatDate = (dateString: string) => {
@@ -55,6 +58,12 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick, onAlbumClick }) => {
       return authModal.onOpen();
     }
     playlistModal.onOpen(data.id);
+  };
+
+  const handleAddToQueue = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    player.addToQueue(data.id);
+    toast.success("Added to queue");
   };
 
   const handleArtistClick = (e: React.MouseEvent, artistName: string) => {
@@ -132,7 +141,7 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick, onAlbumClick }) => {
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add to playlist
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+              <DropdownMenuItem onClick={handleAddToQueue}>
                 <ListPlus className="mr-2 h-4 w-4" />
                 Add to Queue
               </DropdownMenuItem>

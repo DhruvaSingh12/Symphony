@@ -6,8 +6,8 @@ import { useUser } from "@/hooks/useUser";
 import { Song } from "@/types";
 import { useRouter } from "next/navigation";
 import Table from '@/components/Table';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heart } from "lucide-react";
+import Box from "@/components/Box";
 
 interface LikedContentProps {
   songs: Song[];
@@ -26,20 +26,17 @@ const LikedContent: React.FC<LikedContentProps> = ({ songs }) => {
 
   if (songs.length === 0) {
     return (
-      <Card className="bg-card/60 border-border">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Heart className="h-5 w-5" />
-            No Liked Songs
-          </CardTitle>
-          <CardDescription>
-            Songs you like will appear here. Start exploring and liking tracks!
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex justify-center">
-          <Heart className="h-24 w-24 text-muted-foreground/20" />
-        </CardContent>
-      </Card>
+      <Box className="flex border border-border flex-col h-full w-full items-center justify-center gap-4">
+        <Heart className="h-16 w-16 text-muted-foreground/40" />
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-foreground mb-2">
+            No Liked Songs Yet
+          </h2>
+          <p className="text-muted-foreground">
+            Start liking songs to see them here
+          </p>
+        </div>
+      </Box>
     );
   }
 
