@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import useLoadImage from "@/hooks/useLoadImage";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Play, MoreHorizontal, PlusCircle, ListPlus, Disc, User, Heart, Trash2 } from "lucide-react";
+import { Play, Pause, MoreHorizontal, PlusCircle, ListPlus, Disc, User, Heart, Trash2 } from "lucide-react";
+import NowPlayingIndicator from "@/components/NowPlaying";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import LikeButton from "@/components/LikeButton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -61,6 +62,8 @@ const SongRow: React.FC<SongRowProps> = ({
     const likeMutation = useLikeSong();
     const removeSongMutation = useRemoveSongFromPlaylist();
     const player = usePlayer();
+    const isCurrentSong = player.activeId === song.id;
+    const isPlaying = isCurrentSong && player.isPlaying;
 
     const handleLike = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -115,20 +118,38 @@ const SongRow: React.FC<SongRowProps> = ({
     return (
         <div className={`grid grid-cols-[auto_auto_1fr_auto_auto_auto] ${gridCols} 
         items-center gap-2 md:gap-3 py-3 w-full hover:bg-muted/30 rounded-md transition my-1 p-1 md:p-2 group/row`}>
-            {/* Index Column */}
-            <div className="flex items-center justify-center w-8 text-xs md:text-sm text-muted-foreground font-medium">
-                {index + 1}
+            {/* Index Column / Now Playing */}
+            <div className="flex items-center justify-center w-8 text-xs md:text-sm font-medium">
+                {isPlaying ? (
+                    <NowPlayingIndicator className="h-4" />
+                ) : (
+                    <span className="text-muted-foreground">{index + 1}</span>
+                )}
             </div>
 
-            {/* Play Button with Avatar */}
-            <Button size="icon" variant="ghost" onClick={() => onPlay(song.id)}
-                aria-label={`Play ${song.title}`} className="relative group">
+            {/* Play/Pause Button with Avatar */}
+            <Button size="icon" variant="ghost"
+                onClick={() => {
+                    if (isCurrentSong) {
+                        // Toggle play/pause for current song
+                        player.togglePlayPause();
+                    } else {
+                        // Play this song
+                        onPlay(song.id);
+                    }
+                }}
+                aria-label={isPlaying ? `Pause ${song.title}` : `Play ${song.title}`}
+                className="relative group">
                 <Avatar className="md:h-12 md:w-12 h-10 w-10 border border-border rounded-full flex-shrink-0">
-                    <AvatarImage src={imageUrl} alt={song.title || "Song artwork"} />
+                    <AvatarImage src={imageUrl} alt={song.title || "Song artwork"} className="object-cover" />
                     <AvatarFallback>{initials}</AvatarFallback>
                 </Avatar>
                 <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
-                    <Play className="md:h-8 md:w-8 h-6 w-6 text-white fill-white translate-x-0.5" />
+                    {isPlaying ? (
+                        <Pause className="md:h-8 md:w-8 h-6 w-6 text-white fill-white" />
+                    ) : (
+                        <Play className="md:h-8 md:w-8 h-6 w-6 text-white fill-white translate-x-0.5" />
+                    )}
                 </div>
             </Button>
 

@@ -21,10 +21,10 @@ const SearchInput = () => {
         if (!searchParams.get("query")) {
             const savedQuery = localStorage.getItem("quivery-last-search");
             if (savedQuery) {
-                setQuery(savedQuery);
+                setTimeout(() => setQuery(savedQuery), 0);
             }
         }
-    }, []); // Run once on mount
+    }, [searchParams]);
 
     useEffect(() => {
         const url = qs.stringifyUrl({
@@ -40,7 +40,7 @@ const SearchInput = () => {
         }
 
         router.push(url);
-    }, [debouncedQuery, router]);
+    }, [debouncedQuery, router, query, searchParams]);
 
     // Handle persistence cleanup on unmount
     useEffect(() => {

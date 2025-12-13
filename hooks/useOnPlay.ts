@@ -1,17 +1,19 @@
 import { Song } from "@/types";
 
-import usePlayer from "./usePlayer";
-import useAuthModal from "./useAuthModal";
-import { useUser } from "./useUser";
+import usePlayer, { PlayContext } from "./usePlayer";
 
-const useOnPlay = (songs: Song[]) => {
+const useOnPlay = (songs: Song[], context?: PlayContext, contextId?: string) => {
     const player = usePlayer();
-    const authModal = useAuthModal();
-    const {user} = useUser();
 
     const onPlay = (id: number) => {
         player.setId(id);
         player.setIds(songs.map((song) => song.id));
+        // Set the play context when starting playback
+        if (context) {
+            player.setPlayContext(context, contextId);
+        }
+        // Auto-start playing
+        player.setIsPlaying(true);
     };
 
     return onPlay;

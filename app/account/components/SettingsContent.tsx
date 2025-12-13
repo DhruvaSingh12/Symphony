@@ -2,12 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
-import { toast } from "sonner";
 import useLoadAvatar from "@/hooks/useLoadAvatar";
 import { UserDetails } from "@/types";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/hooks/useUser";
-import { User, Cake, Users, ChevronRight, Shield, FileText, Pencil, Mail, Info, Volume2, Trash2, Music, Headphones, Radio, Zap, Globe } from "lucide-react";
+import { User, Cake, Users, ChevronRight, Shield, Pencil, Mail, Volume2, Trash2, Music, Headphones, Radio, Zap, Globe } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import toast from "react-hot-toast";
 
 const SettingsContent = () => {
     const supabaseClient = useSupabaseClient();
@@ -157,7 +157,7 @@ const SettingsContent = () => {
                             <div className="flex items-center gap-4">
                                 <div className="relative group">
                                     <Avatar className="h-20 w-20 border-2 border-border">
-                                        <AvatarImage src={imagePreview || avatarUrl || undefined} alt="Avatar" />
+                                        <AvatarImage src={imagePreview || avatarUrl || undefined} alt="Avatar" className="object-cover" />
                                         <AvatarFallback className="bg-muted">
                                             <User className="h-10 w-10 text-muted-foreground" />
                                         </AvatarFallback>
@@ -261,7 +261,7 @@ const SettingsContent = () => {
                         <div className="space-y-4">
                             <div className="flex items-center gap-4">
                                 <Avatar className="h-16 w-16 border-2 border-border">
-                                    <AvatarImage src={avatarUrl || undefined} alt="Avatar" />
+                                    <AvatarImage src={avatarUrl || undefined} alt="Avatar" className="object-cover" />
                                     <AvatarFallback className="bg-muted">
                                         <User className="h-8 w-8 text-muted-foreground" />
                                     </AvatarFallback>

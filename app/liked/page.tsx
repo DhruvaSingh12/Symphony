@@ -7,8 +7,9 @@ import { useLikedSongs } from "@/hooks/queries/useLikedSongs";
 import Box from "@/components/Box";
 import { BounceLoader } from "react-spinners";
 import { Button } from "@/components/ui/button";
-import { Play } from "lucide-react";
+import { Play, Pause } from "lucide-react";
 import useOnPlay from "@/hooks/useOnPlay";
+import usePlayer from "@/hooks/usePlayer";
 
 import { useRouter } from "next/navigation";
 import { useUser } from "@/hooks/useUser";
@@ -18,9 +19,13 @@ const LikedPage = () => {
   const router = useRouter();
   const { user, isLoading: isLoadingUser } = useUser();
   const { data: songs, isLoading: isLoadingSongs, error } = useLikedSongs();
-  const onPlay = useOnPlay(songs || []);
+  const onPlay = useOnPlay(songs || [], 'liked');
+  const player = usePlayer();
 
   const isLoading = isLoadingSongs || isLoadingUser;
+
+  // Check if currently playing from THIS context (liked)
+  const isContextPlaying = player.playContext === 'liked' && player.isPlaying;
 
   useEffect(() => {
     if (!isLoadingUser && !user) {
@@ -53,11 +58,23 @@ const LikedPage = () => {
             </div>
             {!isLoading && songs && songs.length > 0 && (
               <Button
-                onClick={() => onPlay(songs[0].id)}
+                onClick={() => {
+                  if (isContextPlaying) {
+                    player.togglePlayPause();
+                  } else if (player.activeId && songs.some(s => s.id === player.activeId)) {
+                    player.togglePlayPause();
+                  } else {
+                    onPlay(songs[0].id);
+                  }
+                }}
                 size="icon"
                 className="rounded-full bg-foreground hover:bg-primary/90 transition w-10 h-10 md:w-12 md:h-12"
               >
-                <Play className="text-background fill-background w-8 h-8 md:w-12 md:h-12" />
+                {isContextPlaying ? (
+                  <Pause className="text-background fill-background w-8 h-8 md:w-12 md:h-12" />
+                ) : (
+                  <Play className="text-background fill-background w-8 h-8 md:w-12 md:h-12" />
+                )}
               </Button>
             )}
           </div>

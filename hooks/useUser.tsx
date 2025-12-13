@@ -16,7 +16,7 @@ export const UserContext = createContext<UserContextType | undefined>(
 );
 
 export interface Props {
-    [propName: string]: any;
+    children: React.ReactNode;
 };
 
 export const MyUserContextProvider = (props: Props) => {
@@ -26,11 +26,11 @@ export const MyUserContextProvider = (props: Props) => {
     const [isLoadingData, setIsLoadingData] = useState(false);
     const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
 
-    const getUserDetails = () => supabase.from('users').select('*').single();
-
     useEffect(() => {
         if (user && !isLoadingData && !userDetails) {
-            setIsLoadingData(true);
+            // Avoid synchronous set state
+            setTimeout(() => setIsLoadingData(true), 0);
+            const getUserDetails = () => supabase.from('users').select('*').single();
             Promise.allSettled([getUserDetails()]).then((results) => {
                 const userDetailsPromise = results[0];
                 if (userDetailsPromise.status === 'fulfilled') {
@@ -40,9 +40,9 @@ export const MyUserContextProvider = (props: Props) => {
             });
         }
         else if (!user && !isLoadingSession && !isLoadingData) {
-            setUserDetails(null);
+            setTimeout(() => setUserDetails(null), 0);
         }
-    }, [user, isLoadingSession, isLoadingData, userDetails]);
+    }, [user, isLoadingSession, isLoadingData, userDetails, supabase]);
 
     const value = {
         accessToken,

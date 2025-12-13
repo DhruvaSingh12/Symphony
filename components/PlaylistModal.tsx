@@ -139,7 +139,7 @@ const PlaylistModal = () => {
             await createPlaylistMutation.mutateAsync(values.name);
             setIsCreating(false);
             reset();
-        } catch (error) {
+        } catch {
             // Handled by mutation
         } finally {
             setIsSubmitting(false);
@@ -152,7 +152,7 @@ const PlaylistModal = () => {
         try {
             await addSongMutation.mutateAsync({ playlistId, songId });
             onClose();
-        } catch (error) {
+        } catch {
             // Handled by mutation
         } finally {
             setIsSubmitting(false);

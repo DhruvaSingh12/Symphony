@@ -67,7 +67,7 @@ export const useAddSongToPlaylist = () => {
             queryClient.invalidateQueries({ queryKey: ["playlists_with_songs", user?.id] });
             queryClient.invalidateQueries({ queryKey: ["playlist_songs", variables.playlistId] });
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
             toast.error(error.message);
         }
     });
@@ -93,7 +93,7 @@ export const useRemoveSongFromPlaylist = () => {
             queryClient.invalidateQueries({ queryKey: ["playlists_with_songs", user?.id] });
             queryClient.invalidateQueries({ queryKey: ["playlist_songs", variables.playlistId] });
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
             toast.error(error.message);
         }
     });
@@ -118,7 +118,7 @@ export const useDeletePlaylist = () => {
             queryClient.invalidateQueries({ queryKey: ["playlists", user?.id] });
             queryClient.invalidateQueries({ queryKey: ["playlists_with_songs", user?.id] });
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
             toast.error(error.message);
         }
     });
@@ -150,7 +150,7 @@ export const useRenamePlaylist = () => {
             queryClient.invalidateQueries({ queryKey: ["playlists_with_songs", user?.id] });
             queryClient.invalidateQueries({ queryKey: ["playlist", variables.playlistId] });
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
             toast.error(error.message);
         }
     });

@@ -11,7 +11,7 @@ import Table from "@/components/Table";
 import useOnPlay from "@/hooks/useOnPlay";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Play, MoreHorizontal, ListPlus, Trash2, Edit } from "lucide-react";
+import { Play, Pause, MoreHorizontal, ListPlus, Trash2, Edit } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { useDeletePlaylist, useRenamePlaylist } from "@/hooks/mutations/usePlaylist";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -33,7 +33,7 @@ const PlaylistPage = ({ params }: PlaylistPageProps) => {
     const { data: playlist, isLoading: isLoadingPlaylist } = usePlaylistById(id);
     const { data: songs, isLoading: isLoadingSongs, error: isErrorSongs } = usePlaylistSongs(id);
 
-    const onPlay = useOnPlay(songs || []);
+    const onPlay = useOnPlay(songs || [], 'playlist', id);
     const deletePlaylist = useDeletePlaylist();
     const renamePlaylist = useRenamePlaylist();
 
@@ -43,6 +43,8 @@ const PlaylistPage = ({ params }: PlaylistPageProps) => {
     const player = usePlayer();
 
     const isLoading = isLoadingPlaylist || isLoadingSongs;
+
+    const isContextPlaying = player.playContext === 'playlist' && player.playContextId === id && player.isPlaying;
 
     const handleAddToQueue = () => {
         if (!songs) return;
@@ -100,11 +102,23 @@ const PlaylistPage = ({ params }: PlaylistPageProps) => {
                         <div className="flex items-center gap-2">
                             {!isLoading && songs && songs.length > 0 && (
                                 <Button
-                                    onClick={() => onPlay(songs[0].id)}
+                                    onClick={() => {
+                                        if (isContextPlaying) {
+                                            player.togglePlayPause();
+                                        } else if (player.activeId && songs.some(s => s.id === player.activeId)) {
+                                            player.togglePlayPause();
+                                        } else {
+                                            onPlay(songs[0].id);
+                                        }
+                                    }}
                                     size="icon"
                                     className="rounded-full bg-foreground hover:bg-primary/90 transition w-10 h-10 md:w-12 md:h-12"
                                 >
-                                    <Play className="text-background fill-background w-8 h-8 md:w-12 md:h-12" />
+                                    {isContextPlaying ? (
+                                        <Pause className="text-background fill-background w-8 h-8 md:w-12 md:h-12" />
+                                    ) : (
+                                        <Play className="text-background fill-background w-8 h-8 md:w-12 md:h-12" />
+                                    )}
                                 </Button>
                             )}
                             <DropdownMenu>

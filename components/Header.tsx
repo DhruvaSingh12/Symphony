@@ -128,6 +128,7 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
                     <AvatarImage
                       src={avatarUrl || undefined}
                       alt={userDetails?.first_name || "User"}
+                      className="object-cover"
                     />
                     <AvatarFallback>
                       {userDetails?.first_name?.charAt(0) || "U"}

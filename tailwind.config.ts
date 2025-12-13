@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 const config: Config = {
     darkMode: ["class"],
@@ -61,10 +62,19 @@ const config: Config = {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
-  		}
+  		},
+		keyframes: {
+			'now-playing': {
+				'0%, 100%': { height: '20%' },
+				'50%': { height: '100%' },
+			},
+		},
+		animation: {
+			'now-playing': 'now-playing 0.8s ease-in-out infinite',
+		},
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindcssAnimate],
 };
 
 export default config;

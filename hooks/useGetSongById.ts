@@ -15,9 +15,8 @@ const useGetSongById = ( id?: string) => {
             return;
         }
 
-        setIsLoading(true);
-
         const fetchSong = async () => {
+            setTimeout(() => setIsLoading(true), 0);
             const {data, error} = await supabaseClient
                 .from('songs')
                 .select('*')

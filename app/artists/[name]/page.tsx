@@ -10,9 +10,10 @@ import AlbumCard from "../components/AlbumCard";
 import AlbumModal from "@/components/AlbumModal";
 import useOnPlay from "@/hooks/useOnPlay";
 import SongRow from "@/components/SongRow";
-import { Disc, Play } from "lucide-react";
+import { Disc, Play, Pause } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
+import usePlayer from "@/hooks/usePlayer";
 
 const ArtistPage = () => {
     const params = useParams();
@@ -69,7 +70,10 @@ const ArtistPage = () => {
         return songs.slice(0, 5);
     }, [songs]);
 
-    const onPlay = useOnPlay(songs || []);
+    const onPlay = useOnPlay(songs || [], 'artist', artistName);
+    const player = usePlayer();
+
+    const isContextPlaying = player.playContext === 'artist' && player.playContextId === artistName && player.isPlaying;
 
     const handleAlbumClick = (albumName: string, albumSongs?: Song[]) => {
         setSelectedAlbum(albumName);
@@ -113,11 +117,23 @@ const ArtistPage = () => {
                             </h1>
                             {songs && songs.length > 0 && (
                                 <Button
-                                    onClick={() => onPlay(songs[0].id)}
+                                    onClick={() => {
+                                        if (isContextPlaying) {
+                                            player.togglePlayPause();
+                                        } else if (player.activeId && songs.some(s => s.id === player.activeId)) {
+                                            player.togglePlayPause();
+                                        } else {
+                                            onPlay(songs[0].id);
+                                        }
+                                    }}
                                     size="icon"
                                     className="rounded-full bg-foreground hover:bg-primary/90 transition w-10 h-10 md:w-12 md:h-12"
                                 >
-                                    <Play className="text-background fill-background w-8 h-8 md:w-12 md:h-12" />
+                                    {isContextPlaying ? (
+                                        <Pause className="text-background fill-background w-8 h-8 md:w-12 md:h-12" />
+                                    ) : (
+                                        <Play className="text-background fill-background w-8 h-8 md:w-12 md:h-12" />
+                                    )}
                                 </Button>
                             )}
                         </div>

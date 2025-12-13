@@ -1,5 +1,16 @@
 import { create } from 'zustand';
 
+export type PlayContext = 
+  | 'liked'
+  | 'uploaded'
+  | 'playlist'
+  | 'artist'
+  | 'search'
+  | 'home'
+  | 'album'
+  | 'queue'
+  | null;
+
 interface PlayerStore {
   ids: number[];
   activeId?: number;
@@ -21,6 +32,16 @@ interface PlayerStore {
   isRepeat: boolean;
   toggleShuffle: () => void;
   toggleRepeat: () => void;
+
+  // Playback control
+  isPlaying: boolean;
+  setIsPlaying: (playing: boolean) => void;
+  togglePlayPause: () => void;
+
+  // Play context tracking - which page/context initiated playback
+  playContext: PlayContext;
+  playContextId?: string; // For playlists/artists - the specific ID
+  setPlayContext: (context: PlayContext, contextId?: string) => void;
 }
 
 const usePlayer = create<PlayerStore>((set) => ({
@@ -28,7 +49,7 @@ const usePlayer = create<PlayerStore>((set) => ({
   activeId: undefined,
   setId: (id: number) => set({ activeId: id }),
   setIds: (ids: number[]) => set({ ids: ids }),
-  reset: () => set({ ids: [], activeId: undefined }),
+  reset: () => set({ ids: [], activeId: undefined, playContext: null, playContextId: undefined }),
 
   queue: [],
   addToQueue: (id: number) => set((state) => ({ queue: [...state.queue, id] })),
@@ -40,11 +61,20 @@ const usePlayer = create<PlayerStore>((set) => ({
   lastContextId: undefined,
   setLastContextId: (id: number) => set({ lastContextId: id }),
 
-  // Playback modes
   isShuffle: false,
   isRepeat: false,
   toggleShuffle: () => set((state) => ({ isShuffle: !state.isShuffle })),
   toggleRepeat: () => set((state) => ({ isRepeat: !state.isRepeat })),
+
+  // Playback control
+  isPlaying: false,
+  setIsPlaying: (playing: boolean) => set({ isPlaying: playing }),
+  togglePlayPause: () => set((state) => ({ isPlaying: !state.isPlaying })),
+
+  // Play context tracking
+  playContext: null,
+  playContextId: undefined,
+  setPlayContext: (context: PlayContext, contextId?: string) => set({ playContext: context, playContextId: contextId }),
 }));
 
 export default usePlayer;

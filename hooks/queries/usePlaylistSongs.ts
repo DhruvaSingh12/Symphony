@@ -44,7 +44,11 @@ export const usePlaylistSongs = (playlistId: string) => {
 
             if (!data) return [];
 
-            return data.map((item: any) => item.songs) as Song[];
+            return data.map((item: any) => ({
+                ...item.songs,
+                author: item.songs.artist?.[0] ?? null,
+                updated_at: item.songs.created_at,
+            })) as Song[];
         },
         enabled: !!playlistId,
     });

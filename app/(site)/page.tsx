@@ -3,11 +3,30 @@
 import Header from '@/components/Header';
 import PageContent from './components/PageContent';
 import { useAllSongs } from '@/hooks/queries/useAllSongs';
-import usePlayer from '@/hooks/usePlayer';
+import { useUser } from '@/hooks/useUser';
+
+const greetings = [
+  "Welcome back",
+  "Heyy",
+  "Good to see you",
+  "Ready to vibe",
+  "Let's play some music",
+  "What's on your playlist",
+  "Time for some tunes",
+  "Music awaits",
+  "Let's get grooving",
+  "Your music, your way",
+];
+
+const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
 
 export default function Home() {
   const { data: songs, error } = useAllSongs();
-  const player = usePlayer();
+  const { user, userDetails } = useUser();
+
+  const greeting = user && userDetails?.first_name
+    ? `${randomGreeting}, ${userDetails.first_name}`
+    : "Welcome Listener";
 
   return (
     <div className="h-full w-full flex flex-col overflow-hidden">
@@ -15,7 +34,7 @@ export default function Home() {
         <Header className="bg-transparent">
           <div className="px-1">
             <h1 className="text-3xl font-semibold text-foreground">
-              Welcome Listener
+              {greeting}
             </h1>
           </div>
         </Header>

@@ -21,7 +21,7 @@ const UploadedContent: React.FC<UploadedContentProps> = ({ songs: initialSongs }
     const authModal = useAuthModal();
     const uploadModal = useUploadModal();
     const { user, isLoading } = useUser();
-    const onPlay = useOnPlay(songs);
+    const onPlay = useOnPlay(songs, 'uploaded');
     const router = useRouter();
 
     useEffect(() => {

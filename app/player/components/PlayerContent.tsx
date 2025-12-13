@@ -19,12 +19,10 @@ interface PlayerContentProps {
 const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   const player = usePlayer();
   const [volume, setVolume] = useState(1);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
-  const timelineRef = useRef<HTMLDivElement>(null);
-  const { isShuffle, isRepeat, toggleShuffle, toggleRepeat } = player;
+  const { isShuffle, isRepeat, toggleShuffle, toggleRepeat, isPlaying, setIsPlaying, togglePlayPause } = player;
 
   const Icon = isPlaying ? Pause : Play;
   const VolumeIcon = volume === 0 ? VolumeX : Volume2;
@@ -35,7 +33,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
         player.setLastContextId(player.activeId);
       }
     }
-  }, [player.activeId, player.ids, player.lastContextId, player.setLastContextId]);
+  }, [player]);
 
   const onPlayNext = useCallback(() => {
     if (player.ids.length === 0) {
@@ -67,7 +65,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
     }
 
     player.setId(nextSongId);
-  }, [player, player.isShuffle]);
+  }, [player, isShuffle]);
 
   const onPlayPrevious = useCallback(() => {
     if (player.ids.length === 0) {
@@ -112,27 +110,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   };
 
   const handlePlayPause = () => {
-    const audioElement = audioRef.current;
-    if (!audioElement) return;
-
-    if (audioElement.paused) {
-      audioElement.play();
-      setIsPlaying(true);
-    } else {
-      audioElement.pause();
-      setIsPlaying(false);
-    }
-  };
-
-  const handleTimelineClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!audioRef.current || !timelineRef.current) return;
-
-    const timelineWidth = timelineRef.current.clientWidth;
-    const clickX = event.nativeEvent.offsetX;
-    const newTime = (clickX / timelineWidth) * (duration || 0);
-
-    audioRef.current.currentTime = newTime;
-    setCurrentTime(newTime);
+    togglePlayPause();
   };
 
   useEffect(() => {
@@ -168,7 +146,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
       audioElement.removeEventListener('timeupdate', handleTimeUpdate);
       audioElement.removeEventListener('ended', handleEnded);
     };
-  }, [audioRef, onPlayNext, isRepeat]);
+  }, [audioRef, onPlayNext, isRepeat, setIsPlaying]);
 
   useEffect(() => {
     const audioElement = audioRef.current;
@@ -176,6 +154,18 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
 
     audioElement.volume = volume;
   }, [volume]);
+
+  // Sync audio playback with global isPlaying state
+  useEffect(() => {
+    const audioElement = audioRef.current;
+    if (!audioElement) return;
+
+    if (isPlaying && audioElement.paused) {
+      audioElement.play();
+    } else if (!isPlaying && !audioElement.paused) {
+      audioElement.pause();
+    }
+  }, [isPlaying]);
 
   useEffect(() => {
     const audioElement = audioRef.current;

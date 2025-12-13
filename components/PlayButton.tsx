@@ -1,15 +1,18 @@
 "use client";
 
-import { Play } from "lucide-react";
+import { Play, Pause } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface PlayButtonProps {
   onClick: () => void;
   className?: string;
+  isPlaying?: boolean;
 }
 
-const PlayButton: React.FC<PlayButtonProps> = ({ onClick, className }) => {
+const PlayButton: React.FC<PlayButtonProps> = ({ onClick, className, isPlaying = false }) => {
+  const Icon = isPlaying ? Pause : Play;
+
   return (
     <Button
       type="button"
@@ -21,9 +24,9 @@ const PlayButton: React.FC<PlayButtonProps> = ({ onClick, className }) => {
         "h-12 w-12",
         className
       )}
-      aria-label="Play"
+      aria-label={isPlaying ? "Pause" : "Play"}
     >
-      <Play className="h-5 w-5 fill-current" />
+      <Icon className="h-5 w-5 fill-current" />
     </Button>
   );
 };

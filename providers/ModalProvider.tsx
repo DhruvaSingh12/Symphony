@@ -9,7 +9,7 @@ import PlaylistModal from "@/components/PlaylistModal";
 const ModalProvider = () => {
     const [isMounted, setIsMounted] = useState(false);
     useEffect(() => {
-        setIsMounted(true);
+        setTimeout(() => setIsMounted(true), 0);
     }, []);
 
     if (!isMounted) {

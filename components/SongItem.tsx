@@ -5,6 +5,7 @@ import { Song } from "@/types";
 import Image from "next/image";
 import React, { useState } from "react";
 import PlayButton from "./PlayButton";
+import NowPlayingIndicator from "@/components/NowPlaying";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -35,21 +36,10 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick, onAlbumClick }) => {
   const isLiked = useIsLiked(data.id);
   const likeMutation = useLikeSong();
   const player = usePlayer();
+  const isCurrentSong = player.activeId === data.id;
+  const isPlaying = isCurrentSong && player.isPlaying;
   useLikedSongs();
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const options: Intl.DateTimeFormatOptions = {
-      month: "short",
-      year: "numeric"
-    };
-    const monthYear = date.toLocaleDateString('en-US', options);
-    const day = date.getDate();
-    const formattedDate = `${day} ${monthYear.split(' ')[0]} ${monthYear.split(' ')[1]}`;
-    return formattedDate;
-  };
-
-  const formattedDate = formatDate(data.created_at);
   const artists = data.artist ? (Array.isArray(data.artist) ? data.artist : [data.artist]) : [];
 
   const handleAddToPlaylist = (e: React.MouseEvent) => {
@@ -104,8 +94,23 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick, onAlbumClick }) => {
           onLoad={() => setImageLoaded(true)}
         />
         <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
-          <PlayButton onClick={() => onClick(String(data.id))} />
+          <PlayButton
+            onClick={() => {
+              if (isCurrentSong) {
+                player.togglePlayPause();
+              } else {
+                onClick(String(data.id));
+              }
+            }}
+            isPlaying={isPlaying}
+          />
         </div>
+        {/* Now Playing Indicator Badge */}
+        {isPlaying && (
+          <div className="absolute top-2 left-2 bg-background rounded-md px-2 py-1 flex items-center gap-1">
+            <NowPlayingIndicator className="h-3" barCount={3} />
+          </div>
+        )}
       </div>
       <div className="flex flex-col gap-y-2">
         <div className="flex items-start justify-between gap-2">

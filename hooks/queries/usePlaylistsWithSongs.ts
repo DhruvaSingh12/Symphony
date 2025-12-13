@@ -7,6 +7,21 @@ export interface PlaylistWithSongs extends Playlist {
     songs: Song[];
 }
 
+interface PlaylistWithSongsRaw {
+    id: string;
+    created_at: string;
+    title: string;
+    description: string;
+    image_path: string;
+    author: string;
+    user_id: string;
+    name: string;
+    playlist_songs: {
+        song_id: number;
+        songs: any; // Raw DB song object
+    }[];
+}
+
 export const usePlaylistsWithSongs = () => {
     const { user } = useUser();
     const supabaseClient = useSupabaseClient();
@@ -28,11 +43,15 @@ export const usePlaylistsWithSongs = () => {
             }
 
             // Map the nested data structure to a flatter one
-            const playlists = (data || []).map((playlist: any) => ({
+            const playlists = (data as unknown as PlaylistWithSongsRaw[] || []).map((playlist) => ({
                 ...playlist,
                 songs: playlist.playlist_songs
-                    .map((item: any) => item.songs)
-                    .filter((song: any) => song !== null) // Filter out any null songs
+                    .map((item) => ({
+                        ...item.songs,
+                        author: item.songs.artist?.[0] ?? null,
+                        updated_at: item.songs.created_at,
+                    }))
+                    .filter((song) => song !== null) as Song[]
             }));
 
             return playlists as PlaylistWithSongs[];

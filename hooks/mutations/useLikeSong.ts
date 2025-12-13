@@ -33,7 +33,7 @@ export function useLikeSong() {
         return { action: 'unlike', songId };
       } 
       else {
-        const { data: existingLike, error: checkError } = await supabaseClient
+        const { data: existingLike } = await supabaseClient
             .from('liked_songs')
             .select('*')
             .eq('user_id', user.id)
@@ -93,7 +93,7 @@ export function useLikeSong() {
       // Invalidate and refetch liked songs to ensure consistency
       queryClient.invalidateQueries({ queryKey: queryKeys.user.likedSongs(user?.id) });
     },
-   onError: (err: any, variables, context) => {
+   onError: (err: Error, variables, context) => {
       // Rollback on error
       if (context?.previousLikedSongs) {
         queryClient.setQueryData(
