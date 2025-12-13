@@ -23,6 +23,7 @@ const AlbumImage = ({ song, className }: { song: Song, className?: string }) => 
                 src={imageUrl || '/images/liked.png'}
                 alt={song.album || "Album"}
                 fill
+                sizes="(max-width: 768px) 50vw, 200px"
                 className="object-cover"
             />
         </div>

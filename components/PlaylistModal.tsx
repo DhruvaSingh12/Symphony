@@ -41,6 +41,7 @@ const PlaylistImage = ({ song, className }: { song: Song, className?: string }) 
                 src={imageUrl}
                 alt={song.title || "Song"}
                 fill
+                sizes="48px"
                 className="object-cover"
             />
         </div>

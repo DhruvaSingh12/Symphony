@@ -1,63 +1,65 @@
 "use client";
 
-import AccountContent from "./components/AccountContent";
 import Header from "@/components/Header";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Settings } from "lucide-react";
+import Box from "@/components/Box";
+import { BounceLoader } from "react-spinners";
+import SettingsContent from "./components/SettingsContent";
+import { useRouter } from "next/navigation";
+import { useUser } from "@/hooks/useUser";
+import { useEffect } from "react";
 import { Card } from "@/components/ui/card";
-import ListItem from "@/components/ListItem";
-import { User } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
-const AccountsPage = () => {
+const SettingsPage = () => {
+  const router = useRouter();
+  const { user, isLoading: isLoadingUser } = useUser();
+
+  useEffect(() => {
+    if (!isLoadingUser && !user) {
+      router.replace("/");
+    }
+  }, [isLoadingUser, user, router]);
+
+  if (isLoadingUser || (!user && !isLoadingUser)) {
+    return (
+      <Box className="flex h-full w-full scrollbar-hide items-center justify-center">
+        <BounceLoader className="text-foreground" size={40} />
+      </Box>
+    );
+  }
 
   return (
     <div className="h-full w-full flex flex-col overflow-hidden">
-      <div className="flex-none px-2 pt-2">
+      <div className="flex-none px-2 md:px-0 md:pr-2 pt-2">
         <Header className="bg-transparent">
-          <div className="px-2">
-            <div className="flex items-center gap-x-5">
-              <Avatar className="h-20 w-20 md:h-24 md:w-24 lg:h-28 lg:w-28">
-                <AvatarImage src="/images/accounts.png" alt="Account" />
-                <AvatarFallback><User className="h-12 w-12" /></AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col gap-y-2">
-                <h1 className="text-2xl md:text-5xl lg:text-6xl font-bold text-foreground">
-                  Account Details
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-x-4">
+              <div className="h-12 w-12 md:h-14 md:w-14 rounded-xl bg-gradient-to-br from-muted-foreground/20 to-muted/40 flex items-center justify-center">
+                <Settings className="h-6 w-6 md:h-7 md:w-7 text-foreground" />
+              </div>
+              <div className="flex flex-col">
+                <h1 className="text-2xl md:text-3xl font-semibold text-foreground">
+                  Settings
                 </h1>
+                <p className="text-sm text-muted-foreground hidden sm:block">
+                  Manage your account and preferences
+                </p>
               </div>
             </div>
           </div>
         </Header>
       </div>
-      <div className="flex-1 overflow-hidden px-2 pb-2">
-        <ScrollArea className="h-full">
-          <div className="space-y-4">
-            <Card className="bg-card/60 border-border">
-              <AccountContent />
-            </Card>
-            <Card className="bg-card/60 border-border">
-              <div className="p-4">
-                <div className="
-                  grid
-                  grid-cols-1
-                  sm:grid-cols-3
-                  xl:grid-cols-4
-                  2xl:grid-cols-6
-                  gap-3
-                ">
-                  <ListItem
-                    image="/images/privacy.png"
-                    name="Privacy Policy"
-                    href="/privacypolicy"
-                  />
-                </div>
-              </div>
-            </Card>
+      <div className="flex-1 min-h-0 mt-2 px-2 md:px-0 md:pr-2 pb-2">
+        <Card className="border-border h-full flex flex-col overflow-hidden relative">
+          <div className="h-full w-full overflow-auto scrollbar-hide">
+            <div className="max-w-2xl mx-auto p-4 md:p-6">
+              <SettingsContent />
+            </div>
           </div>
-        </ScrollArea>
+        </Card>
       </div>
     </div>
   );
 };
 
-export default AccountsPage;
+export default SettingsPage;

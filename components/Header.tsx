@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { RxCaretLeft, RxCaretRight, RxPerson } from "react-icons/rx";
 import { HiHome } from "react-icons/hi";
 import { BiSearch } from "react-icons/bi";
@@ -14,7 +14,6 @@ import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { useUser } from "@/hooks/useUser";
 import toast from "react-hot-toast";
 import useLoadAvatar from "@/hooks/useLoadAvatar";
-import { UserDetails } from "@/types";
 import { ThemeToggleButton } from "@/components/ThemeToggleButton";
 import { Progress } from "@/components/ui/progress";
 
@@ -27,47 +26,9 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
   const authModal = useAuthModal();
   const router = useRouter();
   const supabaseClient = useSupabaseClient();
-  const { user } = useUser();
-  const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
+  const { user, userDetails } = useUser();
   const avatarUrl = useLoadAvatar(userDetails);
-  const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string>("/images/accounts.png");
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (user) {
-        const { data, error } = await supabaseClient
-          .from("users")
-          .select("id, avatar_url, first_name, last_name, gender, dateOfBirth")
-          .eq("id", user.id)
-          .single();
-
-        if (error) {
-          toast.error(error.message);
-        } else {
-          const typedData = data as unknown as UserDetails;
-          const userDetails: UserDetails = {
-            id: typedData?.id || "",
-            first_name: typedData?.first_name,
-            last_name: typedData?.last_name,
-            avatar_url: typedData?.avatar_url,
-            gender: typedData?.gender,
-            dateOfBirth: typedData?.dateOfBirth,
-          };
-
-          setUserDetails(userDetails);
-        }
-      }
-    };
-
-    fetchUserProfile();
-  }, [user, supabaseClient]);
-
-  useEffect(() => {
-    if (avatarUrl) {
-      setCurrentAvatarUrl(avatarUrl);
-    }
-  }, [avatarUrl]);
 
   const handleLogout = async () => {
     setIsLoading(true);
@@ -165,7 +126,7 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
                 <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 p-0">
                   <Avatar className="h-10 w-10 border-2 border-border">
                     <AvatarImage
-                      src={currentAvatarUrl}
+                      src={avatarUrl || undefined}
                       alt={userDetails?.first_name || "User"}
                     />
                     <AvatarFallback>
