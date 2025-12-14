@@ -131,3 +131,37 @@ body,
 .hover-slide:hover {
   animation: marquee 5s linear infinite;
 }
+
+::selection {
+  background-color: #000000; /* Black */
+  color: #FFFFFF; /* White */
+}
+::-moz-selection { /* Firefox */
+  background-color: #000000;
+  color: #FFFFFF;
+}
+
+.dark ::selection {
+  background-color: #FFFFFF; /* White */
+  color: #000000; /* Black */
+}
+.dark ::-moz-selection { /* Firefox */
+  background-color: #FFFFFF;
+  color: #000000;
+}
+
+@layer utilities {
+  /* Hide scrollbar for cmdk components globally */
+  [cmdk-list]::-webkit-scrollbar,
+  [cmdk-group]::-webkit-scrollbar,
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+  [cmdk-list],
+  [cmdk-group],
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}

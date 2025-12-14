@@ -28,7 +28,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   const VolumeIcon = volume === 0 ? VolumeX : Volume2;
 
   useEffect(() => {
-    if (player.activeId && player.ids.includes(player.activeId)) {
+    if (player.activeId && player.ids.includes(player.activeId) && !player.playingFromQueue) {
       if (player.lastContextId !== player.activeId) {
         player.setLastContextId(player.activeId);
       }
@@ -44,6 +44,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
     if (player.queue.length > 0) {
       const nextSongId = player.queue[0];
       player.setId(nextSongId);
+      player.setPlayingFromQueue(true);
       player.shiftQueue();
       return;
     }
@@ -56,8 +57,13 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
       let currentIndex = player.ids.findIndex((id) => id === player.activeId);
 
       // If playing a song not in context (e.g. from queue), resume from lastContextId
-      if (currentIndex === -1 && player.lastContextId) {
-        currentIndex = player.ids.findIndex((id) => id === player.lastContextId);
+      if (player.playingFromQueue || currentIndex === -1) {
+        if (player.lastContextId) {
+          currentIndex = player.ids.findIndex((id) => id === player.lastContextId);
+        } else {
+          // Fallback if no last context (should happen rarely/initial)
+          currentIndex = -1;
+        }
       }
 
       const nextIndex = (currentIndex + 1) % player.ids.length;
@@ -75,8 +81,10 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
     let currentIndex = player.ids.findIndex((id) => id === player.activeId);
 
     // Fallback if current song detached
-    if (currentIndex === -1 && player.lastContextId) {
-      currentIndex = player.ids.findIndex((id) => id === player.lastContextId);
+    if (player.playingFromQueue || currentIndex === -1) {
+      if (player.lastContextId) {
+        currentIndex = player.ids.findIndex((id) => id === player.lastContextId);
+      }
     }
 
     const previousSongId = player.ids[(currentIndex - 1 + player.ids.length) % player.ids.length];

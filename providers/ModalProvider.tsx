@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 
 import AuthModal from "@/components/AuthModal";
-import UploadModal from "@/app/library/components/UploadModal";
 import PlaylistModal from "@/components/PlaylistModal";
+import AlbumModal from "@/components/AlbumModal";
 
 const ModalProvider = () => {
     const [isMounted, setIsMounted] = useState(false);
@@ -19,8 +19,8 @@ const ModalProvider = () => {
     return (
         <>
             <AuthModal />
-            <UploadModal />
             <PlaylistModal />
+            <AlbumModal />
         </>
     );
 }

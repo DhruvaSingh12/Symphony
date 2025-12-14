@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { RxPerson } from "react-icons/rx";
+import SidebarSongInfo from "./SidebarSongInfo";
 
 interface SidebarProps {
   children: React.ReactNode;
@@ -76,13 +77,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             ))}
           </CardContent>
         </Card>
-        <Card className="flex-1 bg-card/60 border-border overflow-hidden">
-          <CardContent className="flex flex-col items-center justify-center h-full px-4 py-6 gap-y-3">
-            <p className="text-sm text-muted-foreground text-center">
-              Playlist functionality has finally been added!
-            </p>
-          </CardContent>
-        </Card>
+        <SidebarSongInfo />
       </div>
       <main className="h-full w-full flex-1 overflow-hidden">{children}</main>
     </div>

@@ -7,7 +7,6 @@ import { useSongsByArtist } from "@/hooks/queries/useSongsByArtist";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState, useEffect } from "react";
 import AlbumCard from "../components/AlbumCard";
-import AlbumModal from "@/components/AlbumModal";
 import useOnPlay from "@/hooks/useOnPlay";
 import SongRow from "@/components/SongRow";
 import { Disc, Play, Pause } from "lucide-react";
@@ -21,8 +20,6 @@ const ArtistPage = () => {
     const artistName = decodeURIComponent(params.name as string);
 
     const { data: songs, error } = useSongsByArtist(artistName);
-    const [selectedAlbum, setSelectedAlbum] = useState<string | null>(null);
-    const [albumData, setAlbumData] = useState<{ songs: Song[] } | null>(null);
     const [isMobile, setIsMobile] = useState(false);
     const [showAllAlbums, setShowAllAlbums] = useState(false);
     const [showAllArtists, setShowAllArtists] = useState(false);
@@ -75,21 +72,7 @@ const ArtistPage = () => {
 
     const isContextPlaying = player.playContext === 'artist' && player.playContextId === artistName && player.isPlaying;
 
-    const handleAlbumClick = (albumName: string, albumSongs?: Song[]) => {
-        setSelectedAlbum(albumName);
-        if (albumSongs) {
-            setAlbumData({ songs: albumSongs });
-        }
-        else if (songs) {
-            const filtered = songs.filter(s => s.album === albumName);
-            setAlbumData({ songs: filtered });
-        }
-    };
 
-    const closeAlbumModal = () => {
-        setSelectedAlbum(null);
-        setAlbumData(null);
-    };
 
     const displayedAlbums = useMemo(() => {
         const entries = Object.entries(albums);
@@ -160,7 +143,6 @@ const ArtistPage = () => {
                                                     song={song}
                                                     index={index}
                                                     onPlay={onPlay}
-                                                    onAlbumClick={(album) => handleAlbumClick(album)}
                                                 />
                                             </div>
                                         ))}
@@ -182,7 +164,6 @@ const ArtistPage = () => {
                                                     key={albumName}
                                                     albumName={albumName}
                                                     songs={albumSongs}
-                                                    onClick={() => handleAlbumClick(albumName, albumSongs)}
                                                 />
                                             ))}
                                         </div>
@@ -243,13 +224,7 @@ const ArtistPage = () => {
                         )}
                     </div>
 
-                    {selectedAlbum && albumData && (
-                        <AlbumModal
-                            album={selectedAlbum}
-                            albumData={albumData}
-                            onClose={closeAlbumModal}
-                        />
-                    )}
+
                 </Card>
             </div>
         </div>

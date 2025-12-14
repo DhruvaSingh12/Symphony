@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { Song } from '@/types';
-import AlbumModal from './AlbumModal';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowUp, ArrowDown, Loader2 } from 'lucide-react';
 import { useInView } from 'react-intersection-observer';
@@ -49,13 +48,7 @@ const SortHeader: React.FC<SortHeaderProps> = ({ label, field, currentSortField,
 };
 
 const Table: React.FC<TableProps> = ({ songs, onPlay, persistenceKey, playlistId }) => {
-    const [selectedAlbum, setSelectedAlbum] = useState<string | null>(null);
-    const [albumData, setAlbumData] = useState<{ songs: Song[] } | null>(null);
-
-
-
     const [sortField, setSortField] = useState<SortField>(null);
-
     const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
     // Initialize displayCount with persisted value if available
@@ -83,17 +76,6 @@ const Table: React.FC<TableProps> = ({ songs, onPlay, persistenceKey, playlistId
         threshold: 0,
         rootMargin: '100px',
     });
-
-    const handleAlbumClick = (album: string) => {
-        const filteredSongs = songs.filter(song => song.album === album);
-        setAlbumData({ songs: filteredSongs });
-        setSelectedAlbum(album);
-    };
-
-    const closeAlbumModal = () => {
-        setSelectedAlbum(null);
-        setAlbumData(null);
-    };
 
     const handleSort = (field: SortField) => {
         if (sortField === field) {
@@ -200,7 +182,7 @@ const Table: React.FC<TableProps> = ({ songs, onPlay, persistenceKey, playlistId
                         <div className="flex-1 overflow-y-auto px-3 md:px-5">
                             {displayedSongs.map((song, index) => (
                                 <div key={song.id} className="border-b border-border last:border-b-0">
-                                    <SongRow song={song} index={index} onPlay={onPlay} onAlbumClick={handleAlbumClick} playlistId={playlistId} />
+                                    <SongRow song={song} index={index} onPlay={onPlay} playlistId={playlistId} />
                                 </div>
                             ))}
 
@@ -218,13 +200,7 @@ const Table: React.FC<TableProps> = ({ songs, onPlay, persistenceKey, playlistId
                     </CardContent>
                 </Card>
             </div>
-            {selectedAlbum && albumData && (
-                <AlbumModal
-                    album={selectedAlbum}
-                    albumData={albumData}
-                    onClose={closeAlbumModal}
-                />
-            )}
+
         </div>
     );
 };

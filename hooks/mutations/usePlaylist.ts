@@ -26,8 +26,8 @@ export const useCreatePlaylist = () => {
         },
         onSuccess: () => {
              toast.success("Playlist created!");
-             queryClient.invalidateQueries({ queryKey: ["playlists", user?.id] });
-             queryClient.invalidateQueries({ queryKey: ["playlists_with_songs", user?.id] });
+             queryClient.invalidateQueries({ queryKey: ["playlists"] });
+             queryClient.invalidateQueries({ queryKey: ["playlists_with_songs"] });
         },
         onError: (error) => {
             toast.error(error.message);
@@ -58,13 +58,14 @@ export const useAddSongToPlaylist = () => {
                 .insert({
                     playlist_id: playlistId,
                     song_id: songId
-                });
+                })
+                .select();
 
             if (error) throw error;
         },
         onSuccess: (_, variables) => {
             toast.success("Added to playlist!");
-            queryClient.invalidateQueries({ queryKey: ["playlists_with_songs", user?.id] });
+            queryClient.invalidateQueries({ queryKey: ["playlists_with_songs"] });
             queryClient.invalidateQueries({ queryKey: ["playlist_songs", variables.playlistId] });
         },
         onError: (error: Error) => {
@@ -90,7 +91,7 @@ export const useRemoveSongFromPlaylist = () => {
         },
         onSuccess: (_, variables) => {
             toast.success("Removed from playlist");
-            queryClient.invalidateQueries({ queryKey: ["playlists_with_songs", user?.id] });
+            queryClient.invalidateQueries({ queryKey: ["playlists_with_songs"] });
             queryClient.invalidateQueries({ queryKey: ["playlist_songs", variables.playlistId] });
         },
         onError: (error: Error) => {
@@ -115,8 +116,8 @@ export const useDeletePlaylist = () => {
         },
         onSuccess: () => {
             toast.success("Playlist deleted");
-            queryClient.invalidateQueries({ queryKey: ["playlists", user?.id] });
-            queryClient.invalidateQueries({ queryKey: ["playlists_with_songs", user?.id] });
+            queryClient.invalidateQueries({ queryKey: ["playlists"] });
+            queryClient.invalidateQueries({ queryKey: ["playlists_with_songs"] });
         },
         onError: (error: Error) => {
             toast.error(error.message);
@@ -146,8 +147,8 @@ export const useRenamePlaylist = () => {
         onSuccess: (data, variables) => {
             toast.success("Playlist renamed");
             queryClient.setQueryData(["playlist", variables.playlistId], data);
-            queryClient.invalidateQueries({ queryKey: ["playlists", user?.id] });
-            queryClient.invalidateQueries({ queryKey: ["playlists_with_songs", user?.id] });
+            queryClient.invalidateQueries({ queryKey: ["playlists"] });
+            queryClient.invalidateQueries({ queryKey: ["playlists_with_songs"] });
             queryClient.invalidateQueries({ queryKey: ["playlist", variables.playlistId] });
         },
         onError: (error: Error) => {

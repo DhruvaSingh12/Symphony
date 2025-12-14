@@ -3,7 +3,6 @@
 import React, { useState, useMemo } from 'react';
 import { Song } from '@/types';
 import useOnPlay from '@/hooks/useOnPlay';
-import AlbumModal from "@/components/AlbumModal";
 import { useRouter } from "next/navigation";
 import Box from '@/components/Box';
 import SongRow from '@/components/SongRow';
@@ -19,23 +18,10 @@ interface SearchContentProps {
 
 const SearchContent: React.FC<SearchContentProps> = ({ songs, query }) => {
     const onPlay = useOnPlay(songs);
-    const [selectedAlbum, setSelectedAlbum] = useState<string | null>(null);
-    const [albumData, setAlbumData] = useState<{ songs: Song[] } | null>(null);
     const [expandedSongs, setExpandedSongs] = useState(false);
     const [expandedAlbums, setExpandedAlbums] = useState(false);
     const [expandedArtists, setExpandedArtists] = useState(false);
     const router = useRouter();
-
-    const handleAlbumClick = (album: string) => {
-        const filteredSongs = songs.filter(song => song.album === album);
-        setAlbumData({ songs: filteredSongs });
-        setSelectedAlbum(album);
-    };
-
-    const closeAlbumModal = () => {
-        setSelectedAlbum(null);
-        setAlbumData(null);
-    };
 
     const calculateMatchScore = (text: string, query: string) => {
         const t = text.toLowerCase();
@@ -95,12 +81,12 @@ const SearchContent: React.FC<SearchContentProps> = ({ songs, query }) => {
             const scoreB = calculateMatchScore(bName, query);
             return scoreB - scoreA;
         });
-        return expandedAlbums ? entries : entries.slice(0, 6);
-    }, [matchingAlbums, expandedAlbums, query]);
+        return entries.slice(0, 6);
+    }, [matchingAlbums, query]);
 
     const displayedArtists = useMemo(() => {
-        return expandedArtists ? matchingArtists : matchingArtists.slice(0, 4);
-    }, [matchingArtists, expandedArtists]);
+        return matchingArtists.slice(0, 4);
+    }, [matchingArtists]);
 
     if (songs.length === 0) {
         return (
@@ -124,7 +110,6 @@ const SearchContent: React.FC<SearchContentProps> = ({ songs, query }) => {
                                 song={song}
                                 index={index}
                                 onPlay={onPlay}
-                                onAlbumClick={handleAlbumClick}
                                 layout="search"
                             />
                         </div>
@@ -151,7 +136,7 @@ const SearchContent: React.FC<SearchContentProps> = ({ songs, query }) => {
                                 key={albumName}
                                 albumName={albumName}
                                 songs={albumSongs}
-                                onClick={() => handleAlbumClick(albumName)}
+                                onClick={() => { }}
                             />
                         ))}
                     </div>
@@ -212,13 +197,7 @@ const SearchContent: React.FC<SearchContentProps> = ({ songs, query }) => {
                 </div>
             )}
 
-            {selectedAlbum && albumData && (
-                <AlbumModal
-                    album={selectedAlbum}
-                    albumData={albumData}
-                    onClose={closeAlbumModal}
-                />
-            )}
+
         </div>
     );
 };

@@ -14,6 +14,7 @@ import { MoreVertical, PlusCircle, ListPlus, Disc, User, Heart } from "lucide-re
 import { useRouter } from "next/navigation";
 import useAuthModal from "@/hooks/useAuthModal";
 import usePlaylistModal from "@/hooks/usePlaylistModal";
+import useAlbumModal from "@/hooks/useAlbumModal";
 import { useUser } from "@/hooks/useUser";
 import { useLikeSong, useIsLiked } from "@/hooks/mutations/useLikeSong";
 import { useLikedSongs } from "@/hooks/queries/useLikedSongs";
@@ -23,15 +24,15 @@ import { toast } from "react-hot-toast";
 interface SongItemProps {
   data: Song;
   onClick: (id: string) => void;
-  onAlbumClick?: (album: string) => void;
 }
 
-const SongItem: React.FC<SongItemProps> = ({ data, onClick, onAlbumClick }) => {
+const SongItem: React.FC<SongItemProps> = ({ data, onClick }) => {
   const imagePath = useLoadImage(data);
   const [imageLoaded, setImageLoaded] = useState(false);
   const router = useRouter();
   const authModal = useAuthModal();
   const playlistModal = usePlaylistModal();
+  const albumModal = useAlbumModal();
   const { user } = useUser();
   const isLiked = useIsLiked(data.id);
   const likeMutation = useLikeSong();
@@ -63,8 +64,8 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick, onAlbumClick }) => {
 
   const handleAlbumClick = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    if (data.album && onAlbumClick) {
-      onAlbumClick(data.album);
+    if (data.album) {
+      albumModal.onOpen(data.album);
     }
   };
 

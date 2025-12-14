@@ -2,21 +2,31 @@ import React from "react";
 import { Song } from "@/types";
 import Image from "next/image";
 import useLoadImage from "@/hooks/useLoadImage";
-import { Play } from "lucide-react";
+import { Play, ListMusic } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import useOnPlay from "@/hooks/useOnPlay";
+import useAlbumModal from "@/hooks/useAlbumModal";
 
 interface AlbumCardProps {
     albumName: string;
     songs: Song[];
-    onClick: () => void;
     description?: string;
     showYear?: boolean;
     showPlayButton?: boolean;
+    onClick?: () => void;
 }
 
-const AlbumImage = ({ song, className }: { song: Song, className?: string }) => {
-    const imageUrl = useLoadImage(song);
+const AlbumImage = ({ song, className }: { song?: Song, className?: string }) => {
+    const imageUrl = useLoadImage(song || {} as Song);
+
+    if (!song || !song.id) {
+        return (
+            <div className={`relative overflow-hidden bg-secondary hover:bg-background flex items-center justify-center ${className}`}>
+                <ListMusic className="w-1/2 h-1/2 text-muted-foreground group-hover:text-foreground transition transform" />
+            </div>
+        );
+    }
+
     return (
         <div className={`relative overflow-hidden bg-muted ${className}`}>
             <Image
@@ -33,21 +43,24 @@ const AlbumImage = ({ song, className }: { song: Song, className?: string }) => 
 const AlbumCard: React.FC<AlbumCardProps> = ({
     albumName,
     songs,
-    onClick,
     description = "Album",
     showYear = true,
-    showPlayButton = true
+    showPlayButton = true,
+    onClick
 }) => {
     const songsToDisplay = songs.slice(0, 4);
     const isGrid = songs.length >= 4;
     const onPlay = useOnPlay(songs);
+    const albumModal = useAlbumModal();
 
     // Get year from the first song
     const year = showYear && songs[0]?.created_at ? new Date(songs[0].created_at).getFullYear() : "";
 
     const handleAlbumClick = () => {
-        if (albumName && onClick) {
+        if (onClick) {
             onClick();
+        } else if (albumName) {
+            albumModal.onOpen(albumName);
         }
     };
 
@@ -71,7 +84,7 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
                         ))}
                     </div>
                 ) : (
-                    <AlbumImage song={songs[0] || {}} className="w-full h-full" />
+                    <AlbumImage song={songs[0]} className="w-full h-full" />
                 )}
 
                 {/* Play overlay */}

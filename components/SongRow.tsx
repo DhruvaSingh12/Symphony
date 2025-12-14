@@ -13,6 +13,7 @@ import LikeButton from "@/components/LikeButton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import useAuthModal from "@/hooks/useAuthModal";
 import usePlaylistModal from "@/hooks/usePlaylistModal";
+import useAlbumModal from "@/hooks/useAlbumModal";
 import { useUser } from "@/hooks/useUser";
 import { useLikeSong, useIsLiked } from "@/hooks/mutations/useLikeSong";
 import { useRemoveSongFromPlaylist } from "@/hooks/mutations/usePlaylist";
@@ -23,7 +24,7 @@ interface SongRowProps {
     song: Song;
     index: number;
     onPlay: (id: number) => void;
-    onAlbumClick?: (album: string) => void;
+
     showArtist?: boolean;
     showAlbum?: boolean;
     showDuration?: boolean;
@@ -42,7 +43,7 @@ const SongRow: React.FC<SongRowProps> = ({
     song,
     index,
     onPlay,
-    onAlbumClick,
+
     showArtist = true,
     showAlbum = true,
     showDuration = true,
@@ -57,6 +58,7 @@ const SongRow: React.FC<SongRowProps> = ({
     // Auth & Like Logic
     const authModal = useAuthModal();
     const playlistModal = usePlaylistModal();
+    const albumModal = useAlbumModal();
     const { user } = useUser();
     const isLiked = useIsLiked(song.id);
     const likeMutation = useLikeSong();
@@ -106,8 +108,8 @@ const SongRow: React.FC<SongRowProps> = ({
     };
 
     const handleAlbumClick = () => {
-        if (song.album && onAlbumClick) {
-            onAlbumClick(song.album);
+        if (song.album) {
+            albumModal.onOpen(song.album);
         }
     };
 
@@ -198,7 +200,7 @@ const SongRow: React.FC<SongRowProps> = ({
                 </div>
             </div>
 
-            {/* Duration - Always shown now */}
+            {/* Duration - Always shown */}
             <div className={`${showDuration ? 'flex' : 'hidden'} items-center justify-center text-xs md:text-sm text-muted-foreground`}>
                 {formatTime(song.duration)}
             </div>

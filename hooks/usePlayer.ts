@@ -18,6 +18,9 @@ interface PlayerStore {
   setIds: (ids: number[]) => void;
   reset: () => void;
   
+  playingFromQueue: boolean;
+  setPlayingFromQueue: (isPlayingFromQueue: boolean) => void;
+  
   queue: number[];
   addToQueue: (id: number) => void;
   addIdsToQueue: (ids: number[]) => void;
@@ -47,7 +50,7 @@ interface PlayerStore {
 const usePlayer = create<PlayerStore>((set) => ({
   ids: [],
   activeId: undefined,
-  setId: (id: number) => set({ activeId: id }),
+  setId: (id: number) => set({ activeId: id, playingFromQueue: false }),
   setIds: (ids: number[]) => set({ ids: ids }),
   reset: () => set({ ids: [], activeId: undefined, playContext: null, playContextId: undefined }),
 
@@ -75,6 +78,9 @@ const usePlayer = create<PlayerStore>((set) => ({
   playContext: null,
   playContextId: undefined,
   setPlayContext: (context: PlayContext, contextId?: string) => set({ playContext: context, playContextId: contextId }),
+
+  playingFromQueue: false,
+  setPlayingFromQueue: (isPlayingFromQueue: boolean) => set({ playingFromQueue: isPlayingFromQueue }),
 }));
 
 export default usePlayer;

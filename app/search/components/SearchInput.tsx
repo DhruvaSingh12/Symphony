@@ -3,7 +3,7 @@
 import qs from "query-string";
 import useDebounce from "@/hooks/useDebounce";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Input from "./Input";
 import { Button } from "@/components/ui/button";
 import { Search as SearchIcon } from "lucide-react";
@@ -15,9 +15,13 @@ const SearchInput = () => {
     // Initialize with URL query if available
     const [query, setQuery] = useState<string>(searchParams.get("query") || "");
     const debouncedQuery = useDebounce<string>(query, 500);
+    const initialized = React.useRef(false);
 
     // Restore from localStorage on mount if URL query is empty
     useEffect(() => {
+        if (initialized.current) return;
+        initialized.current = true;
+
         if (!searchParams.get("query")) {
             const savedQuery = localStorage.getItem("quivery-last-search");
             if (savedQuery) {
@@ -27,6 +31,9 @@ const SearchInput = () => {
     }, [searchParams]);
 
     useEffect(() => {
+        const currentQuery = searchParams.get("query") || "";
+        if (debouncedQuery === currentQuery) return;
+
         const url = qs.stringifyUrl({
             url: '/search',
             query: { query: debouncedQuery }
@@ -40,7 +47,7 @@ const SearchInput = () => {
         }
 
         router.push(url);
-    }, [debouncedQuery, router, query, searchParams]);
+    }, [debouncedQuery, router, searchParams, query]);
 
     // Handle persistence cleanup on unmount
     useEffect(() => {

@@ -7,11 +7,12 @@ import Box from "@/components/Box";
 import { BounceLoader } from "react-spinners";
 import AlbumCard from "@/app/artists/components/AlbumCard";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
 import usePlaylistModal from "@/hooks/usePlaylistModal";
 import { Card } from "@/components/ui/card";
 import { useUser } from "@/hooks/useUser";
 import { useEffect } from "react";
+import ActionCard from "@/app/library/components/ActionCard";
+import { PlusCircle, Upload } from "lucide-react";
 
 const LibraryPage = () => {
     const router = useRouter();
@@ -37,6 +38,8 @@ const LibraryPage = () => {
         );
     }
 
+    // ...
+
     return (
         <div className="h-full w-full flex flex-col overflow-hidden">
             <div className="flex-none px-2 md:px-0 md:pr-2 pt-2">
@@ -46,12 +49,6 @@ const LibraryPage = () => {
                             <h1 className="text-3xl font-semibold text-foreground">
                                 Your Library
                             </h1>
-                        </div>
-                        <div
-                            onClick={() => playlistModal.onOpen()}
-                            className="inline-flex cursor-pointer items-center gap-x-2 text-neutral-400 hover:text-white transition"
-                        >
-                            <Plus size={20} />
                         </div>
                     </div>
                 </Header>
@@ -65,13 +62,27 @@ const LibraryPage = () => {
                             </Box>
                         ) : (
                             <div className="p-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-4">
+                                {/* Action Cards */}
+                                <ActionCard
+                                    label="Upload Song"
+                                    icon={Upload}
+                                    onClick={() => router.push('/library/upload')}
+                                    description="Add to library"
+                                />
+                                <ActionCard
+                                    label="Create Playlist"
+                                    icon={PlusCircle}
+                                    onClick={() => playlistModal.onOpen()}
+                                    description="New Collection"
+                                />
+
                                 {/* Uploaded Songs Card */}
                                 {userSongs && userSongs.length > 0 && (
                                     <AlbumCard
                                         albumName="Uploaded"
                                         songs={userSongs}
-                                        onClick={() => router.push('/uploaded')}
-                                        description=""
+                                        onClick={() => router.push('/library/uploaded')}
+                                        description="Your songs"
                                         showYear={false}
                                         showPlayButton={false}
                                     />
@@ -83,8 +94,8 @@ const LibraryPage = () => {
                                         key={playlist.id}
                                         albumName={playlist.name}
                                         songs={playlist.songs}
-                                        onClick={() => router.push(`/playlist/${playlist.id}`)}
-                                        description=""
+                                        onClick={() => router.push(`/library/playlist/${playlist.id}`)}
+                                        description="Playlist"
                                         showYear={false}
                                         showPlayButton={false}
                                     />
