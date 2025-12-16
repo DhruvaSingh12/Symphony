@@ -5,11 +5,9 @@ import { FieldValues, SubmitHandler, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import uniqid from 'uniqid';
 import { useRouter } from 'next/navigation';
-
 import { useUser } from '@/hooks/useUser';
 import { useSupabaseClient } from '@/providers/SupabaseProvider';
 import { useAllSongs } from '@/hooks/queries/useAllSongs';
-
 import Button from '@/components/Button';
 import MetadataForm from './MetadataForm';
 import FileSection from './FileSection';
@@ -229,7 +227,7 @@ const UploadForm = () => {
             </div>
 
             {/* Right Column: Preview */}
-            <div className="lg:col-span-4">
+            <div className="col-span-2 md:col-span-3 lg:col-span-4">
                 <PreviewSection
                     title={title}
                     artists={selectedArtists}

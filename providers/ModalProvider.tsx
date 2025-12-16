@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import AuthModal from "@/components/AuthModal";
 import PlaylistModal from "@/components/PlaylistModal";
 import AlbumModal from "@/components/AlbumModal";
+import QueueModal from "@/components/QueueModal";
 
 const ModalProvider = () => {
     const [isMounted, setIsMounted] = useState(false);
@@ -21,6 +22,7 @@ const ModalProvider = () => {
             <AuthModal />
             <PlaylistModal />
             <AlbumModal />
+            <QueueModal />
         </>
     );
 }

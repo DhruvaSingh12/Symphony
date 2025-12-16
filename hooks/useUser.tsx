@@ -9,6 +9,7 @@ type UserContextType = {
     user: User | null;
     userDetails: UserDetails | null;
     isLoading: boolean;
+    refreshUserDetails: () => Promise<void>;
 };
 
 export const UserContext = createContext<UserContextType | undefined>(
@@ -26,11 +27,18 @@ export const MyUserContextProvider = (props: Props) => {
     const [isLoadingData, setIsLoadingData] = useState(false);
     const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
 
+    const getUserDetails = () => supabase.from('users').select('*').single();
+
+    const refreshUserDetails = async () => {
+        const result = await getUserDetails();
+        if (result.data) {
+            setUserDetails(result.data as UserDetails);
+        }
+    };
+
     useEffect(() => {
         if (user && !isLoadingData && !userDetails) {
-            // Avoid synchronous set state
-            setTimeout(() => setIsLoadingData(true), 0);
-            const getUserDetails = () => supabase.from('users').select('*').single();
+            setIsLoadingData(true);
             Promise.allSettled([getUserDetails()]).then((results) => {
                 const userDetailsPromise = results[0];
                 if (userDetailsPromise.status === 'fulfilled') {
@@ -40,15 +48,16 @@ export const MyUserContextProvider = (props: Props) => {
             });
         }
         else if (!user && !isLoadingSession && !isLoadingData) {
-            setTimeout(() => setUserDetails(null), 0);
+            setUserDetails(null);
         }
-    }, [user, isLoadingSession, isLoadingData, userDetails, supabase]);
+    }, [user, isLoadingSession]);
 
     const value = {
         accessToken,
         user,
         userDetails,
         isLoading: isLoadingSession || isLoadingData,
+        refreshUserDetails
     };
 
     return <UserContext.Provider value={value} {...props} />

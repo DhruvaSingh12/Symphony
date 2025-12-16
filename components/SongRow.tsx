@@ -28,8 +28,9 @@ interface SongRowProps {
     showArtist?: boolean;
     showAlbum?: boolean;
     showDuration?: boolean;
-    layout?: 'default' | 'search';
+    layout?: 'default' | 'search' | 'queue';
     playlistId?: string;
+    showRemove?: boolean;
 }
 
 const formatTime = (seconds: number | null): string => {
@@ -43,12 +44,12 @@ const SongRow: React.FC<SongRowProps> = ({
     song,
     index,
     onPlay,
-
     showArtist = true,
     showAlbum = true,
     showDuration = true,
     layout = 'default',
-    playlistId
+    playlistId,
+    showRemove = false
 }) => {
     const imageUrl = useLoadImage(song) || "/images/liked.png";
     const initials = (song.title || "?").slice(0, 2).toUpperCase();
@@ -101,6 +102,12 @@ const SongRow: React.FC<SongRowProps> = ({
         toast.success("Added to queue");
     };
 
+    const handleRemoveFromQueue = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        player.removeFromQueue(song.id);
+        toast.success("Removed from queue");
+    };
+
     const handleArtistClick = (e: React.MouseEvent, artistName: string) => {
         e.stopPropagation();
         sessionStorage.setItem("keep-search-persistence", "true");
@@ -113,9 +120,48 @@ const SongRow: React.FC<SongRowProps> = ({
         }
     };
 
-    const gridCols = showAlbum
-        ? "md:grid-cols-[auto_auto_minmax(200px,1fr)_minmax(150px,1fr)_80px_minmax(150px,1fr)_auto_auto]"
-        : "md:grid-cols-[auto_auto_minmax(200px,1fr)_minmax(150px,1fr)_80px_auto_auto]";
+    const gridCols = layout === 'queue'
+        ? "grid-cols-[auto_40px_1fr_40px]" // Minimal layout: Index, Image, Title (flex), Action
+        : showAlbum
+            ? "md:grid-cols-[auto_auto_minmax(200px,1fr)_minmax(150px,1fr)_80px_minmax(150px,1fr)_auto_auto]"
+            : "md:grid-cols-[auto_auto_minmax(200px,1fr)_minmax(150px,1fr)_80px_auto_auto]";
+
+    // For queue layout, we override the Grid container class completely
+    if (layout === 'queue') {
+        return (
+            <div className="flex items-center gap-3 p-2 hover:bg-muted/30 rounded-md transition group/row w-full">
+                {/* Image */}
+                <div className="relative h-10 w-10 min-w-[40px] rounded-md overflow-hidden">
+                    <Avatar className="h-full w-full bg-transparent">
+                        <AvatarImage src={imageUrl} alt={song.title || "Song artwork"} className="object-cover h-full w-full" />
+                        <AvatarFallback className="rounded-md">{initials}</AvatarFallback>
+                    </Avatar>
+                </div>
+
+                {/* Title */}
+                <div className="flex-1 flex flex-col justify-center overflow-hidden">
+                    <p className={`truncate font-medium text-sm ${isCurrentSong ? 'text-primary' : 'text-foreground'}`}>
+                        {song.title}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                        {song.author || "Unknown Artist"}
+                    </p>
+                </div>
+
+                {/* Remove Button */}
+                {showRemove && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleRemoveFromQueue}
+                        className="opacity-0 group-hover/row:opacity-100 transition-opacity h-8 w-8 text-muted-foreground hover:text-red-500"
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
+                )}
+            </div>
+        )
+    }
 
     return (
         <div className={`grid grid-cols-[auto_auto_1fr_auto_auto_auto] ${gridCols} 
@@ -258,10 +304,12 @@ const SongRow: React.FC<SongRowProps> = ({
                                 Remove from playlist
                             </DropdownMenuItem>
                         )}
+
                         <DropdownMenuItem onClick={handleAddToQueue} className="cursor-pointer">
                             <ListPlus className="md:mr-2 mr-1 md:h-4 md:w-4 h-3 w-3" />
                             Add to Queue
                         </DropdownMenuItem>
+
                         <DropdownMenuSeparator />
 
                         {song.album && (

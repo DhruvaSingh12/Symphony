@@ -81,12 +81,12 @@ const SearchContent: React.FC<SearchContentProps> = ({ songs, query }) => {
             const scoreB = calculateMatchScore(bName, query);
             return scoreB - scoreA;
         });
-        return entries.slice(0, 6);
-    }, [matchingAlbums, query]);
+        return expandedAlbums ? entries : entries.slice(0, 6);
+    }, [matchingAlbums, query, expandedAlbums]);
 
     const displayedArtists = useMemo(() => {
-        return matchingArtists.slice(0, 4);
-    }, [matchingArtists]);
+        return expandedArtists ? matchingArtists : matchingArtists.slice(0, 6);
+    }, [matchingArtists, expandedArtists]);
 
     if (songs.length === 0) {
         return (
@@ -136,7 +136,6 @@ const SearchContent: React.FC<SearchContentProps> = ({ songs, query }) => {
                                 key={albumName}
                                 albumName={albumName}
                                 songs={albumSongs}
-                                onClick={() => { }}
                             />
                         ))}
                     </div>
@@ -184,7 +183,7 @@ const SearchContent: React.FC<SearchContentProps> = ({ songs, query }) => {
                             </div>
                         ))}
                     </div>
-                    {matchingArtists.length > 4 && (
+                    {matchingArtists.length > 6 && (
                         <div className="flex justify-center mt-4 mb-10">
                             <button
                                 onClick={() => setExpandedArtists(!expandedArtists)}

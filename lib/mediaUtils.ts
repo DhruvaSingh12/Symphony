@@ -1,7 +1,6 @@
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { toBlobURL } from '@ffmpeg/util';
 
-// Singleton FFmpeg instance
 let ffmpeg: FFmpeg | null = null;
 
 const loadFFmpeg = async () => {
@@ -11,16 +10,14 @@ const loadFFmpeg = async () => {
 
     if (!ffmpeg.loaded) {
         try {
-            // Use single-threaded core for reliability
             const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
             await ffmpeg.load({
                 coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
                 wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
             });
-        } catch (error) {
+        } 
+        catch (error) {
             console.error('Failed to load FFmpeg:', error);
-            // If load fails, we can't do anything. 
-            // Reset to null so retry might work if transient
             ffmpeg = null;
             throw new Error('Failed to load audio processor');
         }
@@ -30,17 +27,14 @@ const loadFFmpeg = async () => {
 };
 
 export const processAudio = async (file: File): Promise<File> => {
-    // 1. Ensure loaded
     const instance = await loadFFmpeg(); 
-    
-    // 2. Prepare paths
     const inputName = 'input.' + file.name.split('.').pop();
     const outputName = 'output.mp3';
 
     try {
         await instance.writeFile(inputName, await fetchFile(file));
 
-        // 3. Convert to MP3 (libmp3lame) at 128kbps, 44.1kHz, Stereo
+        // Convert to MP3 (libmp3lame) at 128kbps, 44.1kHz, Stereo
         await instance.exec([
             '-i', inputName,
             '-c:a', 'libmp3lame',
@@ -49,45 +43,34 @@ export const processAudio = async (file: File): Promise<File> => {
             '-ac', '2',
             outputName
         ]);
-
-        // 4. Read result
         const data = await instance.readFile(outputName);
-        
-        // 5. Create File
-        // Cast to any to avoid TS mismatch with Uint8Array vs BlobPart
         const processedBlob = new Blob([data as any], { type: 'audio/mpeg' });
         
         return new File([processedBlob], file.name.replace(/\.[^/.]+$/, "") + ".mp3", {
             type: 'audio/mpeg'
         });
 
-    } catch (error) {
+    } 
+    catch (error) {
         console.error('Audio processing failed:', error);
-        
-        // Critical Error Handling:
-        // If execution crashes (e.g. OOM), the instance might be corrupted.
-        // Terminate and reset to ensure fresh start on next attempt.
         if (instance) {
             try {
                 await instance.terminate();
-            } catch (e) {
-                // Ignore termination errors
-            }
+            } 
+            catch (e) {}
         }
-        ffmpeg = null; // Reset singleton
+        ffmpeg = null; 
         
         throw error;
 
-    } finally {
-        // Cleanup files if instance is still alive and we didn't terminate it
-        // If we terminated it (ffmpeg === null), no need to deleteFile
+    } 
+    finally {
         if (ffmpeg && ffmpeg.loaded) {
             try {
                 await ffmpeg.deleteFile(inputName);
                 await ffmpeg.deleteFile(outputName);
-            } catch (e) {
-                // Ignore cleanup errors (file might not exist if conversion failed early)
-            }
+            } 
+            catch (e) {}
         }
     }
 };
@@ -146,7 +129,8 @@ export const processImage = async (file: File): Promise<File> => {
                              resolve(new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
                                  type: 'image/webp'
                              }));
-                         } else {
+                         } 
+                         else {
                              // Reduce quality and try again
                              quality -= 0.1;
                              attemptCompression(); 

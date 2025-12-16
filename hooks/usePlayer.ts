@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export type PlayContext = 
   | 'liked'
@@ -47,40 +48,57 @@ interface PlayerStore {
   setPlayContext: (context: PlayContext, contextId?: string) => void;
 }
 
-const usePlayer = create<PlayerStore>((set) => ({
-  ids: [],
-  activeId: undefined,
-  setId: (id: number) => set({ activeId: id, playingFromQueue: false }),
-  setIds: (ids: number[]) => set({ ids: ids }),
-  reset: () => set({ ids: [], activeId: undefined, playContext: null, playContextId: undefined }),
+const usePlayer = create<PlayerStore>()(
+  persist(
+    (set) => ({
+      ids: [],
+      activeId: undefined,
+      setId: (id: number) => set({ activeId: id, playingFromQueue: false }),
+      setIds: (ids: number[]) => set({ ids: ids }),
+      reset: () => set({ ids: [], activeId: undefined, playContext: null, playContextId: undefined }),
 
-  queue: [],
-  addToQueue: (id: number) => set((state) => ({ queue: [...state.queue, id] })),
-  addIdsToQueue: (newIds: number[]) => set((state) => ({ queue: [...state.queue, ...newIds] })),
-  removeFromQueue: (id: number) => set((state) => ({ queue: state.queue.filter((queueId) => queueId !== id) })),
-  shiftQueue: () => set((state) => ({ queue: state.queue.slice(1) })),
-  clearQueue: () => set({ queue: [] }),
+      queue: [],
+      addToQueue: (id: number) => set((state) => ({ queue: [...state.queue, id] })),
+      addIdsToQueue: (newIds: number[]) => set((state) => ({ queue: [...state.queue, ...newIds] })),
+      removeFromQueue: (id: number) => set((state) => ({ queue: state.queue.filter((queueId) => queueId !== id) })),
+      shiftQueue: () => set((state) => ({ queue: state.queue.slice(1) })),
+      clearQueue: () => set({ queue: [] }),
 
-  lastContextId: undefined,
-  setLastContextId: (id: number) => set({ lastContextId: id }),
+      lastContextId: undefined,
+      setLastContextId: (id: number) => set({ lastContextId: id }),
 
-  isShuffle: false,
-  isRepeat: false,
-  toggleShuffle: () => set((state) => ({ isShuffle: !state.isShuffle })),
-  toggleRepeat: () => set((state) => ({ isRepeat: !state.isRepeat })),
+      isShuffle: false,
+      isRepeat: false,
+      toggleShuffle: () => set((state) => ({ isShuffle: !state.isShuffle })),
+      toggleRepeat: () => set((state) => ({ isRepeat: !state.isRepeat })),
 
-  // Playback control
-  isPlaying: false,
-  setIsPlaying: (playing: boolean) => set({ isPlaying: playing }),
-  togglePlayPause: () => set((state) => ({ isPlaying: !state.isPlaying })),
+      // Playback control
+      isPlaying: false,
+      setIsPlaying: (playing: boolean) => set({ isPlaying: playing }),
+      togglePlayPause: () => set((state) => ({ isPlaying: !state.isPlaying })),
 
-  // Play context tracking
-  playContext: null,
-  playContextId: undefined,
-  setPlayContext: (context: PlayContext, contextId?: string) => set({ playContext: context, playContextId: contextId }),
+      // Play context tracking
+      playContext: null,
+      playContextId: undefined,
+      setPlayContext: (context: PlayContext, contextId?: string) => set({ playContext: context, playContextId: contextId }),
 
-  playingFromQueue: false,
-  setPlayingFromQueue: (isPlayingFromQueue: boolean) => set({ playingFromQueue: isPlayingFromQueue }),
-}));
+      playingFromQueue: false,
+      setPlayingFromQueue: (isPlayingFromQueue: boolean) => set({ playingFromQueue: isPlayingFromQueue }),
+    }),
+    {
+      name: 'quivery-player-storage',
+      partialize: (state) => ({
+        ids: state.ids,
+        activeId: state.activeId,
+        queue: state.queue,
+        isShuffle: state.isShuffle,
+        isRepeat: state.isRepeat,
+        lastContextId: state.lastContextId,
+        playContext: state.playContext,
+        playContextId: state.playContextId,
+      }),
+    }
+  )
+);
 
 export default usePlayer;

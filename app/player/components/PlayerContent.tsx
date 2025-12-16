@@ -1,7 +1,8 @@
-
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Pause, Play, SkipBack, SkipForward, Rewind, FastForward, Volume2, VolumeX, Shuffle, Repeat } from 'lucide-react';
+import { Pause, Play, SkipBack, SkipForward, Rewind, FastForward, Volume2, VolumeX, Shuffle, Repeat, ListMusic } from 'lucide-react';
 import usePlayer from '@/hooks/usePlayer';
+import usePlaybackSettings from '@/hooks/usePlaybackSettings';
+import useQueueModal from '@/hooks/useQueueModal';
 import { Song } from '@/types';
 import { Card } from '@/components/ui/card';
 import MediaItem from '@/components/MediaItem';
@@ -18,14 +19,28 @@ interface PlayerContentProps {
 
 const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   const player = usePlayer();
-  const [volume, setVolume] = useState(1);
+  const queueModal = useQueueModal();
+  const { autoplay, rememberVolume, volume, setVolume } = usePlaybackSettings();
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState<number | null>(null);
+  const { isShuffle, isRepeat, toggleShuffle, toggleRepeat, isPlaying, setIsPlaying, togglePlayPause, activeId } = player;
   const audioRef = useRef<HTMLAudioElement>(null);
-  const { isShuffle, isRepeat, toggleShuffle, toggleRepeat, isPlaying, setIsPlaying, togglePlayPause } = player;
 
   const Icon = isPlaying ? Pause : Play;
   const VolumeIcon = volume === 0 ? VolumeX : Volume2;
+
+  useEffect(() => {
+    if (!rememberVolume) {
+      setVolume(1);
+    }
+  }, [song.id, rememberVolume, setVolume]);
+
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+    }
+  }, [volume]);
 
   useEffect(() => {
     if (player.activeId && player.ids.includes(player.activeId) && !player.playingFromQueue) {
@@ -42,6 +57,9 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
 
     // Check Queue
     if (player.queue.length > 0) {
+      if (!player.playingFromQueue && player.activeId) {
+        player.setLastContextId(player.activeId);
+      }
       const nextSongId = player.queue[0];
       player.setId(nextSongId);
       player.setPlayingFromQueue(true);
@@ -61,9 +79,16 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
         if (player.lastContextId) {
           currentIndex = player.ids.findIndex((id) => id === player.lastContextId);
         } else {
-          // Fallback if no last context (should happen rarely/initial)
+          // Fallback if no last context
           currentIndex = -1;
         }
+      }
+
+      // If autoplay is OFF and we are at the end, do NOT wrap around.
+      const isLastSong = currentIndex === player.ids.length - 1;
+      if (!autoplay && isLastSong && !isRepeat) {
+        setIsPlaying(false);
+        return;
       }
 
       const nextIndex = (currentIndex + 1) % player.ids.length;
@@ -71,7 +96,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
     }
 
     player.setId(nextSongId);
-  }, [player, isShuffle]);
+  }, [player, isShuffle, autoplay, isRepeat, setIsPlaying]);
 
   const onPlayPrevious = useCallback(() => {
     if (player.ids.length === 0) {
@@ -105,9 +130,10 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   };
 
   const toggleMute = () => {
-    setVolume(volume === 0 ? 1 : 0);
-    if (audioRef.current) {
-      audioRef.current.volume = volume === 0 ? 1 : 0;
+    if (volume === 0) {
+      setVolume(1);
+    } else {
+      setVolume(0);
     }
   };
 
@@ -127,12 +153,14 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
 
     const handleLoadedMetadata = () => {
       setDuration(audioElement.duration);
-      audioElement.play();
-      setIsPlaying(true);
+      if (isPlaying) {
+        audioElement.play().catch(() => setIsPlaying(false));
+      }
     };
 
     const handleTimeUpdate = () => {
-      setCurrentTime(audioElement.currentTime);
+      const current = audioElement.currentTime;
+      setCurrentTime(current);
     };
 
     const handleEnded = () => {
@@ -140,8 +168,11 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
         audioElement.currentTime = 0;
         audioElement.play();
       } else {
-        setIsPlaying(false);
-        onPlayNext();
+        if (!autoplay && player.ids.indexOf(player.activeId!) === player.ids.length - 1) {
+          setIsPlaying(false);
+        } else {
+          onPlayNext();
+        }
       }
     };
 
@@ -154,14 +185,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
       audioElement.removeEventListener('timeupdate', handleTimeUpdate);
       audioElement.removeEventListener('ended', handleEnded);
     };
-  }, [audioRef, onPlayNext, isRepeat, setIsPlaying]);
-
-  useEffect(() => {
-    const audioElement = audioRef.current;
-    if (!audioElement) return;
-
-    audioElement.volume = volume;
-  }, [volume]);
+  }, [audioRef, onPlayNext, isRepeat, setIsPlaying, duration, autoplay, player.ids, player.activeId, isPlaying]);
 
   // Sync audio playback with global isPlaying state
   useEffect(() => {
@@ -357,6 +381,14 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
               <span className="text-[10px] text-muted-foreground w-6 tabular-nums">
                 {Math.round(volume * 100)}
               </span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={() => queueModal.onOpen()} className="text-muted-foreground px-2 rounded-full hover:text-foreground transition">
+                    <ListMusic className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Queue</TooltipContent>
+              </Tooltip>
             </div>
           </div>
         </Card>

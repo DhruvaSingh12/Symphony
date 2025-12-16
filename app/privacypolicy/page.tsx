@@ -33,7 +33,7 @@ const PrivacyPolicyPage = () => {
             <div className="max-w-4xl mx-auto space-y-8 text-foreground/90">
               <div>
                 <p className="leading-relaxed text-muted-foreground">
-                  Welcome to Quivery This Privacy Policy explains how I collect, use, and protect your personal information. QQuivery is a personal project intended for use by family and friends.
+                  Welcome to Quivery! This Privacy Policy explains how I collect, use, and protect your personal information. Quivery is a personal project intended for use by family and friends.
                 </p>
               </div>
 
