@@ -51,8 +51,8 @@ const MediaItem: React.FC<MediaItemProps> = ({ data, onClick, className }) => {
                     className="object-cover"
                 />
             </div>
-            {/* Title and Artist - Hidden on mobile, visible on md+ */}
-            <div className="hidden md:flex flex-col gap-y-0.5 overflow-hidden flex-1">
+            {/* Title and Artist */}
+            <div className="flex flex-col gap-y-0.5 overflow-hidden flex-1 min-w-0">
                 <p className="text-foreground truncate font-medium text-sm">
                     {data.title}
                 </p>

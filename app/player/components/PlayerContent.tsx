@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
+import FullScreenPlayer from './FullScreenPlayer';
+import usePlayerModal from '@/hooks/usePlayerModal';
 
 interface PlayerContentProps {
   song: Song;
@@ -19,6 +21,7 @@ interface PlayerContentProps {
 
 const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   const player = usePlayer();
+  const playerModal = usePlayerModal();
   const queueModal = useQueueModal();
   const { autoplay, rememberVolume, volume, setVolume } = usePlaybackSettings();
   const [currentTime, setCurrentTime] = useState(0);
@@ -209,52 +212,30 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   return (
     <TooltipProvider>
       <div className="flex gap-2 mx-1">
-        {/* Left Card: Song Info */}
-        <Card className="bg-card border-border h-16 flex items-center w-1/5 p-2">
+        {/* Left Card: Song Info - Hidden on mobile */}
+        <Card className="bg-card border-border h-16 hidden md:flex items-center w-1/5 p-2">
           <div className="flex items-center gap-x-2 w-full">
             <MediaItem data={song} onClick={() => { }} />
           </div>
         </Card>
 
-        {/* Right Card: Controls */}
-        <Card className="bg-card border-border w-4/5 h-16 p-2">
+        {/* Right Card: Controls - Full width on mobile */}
+        <Card className="bg-card border-border w-full md:w-4/5 h-16 p-2">
           {/* Mobile View */}
           <div className="flex md:hidden h-full w-full items-center justify-between px-2">
-            <LikeButton songId={song.id} />
-            <div className="flex items-center gap-x-2">
-
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleShuffle}
-                className={cn("text-muted-foreground rounded-full hover:text-foreground transition", isShuffle && "text-primary bg-primary/10")}
-              >
-                <Shuffle className="h-2 w-2" />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={onPlayPrevious}>
-                <SkipBack className="h-2 w-2" />
-              </Button>
-              <Button
-                size="icon"
-                className="h-10 w-10 rounded-full bg-foreground text-background hover:scale-105 transition"
-                onClick={handlePlayPause}
-              >
-                <Icon className="h-3 w-3 fill-background" />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={onPlayNext}>
-                <SkipForward className="h-2 w-2" />
-              </Button>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleRepeat}
-              className={cn("text-muted-foreground rounded-full hover:text-foreground transition", isRepeat && "text-primary bg-primary/10")}
+            <div
+              className="flex items-center gap-x-3 flex-1 cursor-pointer overflow-hidden"
+              onClick={playerModal.onOpen}
             >
-              <Repeat className="h-2 w-2" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={toggleMute}>
-              <VolumeIcon className="h-3 w-3" />
+              <MediaItem data={song} onClick={() => { }} />
+            </div>
+
+            <Button
+              size="icon"
+              className="h-10 w-10 rounded-full bg-foreground text-background shrink-0 ml-2"
+              onClick={handlePlayPause}
+            >
+              <Icon className="h-4 w-4 fill-background" />
             </Button>
           </div>
 
@@ -394,9 +375,22 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
         </Card>
 
         <audio ref={audioRef} src={songUrl} />
+
+        <FullScreenPlayer
+          song={song}
+          songUrl={songUrl}
+          currentTime={currentTime}
+          duration={duration}
+          audioRef={audioRef}
+          togglePlayPause={handlePlayPause}
+          onPlayNext={onPlayNext}
+          onPlayPrevious={onPlayPrevious}
+          formatTime={formatTime}
+        />
       </div>
     </TooltipProvider>
   );
 };
+
 
 export default PlayerContent;
