@@ -1,103 +1,21 @@
-"use client";
+import UploadedPageClient from "./components/UploadedPageClient";
+import { fetchUserSongs } from "@/lib/api/songs";
+import { createClient } from "@/supabase/server";
+import { redirect } from "next/navigation";
 
-import UploadedContent from "./components/UploadedContent";
-import Header from "@/components/Header";
-import { Card, CardContent } from "@/components/ui/card";
-import { useUserSongs } from "@/hooks/queries/useUserSongs";
-import Box from "@/components/Box";
-import { BounceLoader } from "react-spinners";
-import { Button } from "@/components/ui/button";
-import { Play, Pause } from "lucide-react";
-import useOnPlay from "@/hooks/useOnPlay";
-import usePlayer from "@/hooks/usePlayer";
+export const revalidate = 60;
 
-import { useRouter } from "next/navigation";
-import { useUser } from "@/hooks/useUser";
-import { useEffect } from "react";
+const UploadedPage = async () => {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
-const UploadedPage = () => {
-    const router = useRouter();
-    const { user, isLoading: isLoadingUser } = useUser();
-    const { data: songs, isLoading: isLoadingSongs, error } = useUserSongs();
-    const onPlay = useOnPlay(songs || [], 'uploaded');
-    const player = usePlayer();
-
-    const isLoading = isLoadingSongs || isLoadingUser;
-
-    const isContextPlaying = player.playContext === 'uploaded' && player.isPlaying;
-
-    useEffect(() => {
-        if (!isLoadingUser && !user) {
-            router.replace("/");
-        }
-    }, [isLoadingUser, user, router]);
-
-    if (isLoadingUser || (!user && !isLoadingUser)) {
-        return (
-            <Box className="flex h-full w-full scrollbar-hide items-center justify-center">
-                <BounceLoader className="text-foreground" size={40} />
-            </Box>
-        );
+    if (!user) {
+        redirect("/");
     }
 
-    return (
-        <div className="h-full w-full flex flex-col overflow-hidden">
-            <div className="flex-none px-2 md:px-0 md:pr-2 pt-2">
-                <Header className="bg-transparent">
-                    <div className="flex items-center justify-between mt-2">
-                        <div className="flex flex-col items-start gap-1">
-                            <h1 className="text-3xl font-semibold text-foreground">
-                                Uploaded Songs
-                            </h1>
-                            {!isLoading && songs && (
-                                <div>
-                                    {songs.length} {songs.length === 1 ? "song" : "songs"}
-                                </div>
-                            )}
-                        </div>
-                        {!isLoading && songs && songs.length > 0 && (
-                            <Button
-                                onClick={() => {
-                                    if (isContextPlaying) {
-                                        player.togglePlayPause();
-                                    } else if (player.activeId && songs.some(s => s.id === player.activeId)) {
-                                        player.togglePlayPause();
-                                    } else {
-                                        onPlay(songs[0].id);
-                                    }
-                                }}
-                                size="icon"
-                                className="rounded-full bg-foreground hover:bg-primary/90 transition w-10 h-10 md:w-12 md:h-12"
-                            >
-                                {isContextPlaying ? (
-                                    <Pause className="text-background fill-background w-8 h-8 md:w-12 md:h-12" />
-                                ) : (
-                                    <Play className="text-background fill-background w-8 h-8 md:w-12 md:h-12" />
-                                )}
-                            </Button>
-                        )}
-                    </div>
-                </Header>
-            </div>
-            <div className="flex-1 overflow-auto px-2 md:px-0 md:pr-2 mt-2 pb-2">
-                {isLoading ? (
-                    <Box className="flex h-full w-full scrollbar-hide items-center justify-center">
-                        <BounceLoader className="text-foreground" size={40} />
-                    </Box>
-                ) : error ? (
-                    <Card className="bg-card/60 border-border">
-                        <CardContent className="p-6">
-                            <p className="text-center text-muted-foreground">
-                                Error loading your songs. Please try again.
-                            </p>
-                        </CardContent>
-                    </Card>
-                ) : (
-                    <UploadedContent songs={songs || []} />
-                )}
-            </div>
-        </div>
-    );
+    const songs = await fetchUserSongs(supabase);
+
+    return <UploadedPageClient songs={songs || []} />;
 };
 
 export default UploadedPage;

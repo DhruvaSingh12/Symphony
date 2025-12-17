@@ -17,7 +17,7 @@ interface SearchContentProps {
 }
 
 const SearchContent: React.FC<SearchContentProps> = ({ songs, query }) => {
-    const onPlay = useOnPlay(songs);
+    const onPlay = useOnPlay(songs, 'search');
     const [expandedSongs, setExpandedSongs] = useState(false);
     const [expandedAlbums, setExpandedAlbums] = useState(false);
     const [expandedArtists, setExpandedArtists] = useState(false);
@@ -91,7 +91,7 @@ const SearchContent: React.FC<SearchContentProps> = ({ songs, query }) => {
     if (songs.length === 0) {
         return (
             <Box className="bg-card/60 border-border">
-                <div className="p-6 items-center flex flex-col">
+                <div className="flex flex-col gap-1 p-4 items-center justify-center">
                     <h1 className="text-2xl font-semibold text-foreground">No results found</h1>
                     <p className="text-muted-foreground">Try adjusting your search or check back soon.</p>
                 </div>

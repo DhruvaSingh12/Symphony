@@ -1,67 +1,54 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Song } from "@/types";
+import { ArtistInfo } from "@/lib/api/songs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Disc } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ArtistControls, { SortOption } from "./ArtistControls";
-import { useAllSongs } from "@/hooks/queries/useAllSongs";
-import Box from "@/components/Box";
-import { BounceLoader } from "react-spinners";
+import { useQueryClient } from "@tanstack/react-query";
+import { fetchSongsByArtist } from "@/lib/api/songs";
 
-const ArtistContent = () => {
-  const { data: songs, isLoading } = useAllSongs();
+interface ArtistContentProps {
+  artists: ArtistInfo[];
+}
+
+const ArtistContent: React.FC<ArtistContentProps> = ({ artists }) => {
+
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOption, setSortOption] = useState<SortOption>("lastUpdated");
   const router = useRouter();
-
-  const artists = useMemo(() => {
-    if (!songs) return {};
-
-    const artistData: {
-      [key: string]: { songs: Song[]; albums: Set<string> };
-    } = {};
-
-    songs.forEach((song) => {
-      (song.artist || []).forEach((artist: string) => {
-        if (!artistData[artist]) {
-          artistData[artist] = { songs: [], albums: new Set() };
-        }
-        artistData[artist].songs.push(song);
-        if (song.album) {
-          artistData[artist].albums.add(song.album);
-        }
-      });
-    });
-
-    return artistData;
-  }, [songs]);
+  const queryClient = useQueryClient();
 
   const processedArtists = useMemo(() => {
-    let filtered = Object.entries(artists);
+    // First, deduplicate artists by name
+    const uniqueArtists = Array.from(
+      new Map(artists.map(a => [a.artist, a])).values()
+    );
+
+    let filtered = uniqueArtists;
 
     if (searchTerm) {
-      filtered = filtered.filter(([artist]) =>
-        artist.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter((artist) =>
+        artist.artist.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    return filtered.sort(([artistA, dataA], [artistB, dataB]) => {
+    return filtered.sort((a, b) => {
       switch (sortOption) {
         case 'nameAsc':
-          return artistA.localeCompare(artistB);
+          return a.artist.localeCompare(b.artist);
         case 'nameDesc':
-          return artistB.localeCompare(artistA);
+          return b.artist.localeCompare(a.artist);
         case 'songCountAsc':
-          return dataA.songs.length - dataB.songs.length || artistA.localeCompare(artistB);
+          return a.song_count - b.song_count || a.artist.localeCompare(b.artist);
         case 'songCountDesc':
-          return dataB.songs.length - dataA.songs.length || artistA.localeCompare(artistB);
+          return b.song_count - a.song_count || a.artist.localeCompare(b.artist);
         case 'lastUpdated':
         default:
-          const timeA = Math.max(...dataA.songs.map(s => new Date(s.updated_at || 0).getTime()));
-          const timeB = Math.max(...dataB.songs.map(s => new Date(s.updated_at || 0).getTime()));
-          return (timeB || 0) - (timeA || 0);
+          const timeA = new Date(a.latest_update).getTime();
+          const timeB = new Date(b.latest_update).getTime();
+          return timeB - timeA;
       }
     });
 
@@ -71,13 +58,16 @@ const ArtistContent = () => {
     router.push(`/artists/${encodeURIComponent(artist)}`);
   };
 
-  if (isLoading) {
-    return (
-      <Box className="flex h-full w-full items-center justify-center">
-        <BounceLoader className="text-foreground" size={40} />
-      </Box>
-    );
-  }
+  // Prefetch artist data on hover for instant page transitions
+  const handleArtistHover = (artistName: string) => {
+    queryClient.prefetchQuery({
+      queryKey: ['artist', 'songs', artistName],
+      queryFn: () => fetchSongsByArtist(artistName),
+      staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    });
+  };
+
+
 
   return (
     <div className="flex flex-col h-full">
@@ -93,12 +83,13 @@ const ArtistContent = () => {
         <ScrollArea className="h-full">
           <div className="px-4 py-4">
             <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-5 xl:grid-cols-7 gap-6">
-              {processedArtists.map(([artist]) => {
+              {processedArtists.map((artistInfo, index) => {
                 return (
                   <div
-                    key={artist}
+                    key={`${artistInfo.artist}-${index}`}
                     className="flex flex-col items-center gap-2 group cursor-pointer"
-                    onClick={() => handleArtistClick(artist)}
+                    onClick={() => handleArtistClick(artistInfo.artist)}
+                    onMouseEnter={() => handleArtistHover(artistInfo.artist)}
                   >
                     <div
                       className={`relative h-20 w-20 lg:h-32 lg:w-32 border border-border bg-secondary rounded-full flex items-center justify-center shadow-lg group-hover:scale-105 transition transform duration-300`}
@@ -106,7 +97,7 @@ const ArtistContent = () => {
                       <Disc className="w-8 h-8 lg:w-16 lg:h-16 text-background" />
                     </div>
                     <span className="text-center text-sm lg:text-base text-foreground truncate w-full px-2">
-                      {artist}
+                      {artistInfo.artist}
                     </span>
                   </div>
                 );

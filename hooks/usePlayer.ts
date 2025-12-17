@@ -46,6 +46,10 @@ interface PlayerStore {
   playContext: PlayContext;
   playContextId?: string; // For playlists/artists - the specific ID
   setPlayContext: (context: PlayContext, contextId?: string) => void;
+
+  // New session tracking for forcing player remounts
+  playbackId: number;
+  play: (ids: number[], activeId: number, context?: PlayContext, contextId?: string) => void;
 }
 
 const usePlayer = create<PlayerStore>()(
@@ -84,6 +88,18 @@ const usePlayer = create<PlayerStore>()(
 
       playingFromQueue: false,
       setPlayingFromQueue: (isPlayingFromQueue: boolean) => set({ playingFromQueue: isPlayingFromQueue }),
+
+      // New atomic play action
+      playbackId: 0,
+      play: (ids: number[], activeId: number, context?: PlayContext, contextId?: string) => set((state) => ({
+        ids: ids,
+        activeId: activeId,
+        playContext: context || null,
+        playContextId: contextId,
+        isPlaying: true,
+        playingFromQueue: false,
+        playbackId: state.playbackId + 1
+      })),
     }),
     {
       name: 'quivery-player-storage',
@@ -96,6 +112,7 @@ const usePlayer = create<PlayerStore>()(
         lastContextId: state.lastContextId,
         playContext: state.playContext,
         playContextId: state.playContextId,
+        playbackId: state.playbackId,
       }),
     }
   )

@@ -50,6 +50,7 @@ export const MyUserContextProvider = (props: Props) => {
         else if (!user && !isLoadingSession && !isLoadingData) {
             setUserDetails(null);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, isLoadingSession]);
 
     const value = {

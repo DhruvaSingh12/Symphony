@@ -1,21 +1,21 @@
-"use client";
-
-import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import SearchInput from "./components/SearchInput";
-import { useSongsByQuery } from "@/hooks/queries/useSongsByQuery";
 import SearchContent from "./components/SearchContent";
 import { Card } from "@/components/ui/card";
-import Box from "@/components/Box";
-import { BounceLoader } from "react-spinners";
 import { Search } from "lucide-react";
+import Box from "@/components/Box";
+import { fetchSongsByQuery } from "@/lib/api/songs";
 
-const SearchPage = () => {
-    const searchParams = useSearchParams();
-    const query = searchParams.get('query') || "";
+interface SearchPageProps {
+    searchParams: Promise<{
+        query: string;
+    }>;
+}
 
-    // Only fetch songs if there's a query
-    const { data: songs, isLoading, error } = useSongsByQuery(query);
+const SearchPage = async (props: SearchPageProps) => {
+    const searchParams = await props.searchParams;
+    const query = searchParams.query || "";
+    const songs = await fetchSongsByQuery(query);
 
     return (
         <div className="h-full w-full flex flex-col overflow-hidden">
@@ -44,20 +44,12 @@ const SearchPage = () => {
                                     </p>
                                 </div>
                             </Box>
-                        ) : isLoading ? (
-                            <Box className="flex h-full w-full items-center justify-center">
-                                <BounceLoader className="text-foreground" size={40} />
-                            </Box>
-                        ) : error ? (
-                            <Box className="bg-card/60 border-border">
-                                <div className="p-6">
-                                    <p className="text-center text-muted-foreground">
-                                        Error loading search results. Please try again.
-                                    </p>
-                                </div>
-                            </Box>
                         ) : (
-                            <SearchContent songs={songs || []} query={query} isLoading={isLoading} />
+                            <SearchContent
+                                songs={songs}
+                                query={query}
+                                isLoading={false}
+                            />
                         )}
                     </div>
                 </Card>

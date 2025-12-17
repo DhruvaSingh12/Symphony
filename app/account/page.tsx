@@ -1,30 +1,18 @@
-"use client";
-
 import Header from "@/components/Header";
-import Box from "@/components/Box";
-import { BounceLoader } from "react-spinners";
 import SettingsContent from "./components/SettingsContent";
-import { useRouter } from "next/navigation";
-import { useUser } from "@/hooks/useUser";
-import { useEffect } from "react";
+import { createClient } from "@/supabase/server";
+import { redirect } from "next/navigation";
+import { getUserDetails } from "@/lib/api/users";
 
-const SettingsPage = () => {
-  const router = useRouter();
-  const { user, isLoading: isLoadingUser } = useUser();
+const SettingsPage = async () => {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  useEffect(() => {
-    if (!isLoadingUser && !user) {
-      router.replace("/");
-    }
-  }, [isLoadingUser, user, router]);
-
-  if (isLoadingUser || (!user && !isLoadingUser)) {
-    return (
-      <Box className="flex h-full w-full scrollbar-hide items-center justify-center">
-        <BounceLoader className="text-foreground" size={40} />
-      </Box>
-    );
+  if (!user) {
+    redirect("/");
   }
+
+  const userDetails = await getUserDetails(supabase);
 
   return (
     <div className="h-full w-full flex flex-col overflow-hidden">
@@ -47,7 +35,7 @@ const SettingsPage = () => {
       <div className="flex-1 min-h-0 mt-2 px-2 md:px-0 md:pr-2 pb-2">
         <div className="h-full w-full overflow-auto scrollbar-hide">
           <div className="max-w-2xl mx-auto">
-            <SettingsContent />
+            <SettingsContent userDetails={userDetails} />
           </div>
         </div>
       </div>

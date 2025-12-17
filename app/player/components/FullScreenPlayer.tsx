@@ -29,7 +29,6 @@ interface FullScreenPlayerProps {
 
 const FullScreenPlayer: React.FC<FullScreenPlayerProps> = ({
     song,
-    songUrl,
     currentTime,
     duration,
     audioRef,
@@ -132,7 +131,7 @@ const FullScreenPlayer: React.FC<FullScreenPlayerProps> = ({
                                     </span>
                                 ))
                             ) : (
-                                <span>{song.author || "Unknown Artist"}</span>
+                                <span>{song.artist || "Unknown Artist"}</span>
                             )}
                         </p>
                     </div>

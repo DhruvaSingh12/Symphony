@@ -6,14 +6,12 @@ const useOnPlay = (songs: Song[], context?: PlayContext, contextId?: string) => 
     const player = usePlayer();
 
     const onPlay = (id: number) => {
-        player.setId(id);
-        player.setIds(songs.map((song) => song.id));
-        // Set the play context when starting playback
-        if (context) {
-            player.setPlayContext(context, contextId);
-        }
-        // Auto-start playing
-        player.setIsPlaying(true);
+        player.play(
+            songs.map((song) => song.id),
+            id,
+            context,
+            contextId
+        );
     };
 
     return onPlay;

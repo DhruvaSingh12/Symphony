@@ -44,10 +44,16 @@ export const usePlaylistSongs = (playlistId: string) => {
 
             if (!data) return [];
 
-            return data.map((item: any) => ({
+            interface PlaylistSongItem {
+                songs: Omit<Song, 'updated_at' | 'author'> & {
+                    updated_at?: string | null;
+                };
+            }
+
+            return data.map((item: PlaylistSongItem) => ({
                 ...item.songs,
                 author: item.songs.artist?.[0] ?? null,
-                updated_at: item.songs.created_at,
+                updated_at: item.songs.updated_at || item.songs.created_at,
             })) as Song[];
         },
         enabled: !!playlistId,

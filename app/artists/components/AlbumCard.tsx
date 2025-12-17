@@ -50,7 +50,7 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
 }) => {
     const songsToDisplay = songs.slice(0, 4);
     const isGrid = songs.length >= 4;
-    const onPlay = useOnPlay(songs);
+    const onPlay = useOnPlay(songs, 'album', albumName);
     const albumModal = useAlbumModal();
 
     // Get year from the first song

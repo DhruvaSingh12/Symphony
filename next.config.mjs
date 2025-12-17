@@ -4,7 +4,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'zfpkgfuelpoxebaccqsr.supabase.co',
+        hostname: process.env.NEXT_PUBLIC_SUPABASE_URL.replace('https://', ''),
         pathname: '/**',
       },
     ],

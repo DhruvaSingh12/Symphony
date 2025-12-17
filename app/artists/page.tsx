@@ -1,10 +1,12 @@
 import ArtistContent from "./components/ArtistContent";
 import Header from "@/components/Header";
 import { Card } from "@/components/ui/card";
+import { fetchArtists } from "@/lib/api/songs";
 
-export const revalidate = 0;
+export const revalidate = 300; // Revalidate every 5 minutes (artists change rarely)
 
-const ArtistsPage = () => {
+const ArtistsPage = async () => {
+    const artists = await fetchArtists();
 
     return (
         <div className="h-full w-full flex flex-col overflow-hidden">
@@ -19,7 +21,7 @@ const ArtistsPage = () => {
             </div>
             <div className="flex-1 min-h-0 mt-2 px-2 md:px-0 md:pr-2 pb-2">
                 <Card className="bg-card/60 border-border h-full flex flex-col overflow-hidden">
-                    <ArtistContent />
+                    <ArtistContent artists={artists} />
                 </Card>
             </div>
         </div>

@@ -12,6 +12,7 @@ import { usePlaylistsWithSongs } from "@/hooks/queries/usePlaylistsWithSongs";
 import { useCreatePlaylist, useAddSongToPlaylist } from "@/hooks/mutations/usePlaylist";
 import { Playlist, Song } from "@/types";
 import useLoadImage from "@/hooks/useLoadImage";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 interface PlaylistWithSongs extends Playlist {
     songs: Song[];
@@ -177,7 +178,9 @@ const PlaylistModal = () => {
 
                 {/* Existing Playlists */}
                 {isLoading ? (
-                    <div className="text-center text-muted-foreground py-4">Loading playlists...</div>
+                    <div className="flex items-center justify-center py-4">
+                        <LoadingSpinner size={24} />
+                    </div>
                 ) : playlists?.map((playlist) => (
                     <PlaylistRow
                         key={playlist.id}

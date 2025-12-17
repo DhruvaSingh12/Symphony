@@ -5,13 +5,42 @@ import SongItem from "@/components/SongItem";
 import useOnPlay from "@/hooks/useOnPlay";
 import { Song } from "@/types";
 import { Card } from "@/components/ui/card";
+import { useInfiniteSongs } from "@/hooks/useInfiniteSongs";
+import { useInView } from "react-intersection-observer";
+import { Loader2 } from "lucide-react";
 
 interface PageContentProps {
   songs: Song[];
 }
 
-const PageContent: React.FC<PageContentProps> = ({ songs }) => {
-  const onPlay = useOnPlay(songs);
+const PageContent: React.FC<PageContentProps> = ({ songs: initialSongs }) => {
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+  } = useInfiniteSongs('songs', initialSongs, 50);
+
+  const songs = React.useMemo(() => {
+    return data?.pages.flatMap((page) => page) || initialSongs;
+  }, [data?.pages, initialSongs]);
+
+  const onPlay = useOnPlay(songs, 'home');
+
+  const { ref, inView } = useInView();
+
+  React.useEffect(() => {
+    if (inView && hasNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, hasNextPage, fetchNextPage]);
+
+  if (songs.length === 0) {
+    return (
+      <div className="mt-4 text-muted-foreground">
+        No songs available.
+      </div>
+    );
+  }
 
   return (
     <Card className="h-full p-4 relative">
@@ -25,6 +54,11 @@ const PageContent: React.FC<PageContentProps> = ({ songs }) => {
             />
           ))}
         </div>
+        {hasNextPage && (
+          <div ref={ref} className="flex justify-center p-4 w-full">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        )}
       </div>
     </Card>
   );

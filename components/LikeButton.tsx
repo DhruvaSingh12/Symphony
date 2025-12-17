@@ -19,6 +19,8 @@ const LikeButton: React.FC<LikeButtonProps> = ({
 }) => {
     const authModal = useAuthModal();
     const { user } = useUser();
+    
+    // Ensure liked songs are fetched and cached
     useLikedSongs();
 
     const isLiked = useIsLiked(songId);

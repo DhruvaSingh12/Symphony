@@ -3,11 +3,8 @@
 import Header from "@/components/Header";
 import { Card } from "@/components/ui/card";
 import UploadForm from "./components/UploadForm";
-import { useRouter } from "next/navigation";
 
 const UploadPage = () => {
-    const router = useRouter();
-
     return (
         <div className="h-full w-full flex flex-col overflow-hidden">
             <div className="flex-none px-2 md:px-0 md:pr-2 pt-2">

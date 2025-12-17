@@ -6,6 +6,7 @@ export const queryKeys = {
     search: (query: string) => [...queryKeys.songs.all, 'search', query] as const,
     details: () => [...queryKeys.songs.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.songs.details(), id] as const,
+    liked: (userId?: string) => ['liked_songs', userId] as const,
   },
   artists: {
     all: ['artists'] as const,

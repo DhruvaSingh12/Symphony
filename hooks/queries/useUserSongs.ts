@@ -10,7 +10,7 @@ export function useUserSongs() {
   
   return useQuery({
     queryKey: queryKeys.user.songs(user?.id),
-    queryFn: fetchUserSongs,
+    queryFn: () => fetchUserSongs(),
     // Only fetch if user is logged in
     enabled: !!user,
     // Refetch when tab is focused

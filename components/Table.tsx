@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { Song } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowUp, ArrowDown, Loader2 } from 'lucide-react';
-import { useInView } from 'react-intersection-observer';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import useScrollPersistence from '@/hooks/useScrollPersistence';
 import SongRow from './SongRow';
 
@@ -11,12 +11,12 @@ interface TableProps {
     onPlay: (id: number) => void;
     persistenceKey?: string;
     playlistId?: string;
+    onLoadMore?: () => void;
+    hasMore?: boolean;
 }
 
 type SortField = 'title' | 'artist' | 'album' | 'duration' | null;
 type SortDirection = 'asc' | 'desc';
-
-const items_per_page = 50;
 
 interface SortHeaderProps {
     label: string;
@@ -47,35 +47,19 @@ const SortHeader: React.FC<SortHeaderProps> = ({ label, field, currentSortField,
     );
 };
 
-const Table: React.FC<TableProps> = ({ songs, onPlay, persistenceKey, playlistId }) => {
-    const [sortField, setSortField] = useState<SortField>(null);
-    const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
-
-    // Initialize displayCount with persisted value if available
-    const [displayCount, setDisplayCount] = useState(() => {
-        if (typeof window !== 'undefined' && persistenceKey) {
-            const savedCount = sessionStorage.getItem(`count-${persistenceKey}`);
-            if (savedCount) {
-                return parseInt(savedCount, 10);
-            }
-        }
-        return items_per_page;
-    });
+const Table: React.FC<TableProps> = ({
+    songs,
+    onPlay,
+    persistenceKey,
+    playlistId,
+    onLoadMore,
+    hasMore: propsHasMore
+}) => {
+    const [sortField, setSortField] = React.useState<SortField>(null);
+    const [sortDirection, setSortDirection] = React.useState<SortDirection>('asc');
 
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     useScrollPersistence(persistenceKey || "", scrollContainerRef, !!persistenceKey);
-
-    // Persist displayCount changes
-    React.useEffect(() => {
-        if (persistenceKey) {
-            sessionStorage.setItem(`count-${persistenceKey}`, displayCount.toString());
-        }
-    }, [displayCount, persistenceKey]);
-
-    const { ref: loadMoreRef, inView } = useInView({
-        threshold: 0,
-        rootMargin: '100px',
-    });
 
     const handleSort = (field: SortField) => {
         if (sortField === field) {
@@ -86,7 +70,6 @@ const Table: React.FC<TableProps> = ({ songs, onPlay, persistenceKey, playlistId
             setSortField(field);
             setSortDirection('asc');
         }
-        setDisplayCount(items_per_page);
     };
 
     const sortedSongs = useMemo(() => {
@@ -116,21 +99,33 @@ const Table: React.FC<TableProps> = ({ songs, onPlay, persistenceKey, playlistId
         });
     }, [songs, sortField, sortDirection]);
 
-    const displayedSongs = useMemo(() => {
-        return sortedSongs.slice(0, displayCount);
-    }, [sortedSongs, displayCount]);
+    // Virtual scrolling
+    // eslint-disable-next-line react-hooks/incompatible-library
+    const rowVirtualizer = useVirtualizer({
+        count: sortedSongs.length,
+        getScrollElement: () => scrollContainerRef.current,
+        estimateSize: () => 64, // Approximate row height
+        overscan: 10, // Render 10 extra items above and below viewport
+    });
 
-    const hasMore = displayCount < sortedSongs.length;
+    const virtualItems = rowVirtualizer.getVirtualItems();
 
+    // Trigger load more when scrolling near the end
     React.useEffect(() => {
-        if (inView && hasMore) {
-            const timer = setTimeout(() => {
-                const newCount = Math.min(displayCount + items_per_page, sortedSongs.length);
-                setDisplayCount(newCount);
-            }, 100);
-            return () => clearTimeout(timer);
+        if (!onLoadMore || !propsHasMore) return;
+
+        const lastItem = virtualItems[virtualItems.length - 1];
+        if (!lastItem) return;
+
+        // Load more when we're within 20 items of the end
+        if (lastItem.index >= sortedSongs.length - 20) {
+            // Use setTimeout to avoid flushSync during render
+            const timeoutId = setTimeout(() => {
+                onLoadMore();
+            }, 0);
+            return () => clearTimeout(timeoutId);
         }
-    }, [inView, hasMore, sortedSongs.length, displayCount]);
+    }, [virtualItems, sortedSongs.length, onLoadMore, propsHasMore]);
 
     return (
         <div className="h-full w-full">
@@ -178,29 +173,45 @@ const Table: React.FC<TableProps> = ({ songs, onPlay, persistenceKey, playlistId
                             <div className="w-8"></div>
                         </div>
 
-                        {/* Song Rows */}
-                        <div className="flex-1 overflow-y-auto px-3 md:px-5">
-                            {displayedSongs.map((song, index) => (
-                                <div key={song.id} className="border-b border-border last:border-b-0">
-                                    <SongRow song={song} index={index} onPlay={onPlay} playlistId={playlistId} />
-                                </div>
-                            ))}
-
-                            {/* Loading Sentinel */}
-                            {hasMore && (
-                                <div
-                                    ref={loadMoreRef}
-                                    className="flex items-center justify-center py-8"
-                                >
-                                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                                    <span className="ml-2 text-sm text-muted-foreground">Loading more songs...</span>
-                                </div>
-                            )}
+                        {/* Virtual Song Rows */}
+                        <div 
+                            className="relative px-3 md:px-5"
+                            style={{
+                                height: `${rowVirtualizer.getTotalSize()}px`,
+                            }}
+                        >
+                            {virtualItems.map((virtualRow) => {
+                                const song = sortedSongs[virtualRow.index];
+                                return (
+                                    <div
+                                        key={virtualRow.key}
+                                        className="border-b border-border last:border-b-0 absolute top-0 left-0 w-full"
+                                        style={{
+                                            height: `${virtualRow.size}px`,
+                                            transform: `translateY(${virtualRow.start}px)`,
+                                        }}
+                                    >
+                                        <SongRow 
+                                            song={song} 
+                                            index={virtualRow.index} 
+                                            onPlay={onPlay} 
+                                            playlistId={playlistId} 
+                                        />
+                                    </div>
+                                );
+                            })}
                         </div>
+
+                        {/* Loading Indicator */}
+                        {propsHasMore && onLoadMore && (
+                            <div className="flex items-center justify-center py-8">
+                                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                                <span className="ml-2 text-sm text-muted-foreground">Loading more songs...</span>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>
-
         </div>
     );
 };

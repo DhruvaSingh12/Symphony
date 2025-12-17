@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import useAlbumModal from "@/hooks/useAlbumModal";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { toast } from "react-hot-toast";
-import { Loader2 } from "lucide-react";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const AlbumModal = () => {
   const { isOpen, onClose, albumName } = useAlbumModal();
@@ -17,7 +17,7 @@ const AlbumModal = () => {
   const [songs, setSongs] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const onPlay = useOnPlay(songs);
+  const onPlay = useOnPlay(songs, 'album', albumName ?? '');
 
   useEffect(() => {
     if (isOpen && albumName) {
@@ -51,7 +51,9 @@ const AlbumModal = () => {
             }));
             setSongs(mappedSongs);
           }
-        } catch (error) {
+        } 
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        catch (_error) {
           toast.error("Something went wrong");
         } finally {
           setIsLoading(false);
@@ -83,7 +85,7 @@ const AlbumModal = () => {
         <ScrollArea className="w-full h-[calc(100vh-8rem)] mt-4">
           {isLoading ? (
             <div className="flex h-full items-center justify-center pt-20">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              <LoadingSpinner size={32} />
             </div>
           ) : (
             <div className="flex flex-col">

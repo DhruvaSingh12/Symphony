@@ -1,7 +1,6 @@
 export interface Song {
     id: number;
     user_id: string | null;
-    author: string | null;
     artist: string[] | null;
     title: string | null;
     song_path: string | null;

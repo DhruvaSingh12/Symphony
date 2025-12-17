@@ -1,12 +1,15 @@
 "use client";
 
-import { useUser } from "@/hooks/useUser";
+import { UserDetails } from "@/types";
 import ProfileSection from "./ProfileSection";
 import PlaybackSection from "./PlaybackSection";
 import OtherSettingsSection from "./OtherSettingsSection";
 
-const SettingsContent = () => {
-    const { userDetails } = useUser();
+interface SettingsContentProps {
+    userDetails: UserDetails | null;
+}
+
+const SettingsContent: React.FC<SettingsContentProps> = ({ userDetails }) => {
 
     return (
         <div className="space-y-4">

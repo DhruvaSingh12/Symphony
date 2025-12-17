@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { UserDetails } from "@/types";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import useLoadAvatar from "@/hooks/useLoadAvatar";
@@ -27,22 +27,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ userDetails }) => {
     // Profile editing states
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
-    const [gender, setGender] = useState("");
-    const [dateOfBirth, setDateOfBirth] = useState("");
+    const [firstName, setFirstName] = useState(userDetails?.first_name || "");
+    const [lastName, setLastName] = useState(userDetails?.last_name || "");
+    const [gender, setGender] = useState(userDetails?.gender || "");
+    const [dateOfBirth, setDateOfBirth] = useState(userDetails?.dateOfBirth || "");
     const [image, setImage] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
-
-    // Sync local state when userDetails changes
-    useEffect(() => {
-        if (userDetails) {
-            setFirstName(userDetails.first_name || "");
-            setLastName(userDetails.last_name || "");
-            setGender(userDetails.gender || "");
-            setDateOfBirth(userDetails.dateOfBirth || "");
-        }
-    }, [userDetails]);
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {

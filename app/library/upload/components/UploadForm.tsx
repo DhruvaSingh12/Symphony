@@ -41,7 +41,7 @@ const UploadForm = () => {
         };
     }, [allSongs]);
 
-    const { register, handleSubmit, reset, watch, setValue } = useForm<FieldValues>({
+    const { register, handleSubmit, reset, watch } = useForm<FieldValues>({
         defaultValues: {
             title: '',
             song: null,
@@ -87,6 +87,21 @@ const UploadForm = () => {
                 return;
             }
 
+            const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+            const MAX_SONG_SIZE = 50 * 1024 * 1024; // 50MB
+
+            if (rawImageFile.size > MAX_IMAGE_SIZE) {
+                toast.error('Image file too large (Max 5MB)');
+                setIsLoading(false);
+                return;
+            }
+
+            if (rawSongFile.size > MAX_SONG_SIZE) {
+                toast.error('Audio file too large (Max 50MB)');
+                setIsLoading(false);
+                return;
+            }
+
             // 1. Process Image
             let finalImageFile: File;
             try {
@@ -118,7 +133,7 @@ const UploadForm = () => {
             // Extract duration from the processed file
             let songDuration: number | null = null;
             try {
-                songDuration = await new Promise<number>((resolve, reject) => {
+                songDuration = await new Promise<number>((resolve) => {
                     const audio = new Audio();
                     audio.preload = 'metadata';
                     audio.onloadedmetadata = () => {

@@ -117,7 +117,7 @@ const MetadataForm: React.FC<MetadataFormProps> = ({
                                             className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition cursor-pointer"
                                         >
                                             <Plus className="h-4 w-4" />
-                                            Create "{artistInput}"
+                                            Create &quot;{artistInput}&quot;
                                         </button>
                                     </CommandEmpty>
                                     <CommandGroup>
@@ -193,7 +193,7 @@ const MetadataForm: React.FC<MetadataFormProps> = ({
                                             className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition cursor-pointer"
                                         >
                                             <Plus className="h-4 w-4" />
-                                            Create "{albumInput}"
+                                            Create &quot;{albumInput}&quot;
                                         </button>
                                     </CommandEmpty>
                                     <CommandGroup>

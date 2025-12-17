@@ -9,7 +9,8 @@ import useQueueModal from "@/hooks/useQueueModal";
 import usePlayer from "@/hooks/usePlayer";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { toast } from "react-hot-toast";
-import { Loader2, ListMusic } from "lucide-react";
+import { ListMusic } from "lucide-react";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const QueueModal = () => {
     const { isOpen, onClose } = useQueueModal();
@@ -99,7 +100,8 @@ const QueueModal = () => {
                         const nSongs = nextUpIds.map(id => mappedSongs.find(s => s.id === id)).filter(Boolean) as Song[];
                         setNextUpSongs(nSongs);
                     }
-                } catch (error) {
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                } catch (_error) {
                     toast.error("Something went wrong");
                 } finally {
                     setIsLoading(false);
@@ -108,7 +110,7 @@ const QueueModal = () => {
 
             fetchSongs();
         }
-    }, [isOpen, player.queue, player.ids, player.activeId, player.isShuffle, supabaseClient]);
+    }, [isOpen, player.queue, player.ids, player.activeId, player.isShuffle, supabaseClient, player.lastContextId, player.playingFromQueue]);
 
     const onChange = (open: boolean) => {
         if (!open) {
@@ -128,7 +130,7 @@ const QueueModal = () => {
                 <ScrollArea className="w-full h-[calc(100vh-8rem)] mt-4">
                     {isLoading ? (
                         <div className="flex h-full items-center justify-center pt-20">
-                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                            <LoadingSpinner size={32} />
                         </div>
                     ) : (
                         <div className="flex flex-col gap-6 px-1">

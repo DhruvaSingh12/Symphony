@@ -44,7 +44,8 @@ export const processAudio = async (file: File): Promise<File> => {
             outputName
         ]);
         const data = await instance.readFile(outputName);
-        const processedBlob = new Blob([data as any], { type: 'audio/mpeg' });
+        const uint8Data = data instanceof Uint8Array ? new Uint8Array(data) : new TextEncoder().encode(String(data));
+        const processedBlob = new Blob([uint8Data], { type: 'audio/mpeg' });
         
         return new File([processedBlob], file.name.replace(/\.[^/.]+$/, "") + ".mp3", {
             type: 'audio/mpeg'
@@ -57,7 +58,8 @@ export const processAudio = async (file: File): Promise<File> => {
             try {
                 await instance.terminate();
             } 
-            catch (e) {}
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            catch (_e) {}
         }
         ffmpeg = null; 
         
@@ -70,7 +72,8 @@ export const processAudio = async (file: File): Promise<File> => {
                 await ffmpeg.deleteFile(inputName);
                 await ffmpeg.deleteFile(outputName);
             } 
-            catch (e) {}
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            catch (_e) {}
         }
     }
 };

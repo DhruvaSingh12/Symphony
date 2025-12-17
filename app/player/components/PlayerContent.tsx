@@ -26,7 +26,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   const { autoplay, rememberVolume, volume, setVolume } = usePlaybackSettings();
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState<number | null>(null);
-  const { isShuffle, isRepeat, toggleShuffle, toggleRepeat, isPlaying, setIsPlaying, togglePlayPause, activeId } = player;
+  const { isShuffle, isRepeat, toggleShuffle, toggleRepeat, isPlaying, setIsPlaying, togglePlayPause } = player;
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const Icon = isPlaying ? Pause : Play;
@@ -157,7 +157,12 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
     const handleLoadedMetadata = () => {
       setDuration(audioElement.duration);
       if (isPlaying) {
-        audioElement.play().catch(() => setIsPlaying(false));
+        audioElement.play().catch((error) => {
+          if (error.name !== 'AbortError') {
+            console.error('Audio play error:', error);
+          }
+          setIsPlaying(false);
+        });
       }
     };
 
@@ -169,7 +174,11 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
     const handleEnded = () => {
       if (isRepeat) {
         audioElement.currentTime = 0;
-        audioElement.play();
+        audioElement.play().catch((error) => {
+          if (error.name !== 'AbortError') {
+            console.error('Audio play error:', error);
+          }
+        });
       } else {
         if (!autoplay && player.ids.indexOf(player.activeId!) === player.ids.length - 1) {
           setIsPlaying(false);
@@ -196,7 +205,11 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
     if (!audioElement) return;
 
     if (isPlaying && audioElement.paused) {
-      audioElement.play();
+      audioElement.play().catch((error) => {
+        if (error.name !== 'AbortError') {
+          console.error('Audio play error:', error);
+        }
+      });
     } else if (!isPlaying && !audioElement.paused) {
       audioElement.pause();
     }
@@ -205,7 +218,11 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   useEffect(() => {
     const audioElement = audioRef.current;
     if (audioElement && isPlaying) {
-      audioElement.play();
+      audioElement.play().catch((error) => {
+        if (error.name !== 'AbortError') {
+          console.error('Audio play error:', error);
+        }
+      });
     }
   }, [songUrl, isPlaying]);
 
@@ -338,7 +355,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
                         setCurrentTime(value[0]);
                       }
                     }}
-                    className="w-full cursor-pointer [&_[data-radix-slider-track]]:h-1.5 [&_[data-radix-slider-track]]:bg-muted/50 [&_[data-radix-slider-range]]:bg-primary [&_[data-radix-slider-thumb]]:h-2.5 [&_[data-radix-slider-thumb]]:w-2.5 [&_[data-radix-slider-thumb]]:border-background [&_[data-radix-slider-thumb]]:opacity-0 [&_[data-radix-slider-thumb]]:hover:opacity-100 [&:hover_[data-radix-slider-thumb]]:opacity-100 [&_[data-radix-slider-thumb]]:transition-opacity"
+                    className="w-full cursor-pointer [&_[data-radix-slider-track]]:h-1.5 [&_[data-radix-slider-track]]:bg-muted/50 [&_[data-radix-slider-range]]:bg-primary [&_[data-radix-slider-thumb]]:h-2.5 [&_[data-radix-slider-thumb]]:w-2.5 [&_[data-radix-slider-thumb]]:border-background [&_[data-radix-slider-thumb]]:opacity-0 [&:hover_[data-radix-slider-thumb]]:opacity-100 [&_[data-radix-slider-thumb]]:transition-opacity"
                   />
                 </div>
                 <span className="text-[10px] text-muted-foreground w-7 text-left tabular-nums">

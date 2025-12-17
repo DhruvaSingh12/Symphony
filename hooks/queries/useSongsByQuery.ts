@@ -9,6 +9,8 @@ export function useSongsByQuery(searchQuery: string) {
     queryKey: queryKeys.songs.search(searchQuery),
     queryFn: () => fetchSongsByQuery(searchQuery),
     enabled: searchQuery.length > 0,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
     placeholderData: (previousData) => previousData,
   });
 }

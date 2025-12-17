@@ -4,16 +4,16 @@ import { useSupabaseClient } from "@/providers/SupabaseProvider";
 const useLoadSong = (song: Song) => {
     const supabaseClient = useSupabaseClient();
 
-    if(!song) {
+    if(!song || !song.song_path) {
         return "";
     }
 
     const {data:songData} = supabaseClient
          .storage
          .from('songs')
-         .getPublicUrl(song.song_path ?? '');
+         .getPublicUrl(song.song_path);
 
-    return songData.publicUrl;
+    return songData.publicUrl || "";
 };
 
 export default useLoadSong;

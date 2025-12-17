@@ -18,7 +18,7 @@ interface PlaylistWithSongsRaw {
     name: string;
     playlist_songs: {
         song_id: number;
-        songs: any; // Raw DB song object
+        songs: Song; // Raw DB song object
     }[];
 }
 

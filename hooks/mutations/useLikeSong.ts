@@ -57,30 +57,43 @@ export function useLikeSong() {
     },
     // Optimistic update for instant UI feedback
     onMutate: async ({ songId, isCurrentlyLiked }) => {
-      // Cancel any outgoing refetches
+      // Cancel any outgoing refetches for both query types
       await queryClient.cancelQueries({ queryKey: queryKeys.user.likedSongs(user?.id) });
+      await queryClient.cancelQueries({ queryKey: queryKeys.songs.liked(user?.id) });
 
-      // Snapshot the previous value
+      // Snapshot the previous values
       const previousLikedSongs = queryClient.getQueryData<Song[]>(
         queryKeys.user.likedSongs(user?.id)
       );
 
-      // Optimistically update to the new value
-      if (previousLikedSongs) {
-        if (isCurrentlyLiked) {
-          // Remove song from liked songs
-          queryClient.setQueryData<Song[]>(
-            queryKeys.user.likedSongs(user?.id),
-            previousLikedSongs.filter((song) => song.id !== songId)
-          );
-        } else {
-          // We can't add to the list optimistically because we don't have the full song data here
-          // Just invalidate to refetch
-        }
+      const previousInfiniteData = queryClient.getQueryData<{
+        pages: Song[][];
+        pageParams: unknown[];
+      }>(queryKeys.songs.liked(user?.id));
+
+      // Optimistically update the regular query
+      if (previousLikedSongs && isCurrentlyLiked) {
+        queryClient.setQueryData<Song[]>(
+          queryKeys.user.likedSongs(user?.id),
+          previousLikedSongs.filter((song) => song.id !== songId)
+        );
       }
 
-      // Return context with the previous value
-      return { previousLikedSongs };
+      // Optimistically update the infinite query
+      if (previousInfiniteData && isCurrentlyLiked) {
+        queryClient.setQueryData(
+          queryKeys.songs.liked(user?.id),
+          {
+            ...previousInfiniteData,
+            pages: previousInfiniteData.pages.map(page =>
+              page.filter(song => song.id !== songId)
+            ),
+          }
+        );
+      }
+
+      // Return context with the previous values
+      return { previousLikedSongs, previousInfiniteData };
     },
     onSuccess: (data) => {
       // Show success message
@@ -90,15 +103,22 @@ export function useLikeSong() {
         toast.success('Removed from Liked Songs');
       }
 
-      // Invalidate and refetch liked songs to ensure consistency
+      // Invalidate and refetch both liked songs queries to ensure consistency
       queryClient.invalidateQueries({ queryKey: queryKeys.user.likedSongs(user?.id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.songs.liked(user?.id) });
     },
    onError: (err: Error, variables, context) => {
-      // Rollback on error
+      // Rollback on error - restore both queries
       if (context?.previousLikedSongs) {
         queryClient.setQueryData(
           queryKeys.user.likedSongs(user?.id),
           context.previousLikedSongs
+        );
+      }
+      if (context?.previousInfiniteData) {
+        queryClient.setQueryData(
+          queryKeys.songs.liked(user?.id),
+          context.previousInfiniteData
         );
       }
       toast.error(err?.message || 'Something went wrong');
@@ -111,9 +131,25 @@ export function useIsLiked(songId: number) {
   const { user } = useUser();
   const queryClient = useQueryClient();
 
+  // Check the regular liked songs query (used by LikeButton for initial hydration)
   const likedSongs = queryClient.getQueryData<Song[]>(
     queryKeys.user.likedSongs(user?.id)
   );
 
-  return likedSongs?.some((song) => song.id === songId) ?? false;
+  if (likedSongs?.some((song) => song.id === songId)) {
+    return true;
+  }
+
+  // Also check infinite query data structure (used by liked page infinite scroll)
+  const infiniteData = queryClient.getQueryData<{
+    pages: Song[][];
+    pageParams: unknown[];
+  }>(queryKeys.songs.liked(user?.id));
+
+  if (infiniteData?.pages) {
+    const allSongs = infiniteData.pages.flat();
+    return allSongs.some((song) => song.id === songId);
+  }
+
+  return false;
 }

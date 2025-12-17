@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
-import { useUser } from "@/hooks/useUser";
 import { toast } from "react-hot-toast";
+import { Song } from "@/types";
+import { useUser } from "@/hooks/useUser";
 
 export const useCreatePlaylist = () => {
     const supabaseClient = useSupabaseClient();
@@ -37,7 +38,6 @@ export const useCreatePlaylist = () => {
 
 export const useAddSongToPlaylist = () => {
     const supabaseClient = useSupabaseClient();
-    const { user } = useUser(); // Needed for cache invalidation mainly
     const queryClient = useQueryClient();
 
     return useMutation({
@@ -63,12 +63,35 @@ export const useAddSongToPlaylist = () => {
 
             if (error) throw error;
         },
+        onMutate: async ({ playlistId }) => {
+            // Cancel any outgoing refetches
+            await queryClient.cancelQueries({ queryKey: ["playlist_songs", playlistId] });
+            
+            // Snapshot the previous value
+            const previousSongs = queryClient.getQueryData<Song[]>(["playlist_songs", playlistId]);
+            
+            // Optimistically update to the new value
+            queryClient.setQueryData(["playlist_songs", playlistId], (old: Song[] | undefined) => {
+                if (!old) return old;
+                // We don't have the full song data, but we mark it as added
+                return old;
+            });
+            
+            return { previousSongs, playlistId };
+        },
         onSuccess: (_, variables) => {
             toast.success("Added to playlist!");
             queryClient.invalidateQueries({ queryKey: ["playlists_with_songs"] });
             queryClient.invalidateQueries({ queryKey: ["playlist_songs", variables.playlistId] });
         },
-        onError: (error: Error) => {
+        onError: (error: Error, variables, context: { previousSongs?: Song[]; playlistId: string } | undefined) => {
+            // Rollback on error
+            if (context?.previousSongs) {
+                queryClient.setQueryData(
+                    ["playlist_songs", context.playlistId],
+                    context.previousSongs
+                );
+            }
             toast.error(error.message);
         }
     });
@@ -76,7 +99,6 @@ export const useAddSongToPlaylist = () => {
 
 export const useRemoveSongFromPlaylist = () => {
     const supabaseClient = useSupabaseClient();
-    const { user } = useUser();
     const queryClient = useQueryClient();
 
     return useMutation({
@@ -89,12 +111,34 @@ export const useRemoveSongFromPlaylist = () => {
 
             if (error) throw error;
         },
+        onMutate: async ({ playlistId, songId }) => {
+            // Cancel outgoing refetches
+            await queryClient.cancelQueries({ queryKey: ["playlist_songs", playlistId] });
+            
+            // Snapshot the previous value
+            const previousSongs = queryClient.getQueryData<Song[]>(["playlist_songs", playlistId]);
+            
+            // Optimistically remove from UI
+            queryClient.setQueryData(["playlist_songs", playlistId], (old: Song[] | undefined) => {
+                if (!old || !Array.isArray(old)) return old;
+                return old.filter((song: Song) => song.id !== songId);
+            });
+            
+            return { previousSongs, playlistId };
+        },
         onSuccess: (_, variables) => {
             toast.success("Removed from playlist");
             queryClient.invalidateQueries({ queryKey: ["playlists_with_songs"] });
             queryClient.invalidateQueries({ queryKey: ["playlist_songs", variables.playlistId] });
         },
-        onError: (error: Error) => {
+        onError: (error: Error, variables, context: { previousSongs?: Song[]; playlistId: string } | undefined) => {
+            // Rollback on error
+            if (context?.previousSongs) {
+                queryClient.setQueryData(
+                    ["playlist_songs", context.playlistId],
+                    context.previousSongs
+                );
+            }
             toast.error(error.message);
         }
     });
@@ -102,7 +146,6 @@ export const useRemoveSongFromPlaylist = () => {
 
 export const useDeletePlaylist = () => {
     const supabaseClient = useSupabaseClient();
-    const { user } = useUser();
     const queryClient = useQueryClient();
 
     return useMutation({
@@ -127,7 +170,6 @@ export const useDeletePlaylist = () => {
 
 export const useRenamePlaylist = () => {
     const supabaseClient = useSupabaseClient();
-    const { user } = useUser();
     const queryClient = useQueryClient();
 
     return useMutation({

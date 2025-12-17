@@ -12,6 +12,7 @@ const Player = () => {
     const { song } = useGetSongById(player.activeId ? String(player.activeId) : undefined);
     const songUrl = useLoadSongUrl(song!);
 
+    // Early return if no song data or URL to prevent rendering with invalid state
     if (!song || !songUrl || !player.activeId) {
         return null;
     }
@@ -19,7 +20,7 @@ const Player = () => {
     return (
         <div className="fixed bottom-0 w-full py-1 h-[80px] px-1">
             <PlayerContent
-                key={songUrl}
+                key={`${songUrl}-${player.playbackId}`}
                 song={song}
                 songUrl={songUrl}
             />

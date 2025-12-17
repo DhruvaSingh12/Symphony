@@ -144,7 +144,7 @@ const SongRow: React.FC<SongRowProps> = ({
                         {song.title}
                     </p>
                     <p className="truncate text-xs text-muted-foreground">
-                        {song.author || "Unknown Artist"}
+                        {song.artist || "Unknown Artist"}
                     </p>
                 </div>
 

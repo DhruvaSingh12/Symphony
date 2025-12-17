@@ -8,15 +8,27 @@ import { useRouter } from "next/navigation";
 import Table from '@/components/Table';
 import { Heart } from "lucide-react";
 import Box from "@/components/Box";
+import { useInfiniteSongs } from "@/hooks/useInfiniteSongs";
 
 interface LikedContentProps {
   songs: Song[];
 }
 
-const LikedContent: React.FC<LikedContentProps> = ({ songs }) => {
-  const onPlay = useOnPlay(songs, 'liked');
+const LikedContent: React.FC<LikedContentProps> = ({ songs: initialSongs }) => {
   const router = useRouter();
   const { isLoading, user } = useUser();
+
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+  } = useInfiniteSongs('liked_songs', initialSongs, 50, user?.id);
+
+  const songs = React.useMemo(() => {
+    return data?.pages.flatMap((page) => page) || initialSongs;
+  }, [data?.pages, initialSongs]);
+
+  const onPlay = useOnPlay(songs, 'liked');
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -41,7 +53,15 @@ const LikedContent: React.FC<LikedContentProps> = ({ songs }) => {
   }
 
   return (
-    <Table songs={songs} onPlay={onPlay} persistenceKey="liked-scroll" />
+    <Table
+      songs={songs}
+      onPlay={onPlay}
+      persistenceKey="liked-scroll"
+      onLoadMore={() => {
+        if (hasNextPage) fetchNextPage();
+      }}
+      hasMore={hasNextPage}
+    />
   );
 };
 
