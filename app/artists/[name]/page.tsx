@@ -183,15 +183,15 @@ const ArtistPage = () => {
                                 {relatedArtists.length > 0 && (
                                     <div className="w-full pt-2 pb-4 min-w-0">
                                         <h2 className="text-2xl font-bold ml-2 mb-4">Related Artists</h2>
-                                        <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-3 md:gap-2">
+                                        <div className="grid grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3 md:gap-2">
                                             {displayedRelatedArtists.map((artist) => (
                                                 <div
                                                     key={artist}
                                                     className="flex flex-col items-center group cursor-pointer gap-y-2"
                                                     onClick={() => router.push(`/artists/${encodeURIComponent(artist)}`)}
                                                 >
-                                                    <div className="relative h-20 w-20 md:h-28 md:w-28 border border-border bg-secondary rounded-full flex items-center justify-center shadow-lg group-hover:scale-105 transition transform duration-300">
-                                                        <Disc className="w-8 h-8 md:w-14 md:h-14 text-background" />
+                                                    <div className="relative h-16 w-16 md:h-24 md:w-24 lg:w-28 lg:h-28 border border-border bg-secondary rounded-full flex items-center justify-center shadow-lg group-hover:scale-105 transition transform duration-300">
+                                                        <Disc className="w-8 h-8 md:w-12 md:h-12 lg:w-16 lg:h-16 text-background" />
                                                     </div>
                                                     <TooltipProvider>
                                                         <Tooltip>

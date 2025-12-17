@@ -59,9 +59,9 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
 
   return (
     <div className={cn("flex w-full h-full fixed", player.activeId && "h-[calc(100%-77px)]")}>
-      <div className="w-[300px] hidden md:flex flex-col gap-y-2 bg-background h-full px-2 pt-2 pb-2">
+      <div className="md:w-[200px] xl:w-[280px] hidden md:flex flex-col gap-y-2 bg-background h-full px-2 pt-2 pb-2">
         <Card className="bg-card/60 border-border">
-          <CardContent className="flex flex-col gap-y-3 px-5 py-4">
+          <CardContent className="flex flex-col gap-y-1 px-2 xl:px-3 py-2">
             {routes.map((item) => (
               <Button
                 key={item.label}

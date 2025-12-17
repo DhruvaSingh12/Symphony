@@ -92,7 +92,7 @@ const ArtistContent = () => {
       <div className="flex-1 min-h-0">
         <ScrollArea className="h-full">
           <div className="px-4 py-4">
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-6">
+            <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-5 xl:grid-cols-7 gap-6">
               {processedArtists.map(([artist]) => {
                 return (
                   <div
@@ -101,11 +101,11 @@ const ArtistContent = () => {
                     onClick={() => handleArtistClick(artist)}
                   >
                     <div
-                      className={`relative h-28 w-28 md:h-36 md:w-36 border border-border bg-secondary rounded-full flex items-center justify-center shadow-lg group-hover:scale-105 transition transform duration-300`}
+                      className={`relative h-20 w-20 lg:h-32 lg:w-32 border border-border bg-secondary rounded-full flex items-center justify-center shadow-lg group-hover:scale-105 transition transform duration-300`}
                     >
-                      <Disc className="w-12 h-12 md:w-16 md:h-16 text-background" />
+                      <Disc className="w-8 h-8 lg:w-16 lg:h-16 text-background" />
                     </div>
-                    <span className="text-center text-foreground truncate w-full px-2">
+                    <span className="text-center text-sm lg:text-base text-foreground truncate w-full px-2">
                       {artist}
                     </span>
                   </div>

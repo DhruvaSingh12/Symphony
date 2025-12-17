@@ -33,7 +33,7 @@ export default function Home() {
       <div className="flex-none px-2 md:px-0 md:pr-2 pt-2">
         <Header className="bg-transparent">
           <div className="px-1">
-            <h1 className="text-3xl font-semibold text-foreground">
+            <h1 className="text-2xl lg:text-3xl font-semibold text-foreground">
               {greeting}
             </h1>
           </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import usePlayer from "@/hooks/usePlayer";
 import useGetSongById from "@/hooks/useGetSongById";
 import useLoadImage from "@/hooks/useLoadImage";
@@ -13,7 +13,9 @@ const SidebarSongInfo = () => {
     const player = usePlayer();
     const { song, isloading } = useGetSongById(player.activeId?.toString());
     const imageUrl = useLoadImage(song!);
-    const artists = song?.artist ? (Array.isArray(song.artist) ? song.artist : [song.artist]) : [];
+    const allArtists = song?.artist ? (Array.isArray(song.artist) ? song.artist : [song.artist]) : [];
+    const displayedArtists = allArtists.slice(0, 2);
+
 
     const router = useRouter();
     const albumModal = useAlbumModal();
@@ -66,9 +68,9 @@ const SidebarSongInfo = () => {
             </div>
 
             {/* Content */}
-            <div className="relative h-full flex flex-col p-4 overflow-y-auto scrollbar-hide">
+            <div className="relative h-full flex flex-col p-3 xl:p-4 overflow-y-auto scrollbar-hide">
                 {/* Artwork */}
-                <div className="relative aspect-square w-full shadow-2xl rounded-md overflow-hidden mb-4 ring-1 ring-white/10 mx-auto max-w-[240px]">
+                <div className="relative aspect-square w-full shadow-2xl rounded-md overflow-hidden mb-3 xl:mb-4 ring-1 ring-white/10 mx-auto max-w-[240px]">
                     <Image
                         src={imageUrl || "/images/liked.png"}
                         alt={song.title || "Artwork"}
@@ -78,12 +80,12 @@ const SidebarSongInfo = () => {
                 </div>
 
                 {/* Info */}
-                <div className="flex flex-col gap-1 text-center items-center">
-                    <h2 className="text-xl font-bold text-foreground leading-tight drop-shadow-md line-clamp-2">
+                <div className="flex flex-col gap-0.5 xl:gap-1 text-center items-center w-full">
+                    <h2 className="text-base xl:text-xl font-bold text-foreground leading-tight drop-shadow-md line-clamp-2 w-full">
                         {song.title}
                     </h2>
-                    <div className="text-muted-foreground truncate text-xs">
-                        {artists.map((artist, index) => (
+                    <div className="text-muted-foreground text-xs w-full truncate">
+                        {displayedArtists.map((artist, index) => (
                             <span key={index}>
                                 <span
                                     className="cursor-pointer hover:text-foreground transition"
@@ -91,13 +93,13 @@ const SidebarSongInfo = () => {
                                 >
                                     {artist}
                                 </span>
-                                {index < artists.length - 1 && ", "}
+                                {index < displayedArtists.length - 1 && ", "}
                             </span>
                         ))}
                     </div>
                     {song.album && (
                         <div
-                            className="text-sm text-muted-foreground hover:text-foreground cursor-pointer truncate"
+                            className="text-xs xl:text-sm text-muted-foreground hover:text-foreground cursor-pointer truncate w-full"
                             onClick={handleAlbumClick}
                         >
                             {song.album}
@@ -107,10 +109,10 @@ const SidebarSongInfo = () => {
 
                 {/* Animated Equalizer (Visual Flair) */}
                 <div className="mt-auto pt-4 flex justify-center gap-1 opacity-70">
-                    <div className="w-1 h-3 bg-foreground rounded-full animate-[bounce_1s_infinite]" style={{ animationDelay: '0ms' }} />
-                    <div className="w-1 h-5 bg-foreground rounded-full animate-[bounce_1.2s_infinite]" style={{ animationDelay: '200ms' }} />
-                    <div className="w-1 h-4 bg-foreground rounded-full animate-[bounce_0.8s_infinite]" style={{ animationDelay: '400ms' }} />
-                    <div className="w-1 h-3 bg-foreground rounded-full animate-[bounce_1.1s_infinite]" style={{ animationDelay: '100ms' }} />
+                    <div className="w-1 h-3 bg-foreground rounded-full animate-[bounce_1s_infinite]" style={{ animationDelay: '0ms', animationPlayState: player.isPlaying ? 'running' : 'paused' }} />
+                    <div className="w-1 h-5 bg-foreground rounded-full animate-[bounce_1.2s_infinite]" style={{ animationDelay: '200ms', animationPlayState: player.isPlaying ? 'running' : 'paused' }} />
+                    <div className="w-1 h-4 bg-foreground rounded-full animate-[bounce_0.8s_infinite]" style={{ animationDelay: '400ms', animationPlayState: player.isPlaying ? 'running' : 'paused' }} />
+                    <div className="w-1 h-3 bg-foreground rounded-full animate-[bounce_1.1s_infinite]" style={{ animationDelay: '100ms', animationPlayState: player.isPlaying ? 'running' : 'paused' }} />
                 </div>
             </div>
         </div>

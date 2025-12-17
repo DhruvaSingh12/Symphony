@@ -180,12 +180,12 @@ const FullScreenPlayer: React.FC<FullScreenPlayerProps> = ({
                     <Button
                         size="icon"
                         onClick={togglePlayPause}
-                        className="h-16 w-16 bg-primary text-primary-foreground rounded-full hover:scale-105 transition shadow-lg flex items-center justify-center p-0"
+                        className="h-12 w-12 bg-primary text-primary-foreground rounded-full hover:scale-105 transition shadow-lg flex items-center justify-center p-0"
                     >
                         {player.isPlaying ? (
-                            <Pause className="h-8 w-8 fill-current" />
+                            <Pause className="h-10 w-10 fill-current" />
                         ) : (
-                            <Play className="h-8 w-8 fill-current translate-x-0.5" />
+                            <Play className="h-10 w-10 fill-current" />
                         )}
                     </Button>
 

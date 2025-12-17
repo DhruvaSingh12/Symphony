@@ -68,9 +68,19 @@ const config: Config = {
 				'0%, 100%': { height: '20%' },
 				'50%': { height: '100%' },
 			},
+			marquee: {
+				'0%': { transform: 'translateX(0%)' },
+				'100%': { transform: 'translateX(-100%)' },
+			},
+			marquee2: {
+				'0%': { transform: 'translateX(100%)' },
+				'100%': { transform: 'translateX(0%)' },
+			},
 		},
 		animation: {
 			'now-playing': 'now-playing 0.8s ease-in-out infinite',
+			marquee: 'marquee 15s linear infinite',
+			marquee2: 'marquee2 15s linear infinite',
 		},
   	}
   },
