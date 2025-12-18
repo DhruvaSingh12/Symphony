@@ -27,8 +27,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ userDetails }) => {
     // Profile editing states
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [firstName, setFirstName] = useState(userDetails?.first_name || "");
-    const [lastName, setLastName] = useState(userDetails?.last_name || "");
+    const [fullName, setFullName] = useState(userDetails?.full_name || "");
     const [gender, setGender] = useState(userDetails?.gender || "");
     const [dateOfBirth, setDateOfBirth] = useState(userDetails?.dateOfBirth || "");
     const [image, setImage] = useState<File | null>(null);
@@ -43,8 +42,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ userDetails }) => {
     };
 
     const handleSave = async () => {
-        if (!firstName || !lastName) {
-            toast.error("First name and last name are required.");
+        if (!fullName.trim()) {
+            toast.error("Full name is required.");
             return;
         }
 
@@ -66,8 +65,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ userDetails }) => {
 
         const updates = {
             id: userDetails?.id || user?.id || '',
-            first_name: firstName,
-            last_name: lastName,
+            full_name: fullName.trim(),
             // Only include gender/dob if they weren't set before
             ...(!userDetails?.gender && { gender }),
             ...(!userDetails?.dateOfBirth && { dateOfBirth }),
@@ -101,7 +99,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ userDetails }) => {
         }
     };
 
-    const isNewUser = !userDetails?.first_name || !userDetails?.last_name;
+    const isNewUser = !userDetails?.full_name;
 
     return (
         <Card className="border-border bg-card/60">
@@ -150,23 +148,14 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ userDetails }) => {
                         <Separator />
 
                         {/* Form Fields */}
-                        <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="firstName">First Name</Label>
+                                <Label htmlFor="fullName">Full Name</Label>
                                 <Input
-                                    id="firstName"
-                                    placeholder="Enter first name"
-                                    value={firstName}
-                                    onChange={(e) => setFirstName(e.target.value)}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="lastName">Last Name</Label>
-                                <Input
-                                    id="lastName"
-                                    placeholder="Enter last name"
-                                    value={lastName}
-                                    onChange={(e) => setLastName(e.target.value)}
+                                    id="fullName"
+                                    placeholder="Enter your full name"
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
                                 />
                             </div>
                         </div>
@@ -207,8 +196,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ userDetails }) => {
                                         setIsEditing(false);
                                         setImage(null);
                                         setImagePreview(null);
-                                        setFirstName(userDetails?.first_name || "");
-                                        setLastName(userDetails?.last_name || "");
+                                        setFullName(userDetails?.full_name || "");
                                         setGender(userDetails?.gender || "");
                                         setDateOfBirth(userDetails?.dateOfBirth || "");
                                     }}
@@ -234,7 +222,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ userDetails }) => {
                             </Avatar>
                             <div className="flex-1">
                                 <h3 className="text-lg font-semibold">
-                                    {userDetails?.first_name} {userDetails?.last_name}
+                                    {userDetails?.full_name || "Anonymous User"}
                                 </h3>
                                 <p className="text-sm text-muted-foreground flex items-center gap-1">
                                     <Mail className="h-3 w-3" />

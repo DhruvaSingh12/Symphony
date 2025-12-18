@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Figtree } from "next/font/google";
+import { Figtree, League_Spartan } from "next/font/google";
 import "./globals.css";
 import Sidebar from '@/components/Sidebar';
 import SupabaseProvider from "@/providers/SupabaseProvider";
@@ -18,6 +18,11 @@ const font = Figtree({
   variable: "--figtree"
 });
 
+const leagueSpartan = League_Spartan({
+  subsets: ["latin"],
+  variable: "--league-spartan"
+});
+
 export const metadata: Metadata = {
   title: "Quivery",
   description: "Discover Music",
@@ -34,7 +39,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${font.variable} font-sans w-full h-full scrollbar-hide`}>
+      <body className={`${font.variable} ${leagueSpartan.variable} font-sans w-full h-full scrollbar-hide`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <QueryProvider>
             <ToasterProvider />

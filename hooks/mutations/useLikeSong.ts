@@ -106,6 +106,11 @@ export function useLikeSong() {
       // Invalidate and refetch both liked songs queries to ensure consistency
       queryClient.invalidateQueries({ queryKey: queryKeys.user.likedSongs(user?.id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.songs.liked(user?.id) });
+      
+      // Invalidate the individual song like status cache
+      queryClient.invalidateQueries({ 
+        queryKey: ['song-like-status', user?.id, data.songId] 
+      });
     },
    onError: (err: Error, variables, context) => {
       // Rollback on error - restore both queries
@@ -130,7 +135,9 @@ export function useLikeSong() {
 export function useIsLiked(songId: number) {
   const { user } = useUser();
   const queryClient = useQueryClient();
+  const supabaseClient = useSupabaseClient();
 
+  // First, check the cache for quick response
   // Check the regular liked songs query (used by LikeButton for initial hydration)
   const likedSongs = queryClient.getQueryData<Song[]>(
     queryKeys.user.likedSongs(user?.id)
@@ -148,7 +155,42 @@ export function useIsLiked(songId: number) {
 
   if (infiniteData?.pages) {
     const allSongs = infiniteData.pages.flat();
-    return allSongs.some((song) => song.id === songId);
+    if (allSongs.some((song) => song.id === songId)) {
+      return true;
+    }
+  }
+
+  // If not found in cache, check the cache for individual song like status
+  const songLikeStatus = queryClient.getQueryData<boolean>(
+    ['song-like-status', user?.id, songId]
+  );
+
+  if (songLikeStatus !== undefined) {
+    return songLikeStatus;
+  }
+
+  // If not in any cache, perform a direct database check (runs once per song)
+  // This will be cached for subsequent renders
+  if (user && songId) {
+    queryClient.fetchQuery({
+      queryKey: ['song-like-status', user.id, songId],
+      queryFn: async () => {
+        const { data, error } = await supabaseClient
+          .from('liked_songs')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('song_id', songId)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error checking like status:', error);
+          return false;
+        }
+
+        return !!data;
+      },
+      staleTime: 60 * 1000, // Cache for 1 minute
+    });
   }
 
   return false;

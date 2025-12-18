@@ -57,6 +57,13 @@ const Table: React.FC<TableProps> = ({
 }) => {
     const [sortField, setSortField] = React.useState<SortField>(null);
     const [sortDirection, setSortDirection] = React.useState<SortDirection>('asc');
+    const loadingMoreRef = useRef(false);
+    const onLoadMoreRef = useRef(onLoadMore);
+
+    // Keep the ref updated with the latest callback
+    React.useEffect(() => {
+        onLoadMoreRef.current = onLoadMore;
+    }, [onLoadMore]);
 
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     useScrollPersistence(persistenceKey || "", scrollContainerRef, !!persistenceKey);
@@ -100,7 +107,6 @@ const Table: React.FC<TableProps> = ({
     }, [songs, sortField, sortDirection]);
 
     // Virtual scrolling
-    // eslint-disable-next-line react-hooks/incompatible-library
     const rowVirtualizer = useVirtualizer({
         count: sortedSongs.length,
         getScrollElement: () => scrollContainerRef.current,
@@ -110,22 +116,33 @@ const Table: React.FC<TableProps> = ({
 
     const virtualItems = rowVirtualizer.getVirtualItems();
 
-    // Trigger load more when scrolling near the end
+    // Trigger load more when scrolling near the end using scroll event
     React.useEffect(() => {
-        if (!onLoadMore || !propsHasMore) return;
+        if (!propsHasMore) return;
 
-        const lastItem = virtualItems[virtualItems.length - 1];
-        if (!lastItem) return;
+        const scrollElement = scrollContainerRef.current;
+        if (!scrollElement) return;
 
-        // Load more when we're within 20 items of the end
-        if (lastItem.index >= sortedSongs.length - 20) {
-            // Use setTimeout to avoid flushSync during render
-            const timeoutId = setTimeout(() => {
-                onLoadMore();
-            }, 0);
-            return () => clearTimeout(timeoutId);
-        }
-    }, [virtualItems, sortedSongs.length, onLoadMore, propsHasMore]);
+        const handleScroll = () => {
+            if (loadingMoreRef.current || !onLoadMoreRef.current) return;
+
+            const { scrollTop, scrollHeight, clientHeight } = scrollElement;
+            const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
+
+            // Load more when scrolled 80% through the content
+            if (scrollPercentage > 0.8) {
+                loadingMoreRef.current = true;
+                onLoadMoreRef.current();
+                // Reset loading flag after a delay to allow for next load
+                setTimeout(() => {
+                    loadingMoreRef.current = false;
+                }, 1000);
+            }
+        };
+
+        scrollElement.addEventListener('scroll', handleScroll, { passive: true });
+        return () => scrollElement.removeEventListener('scroll', handleScroll);
+    }, [propsHasMore]);
 
     return (
         <div className="h-full w-full">
@@ -133,13 +150,13 @@ const Table: React.FC<TableProps> = ({
                 <Card className="bg-card/60 border-border h-full flex flex-col">
                     <CardContent ref={scrollContainerRef} className="p-0 flex-1 scrollbar-hide overflow-auto">
                         {/* Sticky Sort Headers */}
-                        <div className="sticky top-0 z-10 rounded-lg grid grid-cols-[auto_auto_1fr_auto_auto] md:grid-cols-[auto_auto_minmax(200px,1fr)_minmax(150px,1fr)_80px_minmax(150px,1fr)_auto_auto] items-center gap-3 px-8 py-3 border-b border-border bg-card backdrop-blur-sm">
-                            <div className="w-8 text-center">
+                        <div className="sticky top-0 z-10 rounded-lg grid grid-cols-[auto_auto_1fr_auto_auto] md:grid-cols-[auto_auto_minmax(200px,1fr)_minmax(170px,1fr)_90px_minmax(150px,1fr)_auto_auto] items-center gap-3 px-6 py-3 border-b border-border bg-card backdrop-blur-sm">
+                            <div className="text-start">
                                 <span className="text-xs text-muted-foreground font-medium">#</span>
                             </div>
-                            <div className="w-12"></div>
+                            <div className="w-[52px]"></div>
                             <SortHeader
-                                label="Title"
+                                label="Track"
                                 field="title"
                                 currentSortField={sortField}
                                 sortDirection={sortDirection}
@@ -185,7 +202,7 @@ const Table: React.FC<TableProps> = ({
                                 return (
                                     <div
                                         key={virtualRow.key}
-                                        className="border-b border-border last:border-b-0 absolute top-0 left-0 w-full"
+                                        className="border-b border-border last:border-b-0 px-1 absolute top-0 left-0 w-full"
                                         style={{
                                             height: `${virtualRow.size}px`,
                                             transform: `translateY(${virtualRow.start}px)`,

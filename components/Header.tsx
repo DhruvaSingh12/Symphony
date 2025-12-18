@@ -127,20 +127,18 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
                   <Avatar className="h-10 w-10 border-2 border-border">
                     <AvatarImage
                       src={avatarUrl || undefined}
-                      alt={userDetails?.first_name || "User"}
+                      alt={userDetails?.full_name || "User"}
                       className="object-cover"
                     />
                     <AvatarFallback>
-                      {userDetails?.first_name?.charAt(0) || "U"}
+                      {userDetails?.full_name?.charAt(0) || "U"}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuLabel>
-                  {userDetails?.first_name
-                    ? `${userDetails.first_name} ${userDetails.last_name || ""}`
-                    : "My Account"}
+                  {userDetails?.full_name || "My Account"}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => router.push("/account")}>

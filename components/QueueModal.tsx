@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import { Song } from "@/types";
 import SongRow from "./SongRow";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import useQueueModal from "@/hooks/useQueueModal";
 import usePlayer from "@/hooks/usePlayer";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
@@ -120,14 +119,15 @@ const QueueModal = () => {
 
     return (
         <Sheet open={isOpen} onOpenChange={onChange}>
-            <SheetContent className="w-full sm:max-w-3xl overflow-y-auto">
+            <SheetContent className="w-full sm:max-w-3xl overflow-hidden">
                 <SheetHeader>
                     <SheetTitle className="flex text-lg items-center gap-2">
                         <ListMusic className="w-5 h-5" />
                         Play Queue
                     </SheetTitle>
+                    <SheetDescription/>
                 </SheetHeader>
-                <ScrollArea className="w-full h-[calc(100vh-8rem)] mt-4">
+                <div className="w-full h-full mt-2 pb-4 overflow-auto scrollbar-hide">
                     {isLoading ? (
                         <div className="flex h-full items-center justify-center pt-20">
                             <LoadingSpinner size={32} />
@@ -202,7 +202,7 @@ const QueueModal = () => {
                             )}
                         </div>
                     )}
-                </ScrollArea>
+                </div>
             </SheetContent>
         </Sheet>
     );

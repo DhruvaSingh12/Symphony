@@ -108,9 +108,9 @@ const LibraryPageClient: React.FC<LibraryPageClientProps> = ({ userSongs, playli
                         {/* Sentinel for infinite scroll */}
                         <div ref={sentinelRef} className="h-1 w-full" />
                         {(!allSongs || allSongs.length === 0) && (!playlists || playlists.length === 0) && (
-                            <div className="flex items-center justify-center h-full">
+                            <div className="flex items-center justify-center">
                                 <div className="text-foreground text-center">
-                                    No songs or playlists found.
+                                    Create a playlist or upload songs to get started.
                                 </div>
                             </div>
                         )}

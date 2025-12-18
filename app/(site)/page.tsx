@@ -39,12 +39,12 @@ export default async function Home() {
   if (user) {
     const { data: userDetails } = await supabase
       .from('users')
-      .select('first_name')
+      .select('full_name')
       .eq('id', user.id)
       .single();
 
     if (userDetails) {
-      firstName = userDetails.first_name;
+      firstName = userDetails.full_name?.split(' ')[0] || '';
     }
   }
 
