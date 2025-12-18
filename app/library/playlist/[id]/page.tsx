@@ -1,6 +1,7 @@
 import { fetchPlaylistById } from "@/lib/api/playlists";
 import PlaylistClient from "./components/PlaylistClient";
 import { createClient } from "@/supabase/server";
+import { redirect } from "next/navigation";
 
 interface PlaylistPageProps {
     params: Promise<{
@@ -12,6 +13,12 @@ const PlaylistPage = async (props: PlaylistPageProps) => {
     const params = await props.params;
     const { id } = params;
     const supabase = await createClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        redirect("/?auth=true");
+    }
 
     const playlist = await fetchPlaylistById(id, supabase);
 

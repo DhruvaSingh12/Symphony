@@ -10,7 +10,7 @@ const UploadedPage = async () => {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-        redirect("/");
+        redirect("/?auth=true");
     }
 
     const songs = await fetchUserSongs(supabase);

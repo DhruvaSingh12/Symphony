@@ -11,11 +11,10 @@ export const revalidate = 30;
 
 const LikedPage = async () => {
   const supabase = await createClient();
-
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/');
+    redirect('/?auth=true');
   }
 
   const songs = await fetchLikedSongs(supabase, 0, 50);

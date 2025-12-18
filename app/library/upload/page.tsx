@@ -3,8 +3,27 @@
 import Header from "@/components/Header";
 import { Card } from "@/components/ui/card";
 import UploadForm from "./components/UploadForm";
+import { useUser } from "@/hooks/useUser";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import useAuthModal from "@/hooks/useAuthModal";
 
 const UploadPage = () => {
+    const { user, isLoading } = useUser();
+    const router = useRouter();
+    const authModal = useAuthModal();
+
+    useEffect(() => {
+        if (!isLoading && !user) {
+            router.push('/?auth=true');
+            authModal.onOpen();
+        }
+    }, [user, isLoading, router, authModal]);
+
+    if (isLoading || !user) {
+        return null;
+    }
+
     return (
         <div className="h-full w-full flex flex-col overflow-hidden">
             <div className="flex-none px-2 md:px-0 md:pr-2 pt-2">

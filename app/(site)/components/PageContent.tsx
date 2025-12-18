@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import SongItem from "@/components/SongItem";
 import useOnPlay from "@/hooks/useOnPlay";
 import { Song } from "@/types";
@@ -8,12 +8,24 @@ import { Card } from "@/components/ui/card";
 import { useInfiniteSongs } from "@/hooks/useInfiniteSongs";
 import { useInView } from "react-intersection-observer";
 import { Loader2 } from "lucide-react";
+import useAuthModal from "@/hooks/useAuthModal";
+import { useSearchParams } from "next/navigation";
 
 interface PageContentProps {
   songs: Song[];
 }
 
 const PageContent: React.FC<PageContentProps> = ({ songs: initialSongs }) => {
+  const authModal = useAuthModal();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const shouldOpenAuth = searchParams.get('auth') === 'true';
+    if (shouldOpenAuth) {
+      authModal.onOpen();
+    }
+  }, [searchParams]);
+
   const {
     data,
     fetchNextPage,
