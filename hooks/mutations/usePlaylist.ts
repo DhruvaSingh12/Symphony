@@ -39,9 +39,12 @@ export const useCreatePlaylist = () => {
 export const useAddSongToPlaylist = () => {
     const supabaseClient = useSupabaseClient();
     const queryClient = useQueryClient();
+    const { user } = useUser();
 
     return useMutation({
         mutationFn: async ({ playlistId, songId }: { playlistId: string; songId: number }) => {
+            if (!user?.id) throw new Error("Not authenticated");
+
              const { data: existing } = await supabaseClient
                 .from("playlist_songs")
                 .select("*")
@@ -57,7 +60,8 @@ export const useAddSongToPlaylist = () => {
                 .from("playlist_songs")
                 .insert({
                     playlist_id: playlistId,
-                    song_id: songId
+                    song_id: songId,
+                    added_by: user.id
                 })
                 .select();
 
@@ -81,8 +85,12 @@ export const useAddSongToPlaylist = () => {
         },
         onSuccess: (_, variables) => {
             toast.success("Added to playlist!");
+            // Invalidate all related queries for immediate UI update
             queryClient.invalidateQueries({ queryKey: ["playlists_with_songs"] });
             queryClient.invalidateQueries({ queryKey: ["playlist_songs", variables.playlistId] });
+            queryClient.invalidateQueries({ queryKey: ["playlist", variables.playlistId] });
+            queryClient.invalidateQueries({ queryKey: ["playlists"] });
+            queryClient.invalidateQueries({ queryKey: ["all-user-playlists"] });
         },
         onError: (error: Error, variables, context: { previousSongs?: Song[]; playlistId: string } | undefined) => {
             // Rollback on error
@@ -128,10 +136,14 @@ export const useRemoveSongFromPlaylist = () => {
         },
         onSuccess: (_, variables) => {
             toast.success("Removed from playlist");
+            // Invalidate all related queries for immediate UI update
             queryClient.invalidateQueries({ queryKey: ["playlists_with_songs"] });
             queryClient.invalidateQueries({ queryKey: ["playlist_songs", variables.playlistId] });
+            queryClient.invalidateQueries({ queryKey: ["playlist", variables.playlistId] });
+            queryClient.invalidateQueries({ queryKey: ["playlists"] });
+            queryClient.invalidateQueries({ queryKey: ["all-user-playlists"] });
         },
-        onError: (error: Error, variables, context: { previousSongs?: Song[]; playlistId: string } | undefined) => {
+        onError: (error: Error, context: { previousSongs?: Song[]; playlistId: string } | undefined) => {
             // Rollback on error
             if (context?.previousSongs) {
                 queryClient.setQueryData(

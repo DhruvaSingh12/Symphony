@@ -31,11 +31,29 @@ export const usePlaylistsWithSongs = () => {
         queryFn: async () => {
             if (!user?.id) return [];
 
-            const { data, error } = await supabaseClient
-                .from("playlists")
-                .select("*, playlist_songs(song_id, songs(*))")
+            // Fetch playlist IDs where user is a collaborator
+            const { data: collaboratorData } = await supabaseClient
+                .from("playlist_collaborators")
+                .select("playlist_id")
                 .eq("user_id", user.id)
-                .order("created_at", { ascending: false });
+                .eq("status", "accepted");
+
+            const collaborativePlaylistIds = collaboratorData?.map(c => c.playlist_id) || [];
+
+            // Build query based on whether there are collaborative playlists
+            let query = supabaseClient
+                .from("playlists")
+                .select("*, playlist_songs(song_id, songs(*))");
+
+            if (collaborativePlaylistIds.length > 0) {
+                // Fetch both owned and collaborative playlists
+                query = query.or(`user_id.eq.${user.id},id.in.(${collaborativePlaylistIds.join(',')})`);
+            } else {
+                // Only fetch owned playlists
+                query = query.eq("user_id", user.id);
+            }
+
+            const { data, error } = await query.order("created_at", { ascending: false });
 
             if (error) {
                 console.error("Error fetching playlists with songs:", error);

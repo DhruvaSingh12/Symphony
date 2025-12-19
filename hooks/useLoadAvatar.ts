@@ -13,7 +13,7 @@ const useLoadAvatar = (user: UserDetails | null) => {
     .from('avatar')
     .getPublicUrl(user.avatar_url);
 
-  return avatarData.publicUrl || null;
+  return avatarData.publicUrl;
 };
 
 export default useLoadAvatar;

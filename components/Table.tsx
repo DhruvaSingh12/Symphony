@@ -11,6 +11,7 @@ interface TableProps {
     onPlay: (id: number) => void;
     persistenceKey?: string;
     playlistId?: string;
+    isOwner?: boolean;
     onLoadMore?: () => void;
     hasMore?: boolean;
 }
@@ -52,6 +53,7 @@ const Table: React.FC<TableProps> = ({
     onPlay,
     persistenceKey,
     playlistId,
+    isOwner = true,
     onLoadMore,
     hasMore: propsHasMore
 }) => {
@@ -212,7 +214,9 @@ const Table: React.FC<TableProps> = ({
                                             song={song} 
                                             index={virtualRow.index} 
                                             onPlay={onPlay} 
-                                            playlistId={playlistId} 
+                                            playlistId={playlistId}
+                                            isOwner={isOwner}
+                                            addedBy={(song as any).added_by_user}
                                         />
                                     </div>
                                 );

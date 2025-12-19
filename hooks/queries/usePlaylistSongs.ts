@@ -33,7 +33,12 @@ export const usePlaylistSongs = (playlistId: string) => {
         queryFn: async () => {
             const { data, error } = await supabaseClient
                 .from("playlist_songs")
-                .select("song_id, songs(*)")
+                .select(`
+                    song_id, 
+                    added_by,
+                    songs(*),
+                    added_by_user:users!playlist_songs_added_by_fkey(id, full_name, avatar_url)
+                `)
                 .eq("playlist_id", playlistId)
                 .order("created_at", { ascending: true });
 
@@ -48,13 +53,15 @@ export const usePlaylistSongs = (playlistId: string) => {
                 songs: Omit<Song, 'updated_at' | 'author'> & {
                     updated_at?: string | null;
                 };
+                added_by_user?: any;
             }
 
             return data.map((item: PlaylistSongItem) => ({
                 ...item.songs,
                 author: item.songs.artist?.[0] ?? null,
                 updated_at: item.songs.updated_at || item.songs.created_at,
-            })) as Song[];
+                added_by_user: item.added_by_user,
+            })) as (Song & { added_by_user?: any })[];
         },
         enabled: !!playlistId,
     });

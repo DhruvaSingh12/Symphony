@@ -16,6 +16,7 @@ import toast from "react-hot-toast";
 import useLoadAvatar from "@/hooks/useLoadAvatar";
 import { ThemeToggleButton } from "@/components/ThemeToggleButton";
 import { Progress } from "@/components/ui/progress";
+import PendingInvitations from "@/components/playlists/PendingInvitations";
 
 interface HeaderProps {
   children: React.ReactNode;
@@ -120,6 +121,7 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
         </div>
         <div className="flex items-center gap-x-3">
           <ThemeToggleButton />
+          {user && <PendingInvitations />}
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

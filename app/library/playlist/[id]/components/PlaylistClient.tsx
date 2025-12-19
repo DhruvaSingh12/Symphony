@@ -6,7 +6,7 @@ import Header from "@/components/Header";
 import Table from "@/components/Table";
 import useOnPlay from "@/hooks/useOnPlay";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, MoreHorizontal, ListPlus, Trash2, Edit } from "lucide-react";
+import { Play, Pause, MoreHorizontal, ListPlus, Trash2, Edit, UserPlus, Settings } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { useDeletePlaylist, useRenamePlaylist } from "@/hooks/mutations/usePlaylist";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -14,22 +14,42 @@ import { Input } from "@/components/ui/input";
 import usePlayer from "@/hooks/usePlayer";
 import { toast } from "react-hot-toast";
 import { PlaylistWithSongs } from "@/lib/api/playlists";
-import { Song } from "@/types";
+import { Song, UserDetails } from "@/types";
+import InviteCollaborator from "@/components/playlists/InviteCollaborator";
+import CollaborationSettings from "@/components/playlists/CollaborationSettings";
+import { AvatarStack } from "@/components/playlists/AvatarStack";
+import { useUser } from "@/hooks/useUser";
+import { useCollaborators } from "@/hooks/queries/useCollaborators";
+import { useUserById } from "@/hooks/queries/useUserSearch";
+import { usePlaylistById, usePlaylistSongs } from "@/hooks/queries/usePlaylistSongs";
 
 interface PlaylistClientProps {
     playlist: PlaylistWithSongs | null;
     songs: Song[];
 }
 
-const PlaylistClient: React.FC<PlaylistClientProps> = ({ playlist, songs }) => {
+const PlaylistClient: React.FC<PlaylistClientProps> = ({ playlist: initialPlaylist, songs: initialSongs }) => {
     const router = useRouter();
     const deletePlaylist = useDeletePlaylist();
     const renamePlaylist = useRenamePlaylist();
+    const { user } = useUser();
+
+    // Use client-side queries for real-time updates
+    const { data: playlistData } = usePlaylistById(initialPlaylist?.id || "");
+    const { data: playlistSongsData } = usePlaylistSongs(initialPlaylist?.id || "");
+
+    // Use client-side data if available, otherwise fall back to server data
+    const playlist = playlistData || initialPlaylist;
+    const songs = playlistSongsData || initialSongs;
 
     const [isRenameOpen, setIsRenameOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+    const [isInviteOpen, setIsInviteOpen] = useState(false);
+    const [isCollaborationOpen, setIsCollaborationOpen] = useState(false);
     const [newName, setNewName] = useState("");
     const player = usePlayer();
+    const { data: collaborators = [] } = useCollaborators(playlist?.id || "");
+    const { data: playlistOwner } = useUserById(playlist?.user_id || "");
 
     // Call hooks before any conditional returns
     const onPlay = useOnPlay(songs || [], 'playlist', playlist?.id || '');
@@ -44,6 +64,9 @@ const PlaylistClient: React.FC<PlaylistClientProps> = ({ playlist, songs }) => {
             </div>
         );
     }
+
+    // Check if current user is the owner
+    const isOwner = user?.id === playlist.user_id;
 
     const handleAddToQueue = () => {
         if (!songs.length) return;
@@ -74,17 +97,80 @@ const PlaylistClient: React.FC<PlaylistClientProps> = ({ playlist, songs }) => {
             <div className="flex-none px-2 md:px-0 md:pr-2 pt-2">
                 <Header className="bg-transparent">
                     <div className="flex items-center justify-between mt-2">
-                        <div className="flex flex-col items-start gap-1">
+                        <div className="flex flex-col items-start gap-2">
                             <h1 className="text-3xl font-semibold text-foreground">
                                 {playlist.name || "Playlist"}
                             </h1>
-                            {songs && (
-                                <div>
-                                    {songs.length} {songs.length === 1 ? "song" : "songs"}
-                                </div>
-                            )}
+                            <div className="flex items-center gap-3">
+                                {songs && (
+                                    <div className="text-sm text-muted-foreground">
+                                        {songs.length} {songs.length === 1 ? "song" : "songs"}
+                                    </div>
+                                )}
+                                <div className="text-muted-foreground">•</div>
+                                <AvatarStack
+                                    users={[
+                                        // Include owner first (if owner data is loaded)
+                                        ...(playlistOwner ? [playlistOwner] : []),
+                                        // Then add accepted collaborators (excluding owner)
+                                        ...collaborators
+                                            .filter(c => c.status === 'accepted' && c.user_id !== playlist.user_id)
+                                            .map(c => c.user)
+                                            .filter((u): u is UserDetails => u !== null && u !== undefined)
+                                    ]}
+                                    maxAvatarsAmount={4}
+                                    size="sm"
+                                />
+                            </div>
                         </div>
                         <div className="flex items-center gap-2">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button size="icon" variant="ghost" className="rounded-full">
+                                        <MoreHorizontal className="w-6 h-6 text-muted-foreground" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-42 md:w-44">
+                                    <DropdownMenuItem onClick={handleAddToQueue}>
+                                        <ListPlus className="mr-2 h-4 w-4" />
+                                        Add to queue
+                                    </DropdownMenuItem>
+                                    {isOwner && (
+                                        <>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem onClick={(e) => {
+                                                e.preventDefault();
+                                                setIsInviteOpen(true);
+                                            }}>
+                                                <UserPlus className="mr-2 h-4 w-4" />
+                                                Invite collaborator
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={(e) => {
+                                                e.preventDefault();
+                                                setIsCollaborationOpen(true);
+                                            }}>
+                                                <Settings className="mr-2 h-4 w-4" />
+                                                Settings
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem onClick={(e) => {
+                                                e.preventDefault();
+                                                openRenameModal();
+                                            }}>
+                                                <Edit className="mr-2 h-4 w-4" />
+                                                Rename playlist
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={(e) => {
+                                                e.preventDefault();
+                                                setIsDeleteOpen(true);
+                                            }} className="focus:text-red-500">
+                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                Delete playlist
+                                            </DropdownMenuItem>
+                                        </>
+                                    )}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                             {songs && songs.length > 0 && (
                                 <Button
                                     onClick={() => {
@@ -104,40 +190,18 @@ const PlaylistClient: React.FC<PlaylistClientProps> = ({ playlist, songs }) => {
                                     )}
                                 </Button>
                             )}
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button size="icon" variant="ghost" className="rounded-full">
-                                        <MoreHorizontal className="w-6 h-6 text-muted-foreground" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-42 md:w-44">
-                                    <DropdownMenuItem onClick={handleAddToQueue}>
-                                        <ListPlus className="mr-2 h-4 w-4" />
-                                        Add to queue
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={(e) => {
-                                        e.preventDefault();
-                                        openRenameModal();
-                                    }}>
-                                        <Edit className="mr-2 h-4 w-4" />
-                                        Rename playlist
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={(e) => {
-                                        e.preventDefault();
-                                        setIsDeleteOpen(true);
-                                    }} className="focus:text-red-500">
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Delete playlist
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
                         </div>
                     </div>
                 </Header>
             </div>
             <div className="flex-1 overflow-auto px-2 md:px-0 md:pr-2 mt-2 pb-2">
-                <Table songs={songs || []} onPlay={onPlay} persistenceKey={`playlist-${playlist.id}`} playlistId={playlist.id} />
+                <Table 
+                    songs={songs || []} 
+                    onPlay={onPlay} 
+                    persistenceKey={`playlist-${playlist.id}`} 
+                    playlistId={playlist.id}
+                    isOwner={isOwner}
+                />
             </div>
 
             {/* Rename Dialog */}
@@ -183,6 +247,25 @@ const PlaylistClient: React.FC<PlaylistClientProps> = ({ playlist, songs }) => {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Invite Collaborator Dialog */}
+            <InviteCollaborator
+                isOpen={isInviteOpen}
+                onClose={() => setIsInviteOpen(false)}
+                playlistId={playlist.id}
+                playlistName={playlist.name}
+            />
+
+            {/* Collaboration Settings Dialog */}
+            <CollaborationSettings
+                isOpen={isCollaborationOpen}
+                onClose={() => setIsCollaborationOpen(false)}
+                playlistId={playlist.id}
+                playlistName={playlist.name}
+                currentUserId={user?.id || ''}
+                ownerId={playlist.user_id}
+                isOwner={playlist.user_id === user?.id}
+            />
         </div>
     );
 };
