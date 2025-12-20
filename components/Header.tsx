@@ -5,7 +5,7 @@ import { useState } from "react";
 import { RxCaretLeft, RxCaretRight, RxPerson } from "react-icons/rx";
 import { HiHome } from "react-icons/hi";
 import { BiSearch } from "react-icons/bi";
-import { Heart, Library, LogOut, User as UserIcon, Bell, Moon, Sun } from "lucide-react";
+import { Heart, Library, LogOut, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { useEffect, useState as useReactState } from "react";
@@ -15,11 +15,10 @@ import useAuthModal from "@/hooks/useAuthModal";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { useUser } from "@/hooks/useUser";
 import toast from "react-hot-toast";
-import useLoadAvatar from "@/hooks/useLoadAvatar";
 import { getUserDisplayName, getUserInitials } from "@/lib/userUtils";
-import { ThemeToggleButton } from "@/components/ThemeToggleButton";
 import { Progress } from "@/components/ui/progress";
 import PendingInvitations from "@/components/playlists/PendingInvitations";
+import useLoadAvatar from "@/hooks/useLoadAvatar";
 
 interface HeaderProps {
   children: React.ReactNode;
@@ -30,16 +29,15 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
   const authModal = useAuthModal();
   const router = useRouter();
   const supabaseClient = useSupabaseClient();
-  const { user, userDetails, isLoading: isLoadingUser } = useUser();
-  const avatarUrl = useLoadAvatar(userDetails);
+  const { user, userDetails } = useUser();
   const [isLoading, setIsLoading] = useState(false);
+  const avatarUrl = useLoadAvatar(userDetails);
   const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useReactState(false);
 
   useEffect(() => {
     setTimeout(() => setMounted(true), 0);
-  }, []);
-
+  }, [setMounted]);
   const displayName = getUserDisplayName(userDetails, user?.email?.split('@')[0] || "User");
   const initialsFromName = userDetails?.full_name ? getUserInitials(userDetails.full_name) : null;
   const initials = initialsFromName && initialsFromName !== "?" 

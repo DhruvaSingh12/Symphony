@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { usePendingInvitations } from "@/hooks/queries/useCollaborators";
 import { useAcceptInvitation, useDeclineInvitation } from "@/hooks/mutations/useCollaboration";
 import { PlaylistCollaborator } from "@/types";

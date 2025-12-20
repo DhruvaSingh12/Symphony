@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { toast } from "react-hot-toast";
-import { Song } from "@/types";
+import { Song, PlaylistWithCollaborators, Playlist } from "@/types";
 import { useUser } from "@/hooks/useUser";
 
 export const useCreatePlaylist = () => {
@@ -43,7 +43,7 @@ export const useCreatePlaylist = () => {
                 songs: []
             };
             
-            queryClient.setQueryData(["playlists_with_songs", user?.id], (old: any[] | undefined) => {
+            queryClient.setQueryData(["playlists_with_songs", user?.id], (old: PlaylistWithCollaborators[] | undefined) => {
                 return old ? [optimisticPlaylist, ...old] : [optimisticPlaylist];
             });
             
@@ -108,7 +108,7 @@ export const useAddSongToPlaylist = () => {
             if (error) throw error;
             return songData;
         },
-        onMutate: async ({ playlistId, songId }) => {
+        onMutate: async ({ playlistId }) => {
             // Cancel outgoing queries
             await queryClient.cancelQueries({ queryKey: ["playlist_songs", playlistId] });
             await queryClient.cancelQueries({ queryKey: ["playlists_with_songs"] });
@@ -186,7 +186,7 @@ export const useRemoveSongFromPlaylist = () => {
             });
             
             // Also update playlists_with_songs
-            queryClient.setQueryData(["playlists_with_songs"], (old: any[] | undefined) => {
+            queryClient.setQueryData(["playlists_with_songs"], (old: PlaylistWithCollaborators[] | undefined) => {
                 if (!old || !Array.isArray(old)) return old;
                 return old.map(playlist => {
                     if (playlist.id === playlistId) {
@@ -251,12 +251,12 @@ export const useDeletePlaylist = () => {
             const previousPlaylistsWithSongs = queryClient.getQueryData(["playlists_with_songs", user?.id]);
             
             // Optimistically remove playlist
-            queryClient.setQueryData(["playlists", user?.id], (old: any[] | undefined) => {
+            queryClient.setQueryData(["playlists", user?.id], (old: Playlist[] | undefined) => {
                 if (!old) return old;
                 return old.filter(p => p.id !== playlistId);
             });
             
-            queryClient.setQueryData(["playlists_with_songs", user?.id], (old: any[] | undefined) => {
+            queryClient.setQueryData(["playlists_with_songs", user?.id], (old: PlaylistWithCollaborators[] | undefined) => {
                 if (!old) return old;
                 return old.filter(p => p.id !== playlistId);
             });
@@ -312,17 +312,17 @@ export const useRenamePlaylist = () => {
             const previousPlaylistsWithSongs = queryClient.getQueryData(["playlists_with_songs"]);
             
             // Optimistically update playlist name
-            queryClient.setQueryData(["playlist", playlistId], (old: any) => {
+            queryClient.setQueryData(["playlist", playlistId], (old: Playlist | undefined) => {
                 if (!old) return old;
                 return { ...old, name: newName };
             });
             
-            queryClient.setQueryData(["playlists"], (old: any[] | undefined) => {
+            queryClient.setQueryData(["playlists"], (old: Playlist[] | undefined) => {
                 if (!old) return old;
                 return old.map(p => p.id === playlistId ? { ...p, name: newName } : p);
             });
             
-            queryClient.setQueryData(["playlists_with_songs"], (old: any[] | undefined) => {
+            queryClient.setQueryData(["playlists_with_songs"], (old: PlaylistWithCollaborators[] | undefined) => {
                 if (!old) return old;
                 return old.map(p => p.id === playlistId ? { ...p, name: newName } : p);
             });

@@ -1,5 +1,5 @@
 import React, { useRef, useMemo } from 'react';
-import { Song } from '@/types';
+import { Song, UserDetails } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowUp, ArrowDown, Loader2 } from 'lucide-react';
 import { useVirtualizer } from '@tanstack/react-virtual';
@@ -216,7 +216,7 @@ const Table: React.FC<TableProps> = ({
                                             onPlay={onPlay} 
                                             playlistId={playlistId}
                                             isOwner={isOwner}
-                                            addedBy={(song as any).added_by_user}
+                                            addedBy={(song as Song & { added_by_user?: UserDetails }).added_by_user}
                                         />
                                     </div>
                                 );

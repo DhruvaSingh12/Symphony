@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
-import { Song, Playlist } from "@/types";
+import { Song, Playlist, UserDetails } from "@/types";
 
 export const usePlaylistById = (playlistId: string) => {
     const supabaseClient = useSupabaseClient();
@@ -49,19 +49,12 @@ export const usePlaylistSongs = (playlistId: string) => {
 
             if (!data) return [];
 
-            interface PlaylistSongItem {
-                songs: Omit<Song, 'updated_at' | 'author'> & {
-                    updated_at?: string | null;
-                };
-                added_by_user?: any;
-            }
-
-            return data.map((item: PlaylistSongItem) => ({
+            return data.map((item: any) => ({
                 ...item.songs,
                 author: item.songs.artist?.[0] ?? null,
                 updated_at: item.songs.updated_at || item.songs.created_at,
                 added_by_user: item.added_by_user,
-            })) as (Song & { added_by_user?: any })[];
+            })) as (Song & { added_by_user?: UserDetails })[];
         },
         enabled: !!playlistId,
     });

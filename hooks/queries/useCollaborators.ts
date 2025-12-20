@@ -41,7 +41,7 @@ export const usePendingInvitations = () => {
                 return [];
             }
 
-            const collaborators = data as any[];
+            const collaborators = data as PlaylistCollaborator[];
             
             if (collaborators.length === 0) {
                 return [];
@@ -116,7 +116,7 @@ export const useCollaborativePlaylists = () => {
             }
 
             // Fetch related data separately to avoid RLS recursion
-            const collaborators = data as any[];
+            const collaborators = data as PlaylistCollaborator[];
             const playlistIds = collaborators.map(c => c.playlist_id);
 
             if (playlistIds.length === 0) return [];
@@ -131,7 +131,7 @@ export const useCollaborativePlaylists = () => {
                 ? await supabaseClient.from("users").select("id, full_name, avatar_url").in("id", ownerIds)
                 : { data: [] };
 
-            return collaborators.map((item: any) => {
+            return collaborators.map((item: PlaylistCollaborator) => {
                 const playlist = playlists?.find((p: any) => p.id === item.playlist_id);
                 const owner = owners?.find((o: any) => o.id === playlist?.user_id);
                 return {

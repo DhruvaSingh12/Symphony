@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { UserDetails } from "@/types";
 import { searchUsers, getUserById } from "@/lib/api/users";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import useDebounce from "@/hooks/useDebounce";
 
 // Search users with debouncing
@@ -33,30 +33,18 @@ export const useUserById = (userId: string) => {
 // Custom hook for managing search state with debouncing
 export const useUserSearchState = () => {
     const [searchQuery, setSearchQuery] = useState("");
-    const [isSearching, setIsSearching] = useState(false);
     const debouncedQuery = useDebounce(searchQuery, 300);
 
     const { data: searchResults, isLoading } = useSearchUsers(debouncedQuery);
 
-    useEffect(() => {
-        if (searchQuery.trim().length >= 2) {
-            setIsSearching(true);
-        } else {
-            setIsSearching(false);
-        }
-    }, [searchQuery]);
-
-    useEffect(() => {
-        if (!isLoading && debouncedQuery === searchQuery) {
-            setIsSearching(false);
-        }
-    }, [isLoading, debouncedQuery, searchQuery]);
+    const isTyping = searchQuery !== debouncedQuery;
+    const isSearching = (isTyping && searchQuery.trim().length >= 2) || isLoading;
 
     return {
         searchQuery,
         setSearchQuery,
         searchResults: searchResults || [],
-        isSearching: isSearching || isLoading,
+        isSearching,
         hasMinimumQuery: searchQuery.trim().length >= 2
     };
 };

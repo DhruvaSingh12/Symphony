@@ -2,7 +2,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { useUser } from "@/hooks/useUser";
 import { toast } from "react-hot-toast";
-import { removeAllCollaborators, inviteCollaborator, acceptInvitation, declineInvitation, removeCollaborator, transferOwnership} from "@/lib/api/collaboration";
+import { inviteCollaborator, acceptInvitation, declineInvitation, removeCollaborator, transferOwnership} from "@/lib/api/collaboration";
+import { PlaylistCollaborator } from "@/types";
 
 // Invite a collaborator to a playlist (all collaborators have equal permissions)
 export const useInviteCollaborator = () => {
@@ -82,7 +83,7 @@ export const useAcceptInvitation = () => {
             const previousPlaylists = queryClient.getQueryData(["playlists_with_songs"]);
             
             // Optimistically remove from pending invitations
-            queryClient.setQueryData(["pending-invitations"], (old: any[] | undefined) => {
+            queryClient.setQueryData(["pending-invitations"], (old: PlaylistCollaborator[] | undefined) => {
                 if (!old) return old;
                 return old.filter(inv => inv.playlist_id !== playlistId);
             });
@@ -137,7 +138,7 @@ export const useDeclineInvitation = () => {
             const previousInvitations = queryClient.getQueryData(["pending-invitations"]);
             
             // Optimistically remove from pending invitations
-            queryClient.setQueryData(["pending-invitations"], (old: any[] | undefined) => {
+            queryClient.setQueryData(["pending-invitations"], (old: PlaylistCollaborator[] | undefined) => {
                 if (!old) return old;
                 return old.filter(inv => inv.playlist_id !== playlistId);
             });
@@ -187,7 +188,7 @@ export const useRemoveCollaborator = () => {
             const previousCollaborators = queryClient.getQueryData(["collaborators", playlistId]);
             
             // Optimistically remove collaborator
-            queryClient.setQueryData(["collaborators", playlistId], (old: any[] | undefined) => {
+            queryClient.setQueryData(["collaborators", playlistId], (old: PlaylistCollaborator[] | undefined) => {
                 if (!old) return old;
                 return old.filter(collab => collab.user_id !== userId);
             });

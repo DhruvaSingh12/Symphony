@@ -24,7 +24,7 @@ const PageContent: React.FC<PageContentProps> = ({ songs: initialSongs }) => {
     if (shouldOpenAuth) {
       authModal.onOpen();
     }
-  }, [searchParams]);
+  }, [searchParams, authModal]);
 
   const {
     data,

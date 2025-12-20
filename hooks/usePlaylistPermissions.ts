@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { useUserPlaylistRole } from "@/hooks/queries/useCollaborators";
-import { useUser } from "@/hooks/useUser";
 
 // Check if user can edit playlist (add/remove songs)
 export function useCanEditPlaylist(playlistId: string): boolean {
@@ -58,7 +57,6 @@ export function useHasPlaylistAccess(playlistId: string): boolean {
 
 // Get comprehensive permissions object for a playlist
 export function usePlaylistPermissions(playlistId: string) {
-    const { user } = useUser();
     const { data: role } = useUserPlaylistRole(playlistId);
 
     return useMemo(() => {

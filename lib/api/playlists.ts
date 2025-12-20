@@ -71,7 +71,7 @@ export async function fetchUserPlaylists(
     }
 
     // Fetch owned playlists
-    let query = supabase
+    const query = supabase
         .from("playlists")
         .select("*, playlist_songs(song_id, songs(*))")
         .eq("user_id", userId);
@@ -181,7 +181,7 @@ export async function fetchPlaylistSongsWithAuthors(
         return [];
     }
 
-    return (data as any[]).map(item => ({
+    return (data as PlaylistSongWithAuthor[]).map(item => ({
         id: item.id,
         playlist_id: item.playlist_id,
         song_id: item.song_id,
