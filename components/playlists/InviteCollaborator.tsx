@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useUserSearchState } from "@/hooks/queries/useUserSearch";
 import { useInviteCollaborator } from "@/hooks/mutations/useCollaboration";
 import useLoadAvatar from "@/hooks/useLoadAvatar";
+import { getUserInitials, getUserDisplayName } from "@/lib/userUtils";
 import { Search, UserPlus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserDetails } from "@/types";
@@ -39,6 +40,14 @@ const InviteCollaborator: React.FC<InviteCollaboratorProps> = ({
     hasMinimumQuery,
   } = useUserSearchState();
   const inviteMutation = useInviteCollaborator();
+  
+  // Memoize filtered users to avoid recalculation on every render
+  const availableUsers = useMemo(() => {
+    return searchResults.filter(
+      (user) => !existingCollaboratorIds.includes(user.id)
+    );
+  }, [searchResults, existingCollaboratorIds]);
+
   const handleInvite = async () => {
     if (!selectedUser) return;
     inviteMutation.mutate(
@@ -50,7 +59,10 @@ const InviteCollaborator: React.FC<InviteCollaboratorProps> = ({
         onSuccess: () => {
           setSelectedUser(null);
           setSearchQuery("");
-          onClose();
+          // Small delay for visual feedback before closing
+          setTimeout(() => {
+            onClose();
+          }, 300);
         },
       }
     );
@@ -61,11 +73,6 @@ const InviteCollaborator: React.FC<InviteCollaboratorProps> = ({
     setSearchQuery("");
     onClose();
   };
-
-  // Filter out users who are already collaborators
-  const availableUsers: UserDetails[] = searchResults.filter(
-    (user) => !existingCollaboratorIds.includes(user.id)
-  );
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -178,15 +185,6 @@ const UserSearchResult: React.FC<UserSearchResultProps> = ({
 }) => {
   const avatarUrl = useLoadAvatar(user);
 
-  const getInitials = (name?: string) => {
-    if (!name) return "?";
-    const parts = name.split(" ");
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return name[0].toUpperCase();
-  };
-
   return (
     <button
       type="button"
@@ -202,13 +200,13 @@ const UserSearchResult: React.FC<UserSearchResultProps> = ({
         <AvatarImage
           className="object-cover"
           src={avatarUrl || undefined}
-          alt={user.full_name || "User"}
+          alt={getUserDisplayName(user)}
         />
-        <AvatarFallback>{getInitials(user.full_name)}</AvatarFallback>
+        <AvatarFallback>{getUserInitials(user.full_name)}</AvatarFallback>
       </Avatar>
       <div className="flex-1 text-left">
         <p className="text-sm font-medium">
-          {user.full_name || "Unknown User"}
+          {getUserDisplayName(user)}
         </p>
         <p className="text-xs text-muted-foreground truncate">
           {user.id}

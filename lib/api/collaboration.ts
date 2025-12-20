@@ -31,16 +31,29 @@ export async function inviteCollaborator(
 ): Promise<{ success: boolean; error?: string; data?: PlaylistCollaborator }> {
     const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
 
+    // Validate inputs
+    if (!playlistId || !userId || !invitedBy) {
+        return { success: false, error: "Missing required parameters" };
+    }
+
+    // Prevent self-invitation
+    if (userId === invitedBy) {
+        return { success: false, error: "Cannot invite yourself" };
+    }
+
     // Check if invitation already exists
     const { data: existing } = await supabase
         .from("playlist_collaborators")
-        .select("*")
+        .select("status")
         .eq("playlist_id", playlistId)
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
 
     if (existing) {
-        return { success: false, error: "User is already invited or a collaborator" };
+        if (existing.status === 'pending') {
+            return { success: false, error: "Invitation already sent" };
+        }
+        return { success: false, error: "User is already a collaborator" };
     }
 
     const { data, error } = await supabase
@@ -71,6 +84,10 @@ export async function acceptInvitation(
 ): Promise<{ success: boolean; error?: string }> {
     const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
 
+    if (!playlistId || !userId) {
+        return { success: false, error: "Missing required parameters" };
+    }
+
     const { error } = await supabase
         .from("playlist_collaborators")
         .update({ 
@@ -78,7 +95,8 @@ export async function acceptInvitation(
             accepted_at: new Date().toISOString()
         })
         .eq("playlist_id", playlistId)
-        .eq("user_id", userId);
+        .eq("user_id", userId)
+        .eq("status", "pending");
 
     if (error) {
         console.error("Error accepting invitation:", error);
@@ -96,11 +114,17 @@ export async function declineInvitation(
 ): Promise<{ success: boolean; error?: string }> {
     const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
 
+    if (!playlistId || !userId) {
+        return { success: false, error: "Missing required parameters" };
+    }
+
+    // Delete the invitation instead of marking as declined
     const { error } = await supabase
         .from("playlist_collaborators")
-        .update({ status: 'declined' })
+        .delete()
         .eq("playlist_id", playlistId)
-        .eq("user_id", userId);
+        .eq("user_id", userId)
+        .eq("status", "pending");
 
     if (error) {
         console.error("Error declining invitation:", error);
@@ -218,6 +242,14 @@ export async function transferOwnership(
 ): Promise<{ success: boolean; error?: string }> {
     const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
 
+    if (!playlistId || !newOwnerId || !currentOwnerId) {
+        return { success: false, error: "Missing required parameters" };
+    }
+
+    if (newOwnerId === currentOwnerId) {
+        return { success: false, error: "Cannot transfer ownership to yourself" };
+    }
+
     // Update playlist owner
     const { error: playlistError } = await supabase
         .from("playlists")
@@ -238,15 +270,21 @@ export async function transferOwnership(
         .eq("user_id", newOwnerId);
 
     // Add current owner as collaborator
-    await supabase
+    const { error: collabError } = await supabase
         .from("playlist_collaborators")
         .insert({
             playlist_id: playlistId,
             user_id: currentOwnerId,
             invited_by: newOwnerId,
             status: 'accepted',
-            accepted_at: new Date().toISOString()
+            accepted_at: new Date().toISOString(),
+            invited_at: new Date().toISOString()
         });
+
+    if (collabError) {
+        console.error("Error adding previous owner as collaborator:", collabError);
+        // Don't fail the whole operation if this fails
+    }
 
     return { success: true };
 }

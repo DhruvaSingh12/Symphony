@@ -10,6 +10,7 @@ import { PlaylistCollaborator } from "@/types";
 import { useRemoveCollaborator, useTransferOwnership } from "@/hooks/mutations/useCollaboration";
 import { useCollaborators } from "@/hooks/queries/useCollaborators";
 import useLoadAvatar from "@/hooks/useLoadAvatar";
+import { getUserInitials, getUserDisplayName } from "@/lib/userUtils";
 import { MoreVertical, Crown, Trash2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -25,8 +26,7 @@ interface CollaborationSettingsProps {
   className?: string;
 }
 
-type RemoveDialog = { open: boolean; userId: string | null; userName: string | null; isPending: boolean; };
-type TransferDialog = { open: boolean; userId: string | null; userName: string | null; };
+type DialogState = { open: boolean; userId: string | null; userName: string | null; isPending?: boolean; };
 
 const CollaborationSettings: React.FC<CollaborationSettingsProps> = ({
   isOpen,
@@ -42,50 +42,40 @@ const CollaborationSettings: React.FC<CollaborationSettingsProps> = ({
   const removeMutation = useRemoveCollaborator();
   const transferMutation = useTransferOwnership();
 
-  const [removeDialog, setRemoveDialog] = useState<RemoveDialog>({
+  const [removeDialog, setRemoveDialog] = useState<DialogState>({
     open: false,
     userId: null,
     userName: null,
     isPending: false,
   });
-  const [transferDialog, setTransferDialog] = useState<TransferDialog>({
+  const [transferDialog, setTransferDialog] = useState<DialogState>({
     open: false,
     userId: null,
     userName: null,
   });
 
-  const openRemoveDialog = (
-    userId: string,
-    userName: string,
-    isPending: boolean
-  ) => {
-    setRemoveDialog({ open: true, userId, userName, isPending });
+  const handleRemove = () => {
+    if (!removeDialog.userId) return;
+    removeMutation.mutate(
+      { playlistId, userId: removeDialog.userId },
+      {
+        onSuccess: () => {
+          setTimeout(() => setRemoveDialog({ open: false, userId: null, userName: null }), 300);
+        },
+      }
+    );
   };
 
-  const closeRemoveDialog = () => {
-    setRemoveDialog({ open: false, userId: null, userName: null, isPending: false });
-  };
-
-  const confirmRemove = () => {
-    if (removeDialog.userId) {
-      removeMutation.mutate({ playlistId, userId: removeDialog.userId });
-      closeRemoveDialog();
-    }
-  };
-
-  const openTransferDialog = (userId: string, userName: string) => {
-    setTransferDialog({ open: true, userId, userName });
-  };
-
-  const closeTransferDialog = () => {
-    setTransferDialog({ open: false, userId: null, userName: null });
-  };
-
-  const confirmTransfer = () => {
-    if (transferDialog.userId) {
-      transferMutation.mutate({ playlistId, newOwnerId: transferDialog.userId });
-      closeTransferDialog();
-    }
+  const handleTransfer = () => {
+    if (!transferDialog.userId) return;
+    transferMutation.mutate(
+      { playlistId, newOwnerId: transferDialog.userId },
+      {
+        onSuccess: () => {
+          setTimeout(() => setTransferDialog({ open: false, userId: null, userName: null }), 300);
+        },
+      }
+    );
   };
 
   if (isLoading) {
@@ -98,15 +88,9 @@ const CollaborationSettings: React.FC<CollaborationSettingsProps> = ({
 
   const acceptedCollaborators = collaborators
     .filter((c) => c.status === "accepted" || c.user_id === ownerId)
-    .sort((a, b) => {
-      if (a.user_id === ownerId) return -1;
-      if (b.user_id === ownerId) return 1;
-      return 0;
-    });
+    .sort((a) => (a.user_id === ownerId ? -1 : 1));
 
-  const pendingCollaborators = collaborators.filter(
-    (c) => c.status === "pending"
-  );
+  const pendingCollaborators = collaborators.filter((c) => c.status === "pending");
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -129,17 +113,19 @@ const CollaborationSettings: React.FC<CollaborationSettingsProps> = ({
             isCurrentUser={collaborator.user_id === currentUserId}
             isPlaylistOwner={collaborator.user_id === ownerId}
             onRemove={() =>
-              openRemoveDialog(
-                collaborator.user_id!,
-                collaborator.user?.full_name || "Unknown User",
-                false
-              )
+              setRemoveDialog({
+                open: true,
+                userId: collaborator.user_id!,
+                userName: collaborator.user?.full_name || "this user",
+                isPending: false,
+              })
             }
             onTransferOwnership={() =>
-              openTransferDialog(
-                collaborator.user_id!,
-                collaborator.user?.full_name || "Unknown User"
-              )
+              setTransferDialog({
+                open: true,
+                userId: collaborator.user_id!,
+                userName: collaborator.user?.full_name || "Unknown User",
+              })
             }
           />
         ))}
@@ -161,11 +147,12 @@ const CollaborationSettings: React.FC<CollaborationSettingsProps> = ({
                 isPlaylistOwner={false}
                 isPending={true}
                 onRemove={() =>
-                  openRemoveDialog(
-                    collaborator.user_id!,
-                    collaborator.user?.full_name || "Unknown User",
-                    true
-                  )
+                  setRemoveDialog({
+                    open: true,
+                    userId: collaborator.user_id!,
+                    userName: collaborator.user?.full_name || "this user",
+                    isPending: true,
+                  })
                 }
               />
             ))}
@@ -186,7 +173,10 @@ const CollaborationSettings: React.FC<CollaborationSettingsProps> = ({
       </DialogContent>
 
       {/* Remove Dialog */}
-      <Dialog open={removeDialog.open} onOpenChange={closeRemoveDialog}>
+      <Dialog
+        open={removeDialog.open}
+        onOpenChange={() => setRemoveDialog({ open: false, userId: null, userName: null })}
+      >
         <DialogContent className="max-w-[400px]">
           <DialogHeader>
             <DialogTitle>
@@ -199,14 +189,14 @@ const CollaborationSettings: React.FC<CollaborationSettingsProps> = ({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={closeRemoveDialog}>
+            <Button
+              variant="outline"
+              onClick={() => setRemoveDialog({ open: false, userId: null, userName: null })}
+              disabled={removeMutation.isPending}
+            >
               Cancel
             </Button>
-            <Button
-              onClick={confirmRemove}
-              disabled={removeMutation.isPending}
-              className="hover:text-red-400"
-            >
+            <Button onClick={handleRemove} disabled={removeMutation.isPending} className="hover:text-red-400">
               {removeMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -224,23 +214,26 @@ const CollaborationSettings: React.FC<CollaborationSettingsProps> = ({
       </Dialog>
 
       {/* Transfer Dialog */}
-      <Dialog open={transferDialog.open} onOpenChange={closeTransferDialog}>
+      <Dialog
+        open={transferDialog.open}
+        onOpenChange={() => setTransferDialog({ open: false, userId: null, userName: null })}
+      >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Transfer Ownership</DialogTitle>
             <DialogDescription>
-              Transfer ownership to {transferDialog.userName}? You will become a
-              collaborator.
+              Transfer ownership to {transferDialog.userName}? You will become a collaborator.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={closeTransferDialog}>
-              Cancel
-            </Button>
             <Button
-              onClick={confirmTransfer}
+              variant="outline"
+              onClick={() => setTransferDialog({ open: false, userId: null, userName: null })}
               disabled={transferMutation.isPending}
             >
+              Cancel
+            </Button>
+            <Button onClick={handleTransfer} disabled={transferMutation.isPending}>
               {transferMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -281,20 +274,8 @@ const CollaboratorItem: React.FC<CollaboratorItemProps> = ({
   onTransferOwnership,
 }) => {
   const avatarUrl = useLoadAvatar(collaborator.user ?? null);
-
-  const getInitials = (name?: string) => {
-    if (!name) return "?";
-    const parts = name.split(" ");
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return name[0].toUpperCase();
-  };
-
   const joinedTime = collaborator.accepted_at
-    ? formatDistanceToNow(new Date(collaborator.accepted_at), {
-        addSuffix: true,
-      })
+    ? formatDistanceToNow(new Date(collaborator.accepted_at), { addSuffix: true })
     : null;
 
   return (
@@ -304,15 +285,15 @@ const CollaboratorItem: React.FC<CollaboratorItemProps> = ({
           <AvatarImage
             className="object-cover"
             src={avatarUrl || undefined}
-            alt={collaborator.user?.full_name || "User"}
+            alt={getUserDisplayName(collaborator.user)}
           />
           <AvatarFallback>
-            {getInitials(collaborator.user?.full_name)}
+            {getUserInitials(collaborator.user?.full_name)}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium truncate">
-            {collaborator.user?.full_name || "Unknown User"}
+            {getUserDisplayName(collaborator.user)}
             {isCurrentUser && (
               <span className="text-muted-foreground ml-1">(You)</span>
             )}

@@ -10,6 +10,7 @@ import { PlaylistWithSongs } from "@/lib/api/playlists";
 import { Song } from "@/types";
 import { PlusCircle, Upload } from "lucide-react";
 import { useInfiniteSongs } from "@/hooks/useInfiniteSongs";
+import { usePlaylistsWithSongs } from "@/hooks/queries/usePlaylistsWithSongs";
 import React from "react";
 import { useUser } from "@/hooks/useUser";
 
@@ -18,8 +19,10 @@ interface LibraryPageClientProps {
     playlists: PlaylistWithSongs[];
 }
 
-const LibraryPageClient: React.FC<LibraryPageClientProps> = ({ userSongs, playlists }) => {
+const LibraryPageClient: React.FC<LibraryPageClientProps> = ({ userSongs, playlists: initialPlaylists }) => {
     const { user } = useUser();
+    const { data: realtimePlaylists } = usePlaylistsWithSongs();
+    const playlists = realtimePlaylists || initialPlaylists;
     
     // Infinite query for user songs
     const {

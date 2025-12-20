@@ -26,12 +26,8 @@ export const usePendingInvitations = () => {
         queryKey: ["pending-invitations", user?.id],
         queryFn: async () => {
             if (!user?.id) {
-                console.log("[usePendingInvitations] No user ID, returning empty array");
                 return [];
             }
-
-            console.log("[usePendingInvitations] Fetching invitations for user:", user.id);
-            console.log("[usePendingInvitations] User object:", user);
 
             const { data, error } = await supabaseClient
                 .from("playlist_collaborators")
@@ -41,47 +37,51 @@ export const usePendingInvitations = () => {
                 .order("created_at", { ascending: false });
 
             if (error) {
-                console.error("[usePendingInvitations] Error fetching pending invitations:", error);
-                console.error("[usePendingInvitations] Error details:", JSON.stringify(error, null, 2));
+                console.error("Error fetching pending invitations:", error);
                 return [];
             }
 
-            console.log("[usePendingInvitations] Query response - data:", data);
-            console.log("[usePendingInvitations] Query response - count:", data?.length);
-
-            // Fetch related data separately to avoid RLS recursion
             const collaborators = data as any[];
             
             if (collaborators.length === 0) {
-                console.log("[usePendingInvitations] No pending invitations found");
                 return [];
             }
 
-            const playlistIds = collaborators.map(c => c.playlist_id);
+            const playlistIds = collaborators.map(c => c.playlist_id).filter(Boolean);
             const inviterIds = collaborators.map(c => c.invited_by).filter(Boolean);
 
-            console.log("[usePendingInvitations] Fetching playlists:", playlistIds);
-            console.log("[usePendingInvitations] Fetching inviters:", inviterIds);
-
-            const [playlists, inviters] = await Promise.all([
+            const [playlistsResult, invitersResult] = await Promise.all([
                 playlistIds.length > 0
-                    ? supabaseClient.from("playlists").select("id, name, user_id").in("id", playlistIds)
-                    : Promise.resolve({ data: [] }),
+                    ? supabaseClient
+                        .from("playlists")
+                        .select(`
+                            id, 
+                            name, 
+                            user_id,
+                            playlist_songs(song_id, songs(image_path))
+                        `)
+                        .in("id", playlistIds)
+                    : Promise.resolve({ data: [], error: null }),
                 inviterIds.length > 0
                     ? supabaseClient.from("users").select("id, full_name, avatar_url").in("id", inviterIds)
-                    : Promise.resolve({ data: [] })
+                    : Promise.resolve({ data: [], error: null })
             ]);
 
-            console.log("[usePendingInvitations] Fetched playlists:", playlists.data);
-            console.log("[usePendingInvitations] Fetched inviters:", inviters.data);
+            if (playlistsResult.error) {
+                console.error("Error fetching playlists:", playlistsResult.error);
+            }
+            if (invitersResult.error) {
+                console.error("Error fetching inviters:", invitersResult.error);
+            }
 
-            const result = collaborators.map(item => ({
-                ...item,
-                playlist: playlists.data?.find((p: any) => p.id === item.playlist_id),
-                user: inviters.data?.find((u: any) => u.id === item.invited_by)
-            })) as PlaylistCollaborator[];
-
-            console.log("[usePendingInvitations] Final result:", result);
+            const result = collaborators.map(item => {
+                const playlist = playlistsResult.data?.find((p: any) => p.id === item.playlist_id);
+                return {
+                    ...item,
+                    playlist: playlist,
+                    user: invitersResult.data?.find((u: any) => u.id === item.invited_by)
+                };
+            }) as PlaylistCollaborator[];
 
             return result;
         },

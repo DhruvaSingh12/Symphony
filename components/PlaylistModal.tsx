@@ -10,12 +10,16 @@ import Button from "./Button";
 import usePlaylistModal from "@/hooks/usePlaylistModal";
 import { usePlaylistsWithSongs } from "@/hooks/queries/usePlaylistsWithSongs";
 import { useCreatePlaylist, useAddSongToPlaylist } from "@/hooks/mutations/usePlaylist";
-import { Playlist, Song } from "@/types";
+import { Song } from "@/types";
 import useLoadImage from "@/hooks/useLoadImage";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
-interface PlaylistWithSongs extends Playlist {
+interface PlaylistWithSongs {
+    id: string;
+    name: string;
     songs: Song[];
+    user_id: string;
+    created_at: string;
 }
 
 interface PlaylistRowProps {
@@ -25,13 +29,13 @@ interface PlaylistRowProps {
     isSubmitting: boolean;
 }
 
-const PlaylistImage = ({ song, className }: { song: Song, className?: string }) => {
+const PlaylistImage = ({ song, className }: { song: Song; className?: string }) => {
     const imageUrl = useLoadImage(song);
 
     if (!imageUrl) {
         return (
             <div className={`flex items-center justify-center bg-neutral-800 ${className}`}>
-                <ListMusic className="h-4 w-4 text-neutral-400" />
+                <ListMusic className="h-4 w-4 text-neutral-400" aria-hidden="true" />
             </div>
         );
     }
@@ -40,7 +44,7 @@ const PlaylistImage = ({ song, className }: { song: Song, className?: string }) 
         <div className={`relative overflow-hidden ${className}`}>
             <Image
                 src={imageUrl}
-                alt={song.title || "Song"}
+                alt={song.title || "Song cover"}
                 fill
                 sizes="48px"
                 className="object-cover"
@@ -71,6 +75,7 @@ const PlaylistRow: React.FC<PlaylistRowProps> = ({
         <button
             onClick={handleClick}
             disabled={isSubmitting || alreadyInPlaylist}
+            aria-label={alreadyInPlaylist ? `Song already in ${playlist.name}` : `Add song to ${playlist.name}`}
             className="flex items-center gap-x-3 w-full p-2 hover:bg-secondary/50 rounded-md group transition disabled:opacity-50 disabled:cursor-not-allowed border border-transparent hover:border-border"
         >
             <div className="relative h-12 w-12 bg-secondary flex items-center justify-center rounded-md overflow-hidden group-hover:bg-background border border-transparent group-hover:border-border transition flex-shrink-0">
@@ -152,7 +157,10 @@ const PlaylistModal = () => {
         setIsSubmitting(true);
         try {
             await addSongMutation.mutateAsync({ playlistId, songId });
-            onClose();
+            // Don't close immediately - let user see success state
+            setTimeout(() => {
+                onClose();
+            }, 300);
         } catch {
             // Handled by mutation
         } finally {
@@ -166,6 +174,7 @@ const PlaylistModal = () => {
                 {/* Create New Option */}
                 <button
                     onClick={() => setIsCreating(true)}
+                    aria-label="Create new playlist"
                     className="flex items-center gap-x-3 w-full p-2 hover:bg-secondary/50 rounded-md group transition border border-transparent hover:border-border"
                 >
                     <div className="h-12 w-12 bg-secondary flex items-center justify-center rounded-md group-hover:bg-background border border-transparent group-hover:border-border transition">
@@ -224,7 +233,14 @@ const PlaylistModal = () => {
                         type="submit"
                         className="bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-md border-transparent"
                     >
-                        Create
+                        {isSubmitting ? (
+                            <>
+                                <LoadingSpinner size={16} />
+                                <span className="ml-2">Creating...</span>
+                            </>
+                        ) : (
+                            "Create"
+                        )}
                     </Button>
                 </div>
             </form>

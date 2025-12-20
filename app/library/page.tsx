@@ -1,6 +1,6 @@
 import { createClient } from "@/supabase/server";
 import { fetchUserSongs } from "@/lib/api/songs";
-import { fetchPlaylistsWithSongs } from "@/lib/api/playlists";
+import { fetchUserPlaylists } from "@/lib/api/playlists";
 import { redirect } from "next/navigation";
 import LibraryPageClient from "./components/LibraryPageClient";
 
@@ -18,7 +18,7 @@ const LibraryPage = async () => {
     // Parallel fetching
     const [userSongs, playlists] = await Promise.all([
         fetchUserSongs(supabase, 0, 20),
-        fetchPlaylistsWithSongs(user.id, supabase)
+        fetchUserPlaylists(user.id, true, supabase)
     ]);
 
     return (

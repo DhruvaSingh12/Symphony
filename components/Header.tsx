@@ -5,8 +5,10 @@ import { useState } from "react";
 import { RxCaretLeft, RxCaretRight, RxPerson } from "react-icons/rx";
 import { HiHome } from "react-icons/hi";
 import { BiSearch } from "react-icons/bi";
-import { Heart, Library, LogOut, User as UserIcon } from "lucide-react";
+import { Heart, Library, LogOut, User as UserIcon, Bell, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "next-themes";
+import { useEffect, useState as useReactState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
 import useAuthModal from "@/hooks/useAuthModal";
@@ -14,6 +16,7 @@ import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { useUser } from "@/hooks/useUser";
 import toast from "react-hot-toast";
 import useLoadAvatar from "@/hooks/useLoadAvatar";
+import { getUserDisplayName, getUserInitials } from "@/lib/userUtils";
 import { ThemeToggleButton } from "@/components/ThemeToggleButton";
 import { Progress } from "@/components/ui/progress";
 import PendingInvitations from "@/components/playlists/PendingInvitations";
@@ -27,9 +30,21 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
   const authModal = useAuthModal();
   const router = useRouter();
   const supabaseClient = useSupabaseClient();
-  const { user, userDetails } = useUser();
+  const { user, userDetails, isLoading: isLoadingUser } = useUser();
   const avatarUrl = useLoadAvatar(userDetails);
   const [isLoading, setIsLoading] = useState(false);
+  const { setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useReactState(false);
+
+  useEffect(() => {
+    setTimeout(() => setMounted(true), 0);
+  }, []);
+
+  const displayName = getUserDisplayName(userDetails, user?.email?.split('@')[0] || "User");
+  const initialsFromName = userDetails?.full_name ? getUserInitials(userDetails.full_name) : null;
+  const initials = initialsFromName && initialsFromName !== "?" 
+    ? initialsFromName 
+    : "U";
 
   const handleLogout = async () => {
     setIsLoading(true);
@@ -120,8 +135,6 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
           </Button>
         </div>
         <div className="flex items-center gap-x-3">
-          <ThemeToggleButton />
-          {user && <PendingInvitations />}
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -129,24 +142,48 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
                   <Avatar className="h-10 w-10 border-2 border-border">
                     <AvatarImage
                       src={avatarUrl || undefined}
-                      alt={userDetails?.full_name || "User"}
+                      alt={displayName}
                       className="object-cover"
                     />
-                    <AvatarFallback>
-                      {userDetails?.full_name?.charAt(0) || "U"}
+                    <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                      {initials}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>
-                  {userDetails?.full_name || "My Account"}
+                <DropdownMenuLabel className="cursor-pointer" onClick={() => router.push("/account")}>
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10 border-2 border-border">
+                      <AvatarImage
+                        src={avatarUrl || undefined}
+                        alt={displayName}
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="text-sm font-semibold truncate">
+                        {displayName}
+                      </span>
+                    </div>
+                  </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push("/account")}>
-                  <UserIcon className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
+                <PendingInvitations inDropdown />
+                {mounted && (
+                  <DropdownMenuItem onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}>
+                    {resolvedTheme === "dark" ? (
+                      <Sun className="mr-2 h-4 w-4" />
+                    ) : (
+                      <Moon className="mr-2 h-4 w-4" />
+                    )}
+                    <span>{resolvedTheme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+                  </DropdownMenuItem>
+                )}
+                
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>

@@ -27,7 +27,10 @@ export const MyUserContextProvider = (props: Props) => {
     const [isLoadingData, setIsLoadingData] = useState(false);
     const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
 
-    const getUserDetails = () => supabase.from('users').select('*').single();
+    const getUserDetails = async () => {
+        if (!user?.id) return { data: null, error: null };
+        return supabase.from('users').select('*').eq('id', user.id).single();
+    };
 
     const refreshUserDetails = async () => {
         const result = await getUserDetails();

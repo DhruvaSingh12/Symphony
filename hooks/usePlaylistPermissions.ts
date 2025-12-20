@@ -1,8 +1,5 @@
 import { useMemo } from "react";
-import { useUser } from "@/hooks/useUser";
 import { useUserPlaylistRole } from "@/hooks/queries/useCollaborators";
-import { useQuery } from "@tanstack/react-query";
-import { useSupabaseClient } from "@/providers/SupabaseProvider";
 
 // Check if user can edit playlist (add/remove songs)
 export function useCanEditPlaylist(playlistId: string): boolean {
@@ -61,33 +58,19 @@ export function useHasPlaylistAccess(playlistId: string): boolean {
 // Get comprehensive permissions object for a playlist
 export function usePlaylistPermissions(playlistId: string) {
     const { user } = useUser();
-    const supabaseClient = useSupabaseClient();
-    
-    const { data: playlist } = useQuery({
-        queryKey: ["playlist-permissions", playlistId],
-        queryFn: async () => {
-            const { data } = await supabaseClient
-                .from("playlists")
-                .select("user_id")
-                .eq("id", playlistId)
-                .single();
-            return data;
-        },
-        enabled: !!playlistId,
-    });
-
     const { data: role } = useUserPlaylistRole(playlistId);
 
     return useMemo(() => {
-        const isOwner = role === 'owner' || playlist?.user_id === user?.id;
+        const isOwner = role === 'owner';
         const isCollaborator = role === 'collaborator';
+        const hasAccess = role !== null;
 
         return {
             role,
             isOwner,
             isCollaborator,
-            hasAccess: role !== null,
-            canView: role !== null,
+            hasAccess,
+            canView: hasAccess,
             canEdit: isOwner || isCollaborator,
             canAddSongs: isOwner || isCollaborator,
             canRemoveSongs: isOwner || isCollaborator,
@@ -97,5 +80,5 @@ export function usePlaylistPermissions(playlistId: string) {
             canChangeSettings: isOwner,
             canTransferOwnership: isOwner,
         };
-    }, [role, playlist, user?.id]);
+    }, [role]);
 }

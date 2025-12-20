@@ -2,14 +2,10 @@
 
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cva, type VariantProps } from "class-variance-authority";
 import { UserDetails } from "@/types";
+import { getUserInitials, getUserDisplayName } from "@/lib/userUtils";
 import useLoadAvatar from "@/hooks/useLoadAvatar";
 import * as React from "react";
 
@@ -58,18 +54,9 @@ const UserAvatarImage: React.FC<{ user: UserDetails }> = ({ user }) => {
     <AvatarImage
       className="object-cover"
       src={avatarUrl || undefined}
-      alt={user.full_name || 'User'}
+      alt={getUserDisplayName(user)}
     />
   );
-};
-
-const getInitials = (name?: string) => {
-  if (!name) return "?";
-  const parts = name.split(" ");
-  if (parts.length >= 2) {
-    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-  }
-  return name[0]?.toUpperCase() || "?";
 };
 
 const AvatarStack = ({
@@ -100,12 +87,12 @@ const AvatarStack = ({
               >
                 <UserAvatarImage user={user} />
                 <AvatarFallback>
-                  {getInitials(user.full_name)}
+                  {getUserInitials(user.full_name)}
                 </AvatarFallback>
               </Avatar>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{user.full_name || 'Unknown User'}</p>
+              <p>{getUserDisplayName(user)}</p>
             </TooltipContent>
           </Tooltip>
         ))}
@@ -127,7 +114,7 @@ const AvatarStack = ({
             <TooltipContent>
               <div className="space-y-1">
                 {hiddenUsers.map((user, index) => (
-                  <p key={`${user.id}-${index}`}>{user.full_name || 'Unknown User'}</p>
+                  <p key={`${user.id}-${index}`}>{getUserDisplayName(user)}</p>
                 ))}
               </div>
             </TooltipContent>

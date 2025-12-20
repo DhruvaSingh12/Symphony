@@ -21,16 +21,13 @@ interface PlaylistWithSongsRaw {
     }[];
 }
 
-export async function fetchPlaylistsWithSongs(userId: string, supabaseClient?: SupabaseClient): Promise<PlaylistWithSongs[]> {
-    // This function is used in server components
-    // Consider migrating to fetchUserPlaylists for consistency
-    return fetchUserPlaylists(userId, true, supabaseClient);
-}
-
 export async function fetchPlaylistById(playlistId: string, supabaseClient?: SupabaseClient): Promise<PlaylistWithSongs | null> {
     const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
 
-    if (!playlistId) return null;
+    if (!playlistId || playlistId.trim() === '') {
+        console.error("fetchPlaylistById: Invalid playlistId");
+        return null;
+    }
 
     const { data, error } = await supabase
         .from("playlists")
@@ -40,6 +37,10 @@ export async function fetchPlaylistById(playlistId: string, supabaseClient?: Sup
 
     if (error) {
         console.error("Error fetching playlist:", error);
+        return null;
+    }
+
+    if (!data) {
         return null;
     }
 
@@ -64,7 +65,10 @@ export async function fetchUserPlaylists(
 ): Promise<PlaylistWithSongs[]> {
     const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
 
-    if (!userId) return [];
+    if (!userId || userId.trim() === '') {
+        console.error("fetchUserPlaylists: Invalid userId");
+        return [];
+    }
 
     // Fetch owned playlists
     let query = supabase
@@ -128,7 +132,10 @@ export async function fetchPlaylistWithCollaborators(
 ): Promise<PlaylistWithCollaborators | null> {
     const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
 
-    if (!playlistId) return null;
+    if (!playlistId || playlistId.trim() === '' || !userId || userId.trim() === '') {
+        console.error("fetchPlaylistWithCollaborators: Invalid parameters");
+        return null;
+    }
 
     // Fetch playlist with songs
     const playlist = await fetchPlaylistById(playlistId, supabase);
@@ -154,7 +161,10 @@ export async function fetchPlaylistSongsWithAuthors(
 ): Promise<PlaylistSongWithAuthor[]> {
     const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
 
-    if (!playlistId) return [];
+    if (!playlistId || playlistId.trim() === '') {
+        console.error("fetchPlaylistSongsWithAuthors: Invalid playlistId");
+        return [];
+    }
 
     const { data, error } = await supabase
         .from("playlist_songs")
