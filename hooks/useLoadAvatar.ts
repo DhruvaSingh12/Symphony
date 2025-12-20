@@ -1,7 +1,7 @@
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { UserDetails } from "@/types";
 
-const useLoadAvatar = (user: UserDetails | null) => {
+const useLoadAvatar = (user: UserDetails | null | undefined) => {
   const supabaseClient = useSupabaseClient();
 
   if (!user || !user.avatar_url) {

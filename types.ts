@@ -46,6 +46,7 @@ export interface PlaylistCollaborator {
     status: 'pending' | 'accepted' | 'declined';
     created_at: string;
     user?: UserDetails; 
+    playlist?: Playlist;
 }
 
 export interface PlaylistWithCollaborators extends Playlist {

@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useUserPlaylistRole } from "@/hooks/queries/useCollaborators";
+import { useUser } from "@/hooks/useUser";
 
 // Check if user can edit playlist (add/remove songs)
 export function useCanEditPlaylist(playlistId: string): boolean {
