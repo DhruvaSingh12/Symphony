@@ -1,7 +1,7 @@
 import { Song } from "@/types";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
 
-const useLoadSong = (song: Song) => {
+const useLoadSong = (song: Song | undefined) => {
     const supabaseClient = useSupabaseClient();
 
     if(!song || !song.song_path) {

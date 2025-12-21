@@ -28,8 +28,8 @@ const PlaylistImage = ({ song, className }: { song: Song; className?: string }) 
 
     if (!imageUrl) {
         return (
-            <div className={`flex items-center justify-center bg-neutral-800 ${className}`}>
-                <ListMusic className="h-4 w-4 text-neutral-400" aria-hidden="true" />
+            <div className={`flex items-center justify-center bg-background ${className}`}>
+                <ListMusic className="h-4 w-4 text-foreground" aria-hidden="true" />
             </div>
         );
     }

@@ -7,6 +7,7 @@ import { createClient } from "@/supabase/client";
 
 interface SupabaseProviderProps {
   children: React.ReactNode;
+  session: Session | null;
 }
 
 type SupabaseContextValue = {
@@ -17,44 +18,20 @@ type SupabaseContextValue = {
 
 const SupabaseContext = createContext<SupabaseContextValue | undefined>(undefined);
 
-const SupabaseProvider: React.FC<SupabaseProviderProps> = ({ children }) => {
+const SupabaseProvider: React.FC<SupabaseProviderProps> = ({ children, session: initialSession }) => {
   const [supabase] = useState(() => createClient());
-  const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [session, setSession] = useState<Session | null>(initialSession);
+  const [isLoading] = useState(false);
 
   useEffect(() => {
-    let isMounted = true;
-
-    const setupSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (session) {
-        const {
-          data: { user },
-          error,
-        } = await supabase.auth.getUser();
-
-        if (error || !user) {
-          if (isMounted) setSession(null);
-        } else {
-          if (isMounted) setSession(session);
-        }
-      }
-
-      if (isMounted) setIsLoading(false);
-    };
-
-    setupSession();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
     });
 
     return () => {
-      isMounted = false;
-      authListener?.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
   }, [supabase]);
 

@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Pause, Play, SkipBack, SkipForward, Rewind, FastForward, Volume2, VolumeX, Shuffle, Repeat, ListMusic } from 'lucide-react';
+import { Pause, Play, SkipBack, SkipForward, Rewind, FastForward, Volume2, VolumeX, Shuffle, Repeat, ListMusic, PlusCircle } from 'lucide-react';
 import usePlayer from '@/hooks/ui/usePlayer';
 import usePlaybackSettings from '@/hooks/data/usePlaybackSettings';
 import useQueueModal from '@/hooks/ui/useQueueModal';
+import usePlaylistModal from '@/hooks/ui/usePlaylistModal';
 import { Song } from '@/types';
 import { Card } from '@/components/ui/card';
 import MediaItem from '@/components/MediaItem';
@@ -22,6 +23,7 @@ interface PlayerContentProps {
 const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   const player = usePlayer();
   const playerModal = usePlayerModal();
+  const playlistModal = usePlaylistModal();
   const queueModal = useQueueModal();
   const { autoplay, rememberVolume, volume, setVolume } = usePlaybackSettings();
   const [currentTime, setCurrentTime] = useState(0);
@@ -38,6 +40,10 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
     }
   }, [song.id, rememberVolume, setVolume]);
 
+  useEffect(() => {
+    setCurrentTime(0);
+    setDuration(null);
+  }, [songUrl]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -259,8 +265,16 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
           {/* Desktop View */}
           <div className="hidden md:flex h-full w-full items-center justify-between px-4">
             {/* Left: Like Button */}
-            <div className="flex items-center w-[80px]">
+            <div className="flex items-center gap-x-4 w-[120px]">
               <LikeButton songId={song.id} />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => playlistModal.onOpen(song.id)}
+                className="hover:text-foreground rounded-full transition"
+              >
+                <PlusCircle className="h-7 w-7" />
+              </Button>
             </div>
 
             {/* Center: Controls + Progress */}

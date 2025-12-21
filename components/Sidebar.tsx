@@ -14,7 +14,6 @@ import SidebarSongInfo from "./SidebarSongInfo";
 
 interface SidebarProps {
   children: React.ReactNode;
-  songs: Song[];
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ children }) => {

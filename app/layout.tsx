@@ -6,7 +6,6 @@ import SupabaseProvider from "@/providers/SupabaseProvider";
 import UserProvider from "@/providers/UserProvider";
 import ModalProvider from "@/providers/ModalProvider";
 import ToasterProvider from "@/providers/ToasterProvider";
-import { fetchUserSongs } from "@/lib/api/songs";
 import { createClient } from "@/supabase/server";
 import Player from "@/components/player/Player";
 import { Analytics } from "@vercel/analytics/react"
@@ -37,7 +36,16 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const supabase = await createClient();
-  const userSongs = await fetchUserSongs(supabase);
+  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let session = null;
+  if (user) {
+    const { data } = await supabase.auth.getSession();
+    session = data.session;
+  }
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -46,10 +54,10 @@ export default async function RootLayout({
           <TooltipProvider>
             <QueryProvider>
               <ToasterProvider />
-              <SupabaseProvider>
+              <SupabaseProvider session={session}>
                 <UserProvider>
                   <ModalProvider />
-                  <Sidebar songs={userSongs}>
+                  <Sidebar>
                     {children}
                     <Analytics />
                     <SpeedInsights />

@@ -3,8 +3,9 @@
 import React from "react";
 import { Song } from "@/types";
 import usePlayerModal from "@/hooks/ui/usePlayerModal";
+import usePlaylistModal from "@/hooks/ui/usePlaylistModal";
 import usePlayer from "@/hooks/ui/usePlayer";
-import { ChevronDown, Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, ListMusic, Volume2, VolumeX, FastForward, Rewind } from "lucide-react";
+import { ChevronDown, Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, ListMusic, Volume2, VolumeX, FastForward, Rewind, PlusCircle } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -38,6 +39,7 @@ const FullScreenPlayer: React.FC<FullScreenPlayerProps> = ({
     formatTime
 }) => {
     const playerModal = usePlayerModal();
+    const playlistModal = usePlaylistModal();
     const player = usePlayer();
     const queueModal = useQueueModal();
     const { volume, setVolume } = usePlaybackSettings();
@@ -135,7 +137,17 @@ const FullScreenPlayer: React.FC<FullScreenPlayerProps> = ({
                             )}
                         </p>
                     </div>
-                    <LikeButton songId={song.id} />
+                    <div className="flex items-center gap-x-4">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => playlistModal.onOpen(song.id)}
+                            className="hover:text-foreground rounded-full transition"
+                        >
+                            <PlusCircle className="h-7 w-7" />
+                        </Button>
+                        <LikeButton songId={song.id} />
+                    </div>
                 </div>
 
                 {/* Progress Bar */}
