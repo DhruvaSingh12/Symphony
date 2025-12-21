@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryKeys';
 import { fetchLikedSongs } from '@/lib/api/songs';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/auth/useUser';
 
 export function useLikedSongs() {
   const { user } = useUser();

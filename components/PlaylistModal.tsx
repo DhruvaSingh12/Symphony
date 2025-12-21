@@ -7,11 +7,11 @@ import Image from "next/image";
 import Modal from "./Modal";
 import { Input } from "@/components/ui/input";
 import Button from "./Button";
-import usePlaylistModal from "@/hooks/usePlaylistModal";
+import usePlaylistModal from "@/hooks/ui/usePlaylistModal";
 import { usePlaylistsWithSongs } from "@/hooks/queries/usePlaylistsWithSongs";
 import { useCreatePlaylist, useAddSongToPlaylist } from "@/hooks/mutations/usePlaylist";
 import { Song } from "@/types";
-import useLoadImage from "@/hooks/useLoadImage";
+import useLoadImage from "@/hooks/data/useLoadImage";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 interface PlaylistWithSongs {

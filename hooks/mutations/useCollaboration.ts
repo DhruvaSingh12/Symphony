@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
-import { useUser } from "@/hooks/useUser";
+import { useUser } from "@/hooks/auth/useUser";
 import { toast } from "react-hot-toast";
 import { inviteCollaborator, acceptInvitation, declineInvitation, removeCollaborator, transferOwnership} from "@/lib/api/collaboration";
 import { PlaylistCollaborator } from "@/types";

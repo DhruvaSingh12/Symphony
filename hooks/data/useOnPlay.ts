@@ -1,6 +1,6 @@
 import { Song } from "@/types";
 
-import usePlayer, { PlayContext } from "./usePlayer";
+import usePlayer, { PlayContext } from "../ui/usePlayer";
 
 const useOnPlay = (songs: Song[], context?: PlayContext, contextId?: string) => {
     const player = usePlayer();

@@ -5,14 +5,14 @@ import AlbumCard from "@/app/artists/components/AlbumCard";
 import ActionCard from "@/app/library/components/ActionCard";
 import { Card } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
-import usePlaylistModal from "@/hooks/usePlaylistModal";
+import usePlaylistModal from "@/hooks/ui/usePlaylistModal";
 import { PlaylistWithSongs } from "@/lib/api/playlists";
 import { Song } from "@/types";
 import { PlusCircle, Upload } from "lucide-react";
-import { useInfiniteSongs } from "@/hooks/useInfiniteSongs";
+import { useInfiniteSongs } from "@/hooks/data/useInfiniteSongs";
 import { usePlaylistsWithSongs } from "@/hooks/queries/usePlaylistsWithSongs";
 import React from "react";
-import { useUser } from "@/hooks/useUser";
+import { useUser } from "@/hooks/auth/useUser";
 
 interface LibraryPageClientProps {
     userSongs: Song[];
@@ -23,7 +23,7 @@ const LibraryPageClient: React.FC<LibraryPageClientProps> = ({ userSongs, playli
     const { user } = useUser();
     const { data: realtimePlaylists } = usePlaylistsWithSongs();
     const playlists = realtimePlaylists || initialPlaylists;
-    
+
     // Infinite query for user songs
     const {
         data,

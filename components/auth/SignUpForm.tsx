@@ -8,7 +8,7 @@ import { Loader2, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { FaGoogle } from "react-icons/fa";
 import Link from "next/link";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/auth/useAuth";
 import { signUpSchema, validateData, checkPasswordStrength } from "@/lib/auth/validation";
 
 interface SignUpFormProps {
@@ -69,7 +69,7 @@ export default function SignUpForm({ supabaseClient, onClose }: SignUpFormProps)
 
   return (
     <form onSubmit={handleSignUp}>
-      <FieldGroup>        
+      <FieldGroup>
         <Field>
           <FieldLabel htmlFor="signup-name">Name</FieldLabel>
           <Input
@@ -93,7 +93,7 @@ export default function SignUpForm({ supabaseClient, onClose }: SignUpFormProps)
             </p>
           )}
         </Field>
-        
+
         <Field>
           <FieldLabel htmlFor="signup-email">Email</FieldLabel>
           <Input
@@ -116,7 +116,7 @@ export default function SignUpForm({ supabaseClient, onClose }: SignUpFormProps)
             </p>
           )}
         </Field>
-        
+
         <Field>
           <FieldLabel htmlFor="signup-password">Password</FieldLabel>
           <div className="relative">
@@ -156,18 +156,18 @@ export default function SignUpForm({ supabaseClient, onClose }: SignUpFormProps)
             </p>
           )}
         </Field>
-        
+
         <p className="text-xs text-center text-muted-foreground">
           By continuing, you agree to our{" "}
-          <Link href="/privacypolicy" className="underline hover:text-foreground" target="_blank">
+          <Link href="/privacy" className="underline hover:text-foreground" target="_blank">
             Terms of Service
           </Link>{" "}
           and{" "}
-          <Link href="/privacypolicy" className="underline hover:text-foreground" target="_blank">
+          <Link href="/privacy" className="underline hover:text-foreground" target="_blank">
             Privacy Policy
           </Link>
         </p>
-        
+
         <Field>
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? (
@@ -180,9 +180,9 @@ export default function SignUpForm({ supabaseClient, onClose }: SignUpFormProps)
             )}
           </Button>
         </Field>
-        
+
         <FieldSeparator>Or</FieldSeparator>
-        
+
         <Field>
           <Button
             variant="outline"

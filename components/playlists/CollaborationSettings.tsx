@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { PlaylistCollaborator } from "@/types";
 import { useRemoveCollaborator, useTransferOwnership } from "@/hooks/mutations/useCollaboration";
 import { useCollaborators } from "@/hooks/queries/useCollaborators";
-import useLoadAvatar from "@/hooks/useLoadAvatar";
+import useLoadAvatar from "@/hooks/data/useLoadAvatar";
 import { getUserInitials, getUserDisplayName } from "@/lib/userUtils";
 import { MoreVertical, Crown, Trash2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -103,72 +103,72 @@ const CollaborationSettings: React.FC<CollaborationSettingsProps> = ({
         </DialogHeader>
         <ScrollArea className="max-h-[65vh]">
           <div className={cn("space-y-4", className)}>
-      {/* Active Collaborators */}
-      <div className="space-y-2">
-        {acceptedCollaborators.map((collaborator) => (
-          <CollaboratorItem
-            key={collaborator.id || collaborator.user_id}
-            collaborator={collaborator}
-            isOwner={isOwner}
-            isCurrentUser={collaborator.user_id === currentUserId}
-            isPlaylistOwner={collaborator.user_id === ownerId}
-            onRemove={() =>
-              setRemoveDialog({
-                open: true,
-                userId: collaborator.user_id!,
-                userName: collaborator.user?.full_name || "this user",
-                isPending: false,
-              })
-            }
-            onTransferOwnership={() =>
-              setTransferDialog({
-                open: true,
-                userId: collaborator.user_id!,
-                userName: collaborator.user?.full_name || "Unknown User",
-              })
-            }
-          />
-        ))}
-      </div>
+            {/* Active Collaborators */}
+            <div className="space-y-2">
+              {acceptedCollaborators.map((collaborator) => (
+                <CollaboratorItem
+                  key={collaborator.id || collaborator.user_id}
+                  collaborator={collaborator}
+                  isOwner={isOwner}
+                  isCurrentUser={collaborator.user_id === currentUserId}
+                  isPlaylistOwner={collaborator.user_id === ownerId}
+                  onRemove={() =>
+                    setRemoveDialog({
+                      open: true,
+                      userId: collaborator.user_id!,
+                      userName: collaborator.user?.full_name || "this user",
+                      isPending: false,
+                    })
+                  }
+                  onTransferOwnership={() =>
+                    setTransferDialog({
+                      open: true,
+                      userId: collaborator.user_id!,
+                      userName: collaborator.user?.full_name || "Unknown User",
+                    })
+                  }
+                />
+              ))}
+            </div>
 
-      {/* Pending Invitations */}
-      {isOwner && pendingCollaborators.length > 0 && (
-        <div>
-          <h3 className="text-sm font-medium mb-3 text-muted-foreground">
-            Pending Invitations ({pendingCollaborators.length})
-          </h3>
-          <div className="space-y-2">
-            {pendingCollaborators.map((collaborator) => (
-              <CollaboratorItem
-                key={collaborator.id}
-                collaborator={collaborator}
-                isOwner={isOwner}
-                isCurrentUser={false}
-                isPlaylistOwner={false}
-                isPending={true}
-                onRemove={() =>
-                  setRemoveDialog({
-                    open: true,
-                    userId: collaborator.user_id!,
-                    userName: collaborator.user?.full_name || "this user",
-                    isPending: true,
-                  })
-                }
-              />
-            ))}
+            {/* Pending Invitations */}
+            {isOwner && pendingCollaborators.length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium mb-3 text-muted-foreground">
+                  Pending Invitations ({pendingCollaborators.length})
+                </h3>
+                <div className="space-y-2">
+                  {pendingCollaborators.map((collaborator) => (
+                    <CollaboratorItem
+                      key={collaborator.id}
+                      collaborator={collaborator}
+                      isOwner={isOwner}
+                      isCurrentUser={false}
+                      isPlaylistOwner={false}
+                      isPending={true}
+                      onRemove={() =>
+                        setRemoveDialog({
+                          open: true,
+                          userId: collaborator.user_id!,
+                          userName: collaborator.user?.full_name || "this user",
+                          isPending: true,
+                        })
+                      }
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {acceptedCollaborators.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-8">
+                <p className="text-sm text-muted-foreground">
+                  No collaborators yet. Invite someone to get started!
+                </p>
+              </div>
+            )}
           </div>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {acceptedCollaborators.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-8">
-          <p className="text-sm text-muted-foreground">
-            No collaborators yet. Invite someone to get started!
-          </p>
-        </div>
-      )}
-    </div>
         </ScrollArea>
       </DialogContent>
 

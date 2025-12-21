@@ -1,7 +1,7 @@
 "use client";
 
 import qs from "query-string";
-import useDebounce from "@/hooks/useDebounce";
+import useDebounce from "@/hooks/utils/useDebounce";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import Input from "./Input";

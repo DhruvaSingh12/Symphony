@@ -15,6 +15,21 @@ export function useAuth(
 ) {
   const [isLoading, setIsLoading] = useState(false);
 
+  const handleError = useCallback((error: unknown, defaultMessage: string) => {
+    const errorMessage = error instanceof Error ? error.message : defaultMessage;
+    toast.error(errorMessage);
+    options.onError?.(errorMessage);
+    return {
+      success: false,
+      error: { type: "unknown" as const, message: errorMessage },
+    };
+  }, [options]);
+
+  const handleSuccess = useCallback((message?: string) => {
+    if (message) toast.success(message);
+    options.onSuccess?.();
+  }, [options]);
+
   // Sign up a new user
   const signUp = useCallback(
     async (formData: SignUpFormData) => {
@@ -23,35 +38,21 @@ export function useAuth(
         const result = await signUpUser(supabase, formData);
 
         if (!result.success) {
-          const errorMessage = result.error?.message || "Sign up failed";
-          toast.error(errorMessage);
-          options.onError?.(errorMessage);
-          return result;
+            return handleError(result.error, "Sign up failed");
         }
 
-        if (result.data?.requiresEmailConfirmation) {
-          toast.success(
-            "Account created! Please check your email for verification."
-          );
-        } else {
-          toast.success("Account created successfully!");
-        }
-
-        options.onSuccess?.();
+        handleSuccess(result.data?.requiresEmailConfirmation 
+            ? "Account created! Please check your email for verification." 
+            : "Account created successfully!");
+        
         return result;
-      } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-        toast.error(errorMessage);
-        options.onError?.(errorMessage);
-        return {
-          success: false,
-          error: { type: "unknown" as const, message: errorMessage },
-        };
+      } catch (error) {
+        return handleError(error, "An unexpected error occurred");
       } finally {
         setIsLoading(false);
       }
     },
-    [supabase, options]
+    [supabase, handleError, handleSuccess]
   );
 
   //   Sign in with email and password
@@ -62,28 +63,18 @@ export function useAuth(
         const result = await signInWithPassword(supabase, formData);
 
         if (!result.success) {
-          const errorMessage = result.error?.message || "Sign in failed";
-          toast.error(errorMessage);
-          options.onError?.(errorMessage);
-          return result;
+            return handleError(result.error, "Sign in failed");
         }
 
-        toast.success("Welcome back!");
-        options.onSuccess?.();
+        handleSuccess("Welcome back!");
         return result;
-      } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-        toast.error(errorMessage);
-        options.onError?.(errorMessage);
-        return {
-          success: false,
-          error: { type: "unknown" as const, message: errorMessage },
-        };
+      } catch (error) {
+        return handleError(error, "An unexpected error occurred");
       } finally {
         setIsLoading(false);
       }
     },
-    [supabase, options]
+    [supabase, handleError, handleSuccess]
   );
 
   // Sign in with OAuth provider
@@ -191,27 +182,17 @@ export function useAuth(
       const result = await signOutAction(supabase);
 
       if (!result.success) {
-        const errorMessage = result.error?.message || "Failed to sign out";
-        toast.error(errorMessage);
-        options.onError?.(errorMessage);
-        return result;
+        return handleError(result.error, "Failed to sign out");
       }
 
-      toast.success("Signed out successfully");
-      options.onSuccess?.();
+      handleSuccess("Signed out successfully");
       return result;
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-      toast.error(errorMessage);
-      options.onError?.(errorMessage);
-      return {
-        success: false,
-        error: { type: "unknown" as const, message: errorMessage },
-      };
+    } catch (error) {
+       return handleError(error, "An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
-  }, [supabase, options]);
+  }, [supabase, handleError, handleSuccess]);
 
   //Resend confirmation email
   const resendConfirmation = useCallback(

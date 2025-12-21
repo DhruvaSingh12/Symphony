@@ -1,29 +1,13 @@
-"use client";
-
+import type { Metadata } from "next";
 import Header from "@/components/Header";
-import { Card } from "@/components/ui/card";
-import UploadForm from "./components/UploadForm";
-import { useUser } from "@/hooks/useUser";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import useAuthModal from "@/hooks/useAuthModal";
+import UploadContent from "./components/UploadContent";
+
+export const metadata: Metadata = {
+    title: "Upload Music | Quivery",
+    description: "Share your music with the world on Quivery.",
+};
 
 const UploadPage = () => {
-    const { user, isLoading } = useUser();
-    const router = useRouter();
-    const authModal = useAuthModal();
-
-    useEffect(() => {
-        if (!isLoading && !user) {
-            router.push('/?auth=true');
-            authModal.onOpen();
-        }
-    }, [user, isLoading, router, authModal]);
-
-    if (isLoading || !user) {
-        return null;
-    }
-
     return (
         <div className="h-full w-full flex flex-col overflow-hidden">
             <div className="flex-none px-2 md:px-0 md:pr-2 pt-2">
@@ -36,9 +20,7 @@ const UploadPage = () => {
                 </Header>
             </div>
             <div className="flex-1 min-h-0 mt-2 px-2 md:px-0 md:pr-2 pb-2">
-                <Card className="border-border h-full flex flex-col overflow-auto scrollbar-hide relative bg-card/60 p-4 md:p-6 overflow-y-auto">
-                    <UploadForm />
-                </Card>
+                <UploadContent />
             </div>
         </div>
     );

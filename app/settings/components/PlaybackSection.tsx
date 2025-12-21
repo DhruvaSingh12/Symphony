@@ -4,7 +4,7 @@ import { Headphones, Zap, Volume2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import usePlaybackSettings from "@/hooks/usePlaybackSettings";
+import usePlaybackSettings from "@/hooks/data/usePlaybackSettings";
 
 const PlaybackSection = () => {
     // Playback settings from global store

@@ -2,8 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { useUser } from "@/hooks/useUser";
-import useAuthModal from "@/hooks/useAuthModal";
+import { useUser } from "@/hooks/auth/useUser";
+import useAuthModal from "@/hooks/ui/useAuthModal";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 

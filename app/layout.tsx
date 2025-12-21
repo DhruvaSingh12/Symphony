@@ -6,12 +6,14 @@ import SupabaseProvider from "@/providers/SupabaseProvider";
 import UserProvider from "@/providers/UserProvider";
 import ModalProvider from "@/providers/ModalProvider";
 import ToasterProvider from "@/providers/ToasterProvider";
-import getSongsByUserId from "@/hooks/getSongsByUserId";
-import Player from "@/app/player/Player";
+import { fetchUserSongs } from "@/lib/api/songs";
+import { createClient } from "@/supabase/server";
+import Player from "@/components/player/Player";
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ThemeProvider } from "@/components/theme-provider";
 import QueryProvider from "@/providers/QueryProvider";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const font = Figtree({
   subsets: ["latin"],
@@ -35,7 +37,8 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const userSongs = await getSongsByUserId();
+  const supabase = await createClient();
+  const userSongs = await fetchUserSongs(supabase);
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -51,7 +54,9 @@ export default async function RootLayout({
                   <Analytics />
                   <SpeedInsights />
                 </Sidebar>
-                <Player />
+                <ErrorBoundary>
+                  <Player />
+                </ErrorBoundary>
               </UserProvider>
             </SupabaseProvider>
           </QueryProvider>

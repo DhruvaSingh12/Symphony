@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Header from "@/components/Header";
 import SearchInput from "./components/SearchInput";
 import SearchContent from "./components/SearchContent";
@@ -5,6 +6,11 @@ import { Card } from "@/components/ui/card";
 import { Search } from "lucide-react";
 import Box from "@/components/Box";
 import { fetchSongsByQuery } from "@/lib/api/songs";
+
+export const metadata: Metadata = {
+    title: "Search | Quivery",
+    description: "Search for songs, artists, and playlists on Quivery.",
+};
 
 interface SearchPageProps {
     searchParams: Promise<{

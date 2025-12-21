@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { usePendingInvitations } from "@/hooks/queries/useCollaborators";
 import { useAcceptInvitation, useDeclineInvitation } from "@/hooks/mutations/useCollaboration";
 import { PlaylistCollaborator } from "@/types";
-import useLoadAvatar from "@/hooks/useLoadAvatar";
+import useLoadAvatar from "@/hooks/data/useLoadAvatar";
 import { Bell, Check, X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getUserInitials, getUserDisplayName } from "@/lib/userUtils";

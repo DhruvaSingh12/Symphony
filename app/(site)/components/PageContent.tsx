@@ -2,13 +2,13 @@
 
 import React, { useEffect } from "react";
 import SongItem from "@/components/SongItem";
-import useOnPlay from "@/hooks/useOnPlay";
+import useOnPlay from "@/hooks/data/useOnPlay";
 import { Song } from "@/types";
 import { Card } from "@/components/ui/card";
-import { useInfiniteSongs } from "@/hooks/useInfiniteSongs";
+import { useInfiniteSongs } from "@/hooks/data/useInfiniteSongs";
 import { useInView } from "react-intersection-observer";
 import { Loader2 } from "lucide-react";
-import useAuthModal from "@/hooks/useAuthModal";
+import useAuthModal from "@/hooks/ui/useAuthModal";
 import { useSearchParams } from "next/navigation";
 import { useSupabaseSession } from "@/providers/SupabaseProvider";
 

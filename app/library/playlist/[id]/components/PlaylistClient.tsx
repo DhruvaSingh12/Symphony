@@ -4,21 +4,21 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Table from "@/components/Table";
-import useOnPlay from "@/hooks/useOnPlay";
+import useOnPlay from "@/hooks/data/useOnPlay";
 import { Button } from "@/components/ui/button";
 import { Play, Pause, MoreHorizontal, ListPlus, Trash2, Edit, UserPlus, Settings, Loader2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { useDeletePlaylist, useRenamePlaylist } from "@/hooks/mutations/usePlaylist";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import usePlayer from "@/hooks/usePlayer";
+import usePlayer from "@/hooks/ui/usePlayer";
 import { toast } from "react-hot-toast";
 import { PlaylistWithSongs } from "@/lib/api/playlists";
 import { Song, UserDetails } from "@/types";
 import InviteCollaborator from "@/components/playlists/InviteCollaborator";
 import CollaborationSettings from "@/components/playlists/CollaborationSettings";
 import { AvatarStack } from "@/components/playlists/AvatarStack";
-import { useUser } from "@/hooks/useUser";
+import { useUser } from "@/hooks/auth/useUser";
 import { useCollaborators } from "@/hooks/queries/useCollaborators";
 import { useUserById } from "@/hooks/queries/useUserSearch";
 import { usePlaylistById, usePlaylistSongs } from "@/hooks/queries/usePlaylistSongs";
@@ -35,13 +35,12 @@ const PlaylistClient: React.FC<PlaylistClientProps> = ({ playlist: initialPlayli
     const { user } = useUser();
 
     // Use client-side queries for real-time updates
-    const { data: playlistData, isLoading: isPlaylistLoading } = usePlaylistById(initialPlaylist?.id || "");
+    const { data: playlistData } = usePlaylistById(initialPlaylist?.id || "");
     const { data: playlistSongsData, isLoading: isSongsLoading } = usePlaylistSongs(initialPlaylist?.id || "");
 
     // Use client-side data if available, otherwise fall back to server data
     const playlist = playlistData || initialPlaylist;
     const songs = playlistSongsData || initialSongs;
-    const isLoading = isPlaylistLoading || isSongsLoading;
 
     const [isRenameOpen, setIsRenameOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -56,15 +55,6 @@ const PlaylistClient: React.FC<PlaylistClientProps> = ({ playlist: initialPlayli
     const onPlay = useOnPlay(songs || [], 'playlist', playlist?.id || '');
     const isSameContext = player.playContext === 'playlist' && player.playContextId === playlist?.id;
     const showPause = isSameContext && player.isPlaying;
-
-    // Show loading state
-    if (isLoading && !initialPlaylist) {
-        return (
-            <div className="h-full w-full flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-        );
-    }
 
     // Guard clause if playlist is null
     if (!playlist) {
@@ -159,9 +149,9 @@ const PlaylistClient: React.FC<PlaylistClientProps> = ({ playlist: initialPlayli
                         <div className="flex items-center gap-2">
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button 
-                                        size="icon" 
-                                        variant="ghost" 
+                                    <Button
+                                        size="icon"
+                                        variant="ghost"
                                         className="rounded-full"
                                         disabled={deletePlaylist.isPending || renamePlaylist.isPending}
                                     >
@@ -233,10 +223,10 @@ const PlaylistClient: React.FC<PlaylistClientProps> = ({ playlist: initialPlayli
                 </Header>
             </div>
             <div className="flex-1 overflow-auto px-2 md:px-0 md:pr-2 mt-2 pb-2">
-                <Table 
-                    songs={songs || []} 
-                    onPlay={onPlay} 
-                    persistenceKey={`playlist-${playlist.id}`} 
+                <Table
+                    songs={songs || []}
+                    onPlay={onPlay}
+                    persistenceKey={`playlist-${playlist.id}`}
                     playlistId={playlist.id}
                     isOwner={isOwner}
                 />
@@ -264,14 +254,14 @@ const PlaylistClient: React.FC<PlaylistClientProps> = ({ playlist: initialPlayli
                         />
                     </div>
                     <DialogFooter>
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             onClick={() => setIsRenameOpen(false)}
                             disabled={renamePlaylist.isPending}
                         >
                             Cancel
                         </Button>
-                        <Button 
+                        <Button
                             onClick={handleRename}
                             disabled={renamePlaylist.isPending}
                         >
@@ -298,15 +288,15 @@ const PlaylistClient: React.FC<PlaylistClientProps> = ({ playlist: initialPlayli
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             onClick={() => setIsDeleteOpen(false)}
                             disabled={deletePlaylist.isPending}
                         >
                             Cancel
                         </Button>
-                        <Button 
-                            variant="destructive" 
+                        <Button
+                            variant="destructive"
                             onClick={confirmDelete}
                             disabled={deletePlaylist.isPending}
                         >

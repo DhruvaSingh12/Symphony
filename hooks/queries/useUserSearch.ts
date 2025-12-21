@@ -3,7 +3,7 @@ import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { UserDetails } from "@/types";
 import { searchUsers, getUserById } from "@/lib/api/users";
 import { useState } from "react";
-import useDebounce from "@/hooks/useDebounce";
+import useDebounce from "@/hooks/utils/useDebounce";
 
 // Search users with debouncing
 export const useSearchUsers = (query: string, limit: number = 10) => {

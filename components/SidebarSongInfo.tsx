@@ -1,13 +1,13 @@
 "use client";
 
 import React from "react";
-import usePlayer from "@/hooks/usePlayer";
-import useGetSongById from "@/hooks/useGetSongById";
-import useLoadImage from "@/hooks/useLoadImage";
+import usePlayer from "@/hooks/ui/usePlayer";
+import useGetSongById from "@/hooks/data/useGetSongById";
+import useLoadImage from "@/hooks/data/useLoadImage";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import useAlbumModal from "@/hooks/useAlbumModal";
+import useAlbumModal from "@/hooks/ui/useAlbumModal";
 
 const SidebarSongInfo = () => {
     const player = usePlayer();

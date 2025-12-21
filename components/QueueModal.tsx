@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { Song } from "@/types";
 import SongRow from "./SongRow";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import useQueueModal from "@/hooks/useQueueModal";
-import usePlayer from "@/hooks/usePlayer";
+import useQueueModal from "@/hooks/ui/useQueueModal";
+import usePlayer from "@/hooks/ui/usePlayer";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { toast } from "react-hot-toast";
 import { ListMusic } from "lucide-react";
@@ -99,7 +99,7 @@ const QueueModal = () => {
                         const nSongs = nextUpIds.map(id => mappedSongs.find(s => s.id === id)).filter(Boolean) as Song[];
                         setNextUpSongs(nSongs);
                     }
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 } catch (_error) {
                     toast.error("Something went wrong");
                 } finally {
@@ -125,7 +125,7 @@ const QueueModal = () => {
                         <ListMusic className="w-5 h-5" />
                         Play Queue
                     </SheetTitle>
-                    <SheetDescription/>
+                    <SheetDescription />
                 </SheetHeader>
                 <div className="w-full h-full mt-2 pb-4 overflow-auto scrollbar-hide">
                     {isLoading ? (

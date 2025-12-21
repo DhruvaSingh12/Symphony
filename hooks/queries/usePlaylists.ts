@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useUser } from "@/hooks/useUser";
+import { useUser } from "@/hooks/auth/useUser";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { Playlist } from "@/types";
 

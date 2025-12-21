@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useUserSearchState } from "@/hooks/queries/useUserSearch";
 import { useInviteCollaborator } from "@/hooks/mutations/useCollaboration";
-import useLoadAvatar from "@/hooks/useLoadAvatar";
+import useLoadAvatar from "@/hooks/data/useLoadAvatar";
 import { getUserInitials, getUserDisplayName } from "@/lib/userUtils";
 import { Search, UserPlus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -40,7 +40,7 @@ const InviteCollaborator: React.FC<InviteCollaboratorProps> = ({
     hasMinimumQuery,
   } = useUserSearchState();
   const inviteMutation = useInviteCollaborator();
-  
+
   // Memoize filtered users to avoid recalculation on every render
   const availableUsers = useMemo(() => {
     return searchResults.filter(
@@ -137,7 +137,7 @@ const InviteCollaborator: React.FC<InviteCollaboratorProps> = ({
                   onClick={() => setSelectedUser(null)}
                   className="rounded-full"
                 >
-                  <FaCircleXmark size={32}/>
+                  <FaCircleXmark size={32} />
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">

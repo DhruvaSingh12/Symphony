@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { fetchLikedSongs } from "@/lib/api/songs";
 import { createClient } from "@/supabase/server";
 import { redirect } from "next/navigation";
@@ -7,7 +8,12 @@ import { dehydrate } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
 import HydrateClient from "@/components/HydrateClient";
 
-export const revalidate = 30; 
+export const metadata: Metadata = {
+  title: "Liked Songs | Quivery",
+  description: "Your favorite tracks, all in one place.",
+};
+
+export const revalidate = 30;
 
 const LikedPage = async () => {
   const supabase = await createClient();

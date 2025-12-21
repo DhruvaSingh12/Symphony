@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { toast } from "react-hot-toast";
 import { Song, PlaylistWithCollaborators, Playlist } from "@/types";
-import { useUser } from "@/hooks/useUser";
+import { useUser } from "@/hooks/auth/useUser";
 
 export const useCreatePlaylist = () => {
     const supabaseClient = useSupabaseClient();

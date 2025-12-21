@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSupabaseClient } from '@/providers/SupabaseProvider';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/auth/useUser';
 import { queryKeys } from '@/lib/queryKeys';
 import { Song } from '@/types';
 import toast from 'react-hot-toast';

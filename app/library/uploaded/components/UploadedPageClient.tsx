@@ -4,8 +4,8 @@ import Header from "@/components/Header";
 import UploadedContent from "./UploadedContent";
 import { Button } from "@/components/ui/button";
 import { Play, Pause, Plus } from "lucide-react";
-import useOnPlay from "@/hooks/useOnPlay";
-import usePlayer from "@/hooks/usePlayer";
+import useOnPlay from "@/hooks/data/useOnPlay";
+import usePlayer from "@/hooks/ui/usePlayer";
 import { Song } from "@/types";
 import Link from "next/link";
 

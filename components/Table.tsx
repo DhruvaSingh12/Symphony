@@ -1,9 +1,10 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef } from 'react';
 import { Song, UserDetails } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowUp, ArrowDown, Loader2 } from 'lucide-react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import useScrollPersistence from '@/hooks/useScrollPersistence';
+import useScrollPersistence from '@/hooks/ui/useScrollPersistence';
+import { useSort, SortDirection } from '@/hooks/data/useSort';
 import SongRow from './SongRow';
 
 interface TableProps {
@@ -16,8 +17,7 @@ interface TableProps {
     hasMore?: boolean;
 }
 
-type SortField = 'title' | 'artist' | 'album' | 'duration' | null;
-type SortDirection = 'asc' | 'desc';
+type SortField = 'title' | 'artist' | 'album' | 'duration';
 
 interface SortHeaderProps {
     label: string;
@@ -33,7 +33,7 @@ const SortHeader: React.FC<SortHeaderProps> = ({ label, field, currentSortField,
 
     return (
         <button
-            onClick={() => onSort(field)}
+            onClick={() => onSort(field as SortField)}
             className={`flex items-center gap-1 hover:text-foreground transition-colors ${isActive ? 'text-foreground' : 'text-muted-foreground'} ${className}`}
         >
             <span className="font-medium text-sm">{label}</span>
@@ -57,56 +57,21 @@ const Table: React.FC<TableProps> = ({
     onLoadMore,
     hasMore: propsHasMore
 }) => {
-    const [sortField, setSortField] = React.useState<SortField>(null);
-    const [sortDirection, setSortDirection] = React.useState<SortDirection>('asc');
+    const {
+        sortField,
+        sortDirection,
+        handleSort,
+        sortedData: sortedSongs
+    } = useSort<Song>({
+        data: songs,
+        initialField: null
+    });
+
     const loadingMoreRef = useRef(false);
     const onLoadMoreRef = useRef(onLoadMore);
 
-    // Keep the ref updated with the latest callback
-    React.useEffect(() => {
-        onLoadMoreRef.current = onLoadMore;
-    }, [onLoadMore]);
-
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     useScrollPersistence(persistenceKey || "", scrollContainerRef, !!persistenceKey);
-
-    const handleSort = (field: SortField) => {
-        if (sortField === field) {
-            const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-            setSortDirection(newDirection);
-        }
-        else {
-            setSortField(field);
-            setSortDirection('asc');
-        }
-    };
-
-    const sortedSongs = useMemo(() => {
-        if (!sortField) return songs;
-
-        return [...songs].sort((a, b) => {
-            let comparison = 0;
-
-            switch (sortField) {
-                case 'title':
-                    comparison = (a.title || '').localeCompare(b.title || '');
-                    break;
-                case 'artist':
-                    const artistA = a.artist?.[0] || '';
-                    const artistB = b.artist?.[0] || '';
-                    comparison = artistA.localeCompare(artistB);
-                    break;
-                case 'album':
-                    comparison = (a.album || '').localeCompare(b.album || '');
-                    break;
-                case 'duration':
-                    comparison = (a.duration || 0) - (b.duration || 0);
-                    break;
-            }
-
-            return sortDirection === 'asc' ? comparison : -comparison;
-        });
-    }, [songs, sortField, sortDirection]);
 
     // Virtual scrolling
     const rowVirtualizer = useVirtualizer({
@@ -160,32 +125,32 @@ const Table: React.FC<TableProps> = ({
                             <SortHeader
                                 label="Track"
                                 field="title"
-                                currentSortField={sortField}
+                                currentSortField={sortField as SortField}
                                 sortDirection={sortDirection}
-                                onSort={handleSort}
+                                onSort={handleSort as (field: string | null) => void}
                             />
                             <SortHeader
                                 label="Artist"
                                 field="artist"
-                                currentSortField={sortField}
+                                currentSortField={sortField as SortField}
                                 sortDirection={sortDirection}
-                                onSort={handleSort}
+                                onSort={handleSort as (field: string | null) => void}
                                 className="hidden md:flex"
                             />
                             <SortHeader
                                 label="Duration"
                                 field="duration"
-                                currentSortField={sortField}
+                                currentSortField={sortField as SortField}
                                 sortDirection={sortDirection}
-                                onSort={handleSort}
+                                onSort={handleSort as (field: string | null) => void}
                                 className="hidden md:flex justify-center"
                             />
                             <SortHeader
                                 label="Album"
                                 field="album"
-                                currentSortField={sortField}
+                                currentSortField={sortField as SortField}
                                 sortDirection={sortDirection}
-                                onSort={handleSort}
+                                onSort={handleSort as (field: string | null) => void}
                                 className="hidden md:flex"
                             />
                             <div className="w-8"></div>
@@ -193,7 +158,7 @@ const Table: React.FC<TableProps> = ({
                         </div>
 
                         {/* Virtual Song Rows */}
-                        <div 
+                        <div
                             className="relative px-3 md:px-5"
                             style={{
                                 height: `${rowVirtualizer.getTotalSize()}px`,
@@ -210,10 +175,10 @@ const Table: React.FC<TableProps> = ({
                                             transform: `translateY(${virtualRow.start}px)`,
                                         }}
                                     >
-                                        <SongRow 
-                                            song={song} 
-                                            index={virtualRow.index} 
-                                            onPlay={onPlay} 
+                                        <SongRow
+                                            song={song}
+                                            index={virtualRow.index}
+                                            onPlay={onPlay}
                                             playlistId={playlistId}
                                             isOwner={isOwner}
                                             addedBy={(song as Song & { added_by_user?: UserDetails }).added_by_user}

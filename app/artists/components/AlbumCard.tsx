@@ -1,11 +1,11 @@
 import React from "react";
 import { Song } from "@/types";
 import Image from "next/image";
-import useLoadImage from "@/hooks/useLoadImage";
+import useLoadImage from "@/hooks/data/useLoadImage";
 import { Play, ListMusic } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import useOnPlay from "@/hooks/useOnPlay";
-import useAlbumModal from "@/hooks/useAlbumModal";
+import useOnPlay from "@/hooks/data/useOnPlay";
+import useAlbumModal from "@/hooks/ui/useAlbumModal";
 
 interface AlbumCardProps {
     albumName: string;

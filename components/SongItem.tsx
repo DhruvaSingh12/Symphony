@@ -1,6 +1,6 @@
 "use client";
 
-import useLoadImage from "@/hooks/useLoadImage";
+import useLoadImage from "@/hooks/data/useLoadImage";
 import { Song } from "@/types";
 import Image from "next/image";
 import React, { useState } from "react";
@@ -12,13 +12,13 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Button } from "@/components/ui/button";
 import { MoreVertical, PlusCircle, ListPlus, Disc, User, Heart } from "lucide-react";
 import { useRouter } from "next/navigation";
-import useAuthModal from "@/hooks/useAuthModal";
-import usePlaylistModal from "@/hooks/usePlaylistModal";
-import useAlbumModal from "@/hooks/useAlbumModal";
-import { useUser } from "@/hooks/useUser";
+import useAuthModal from "@/hooks/ui/useAuthModal";
+import usePlaylistModal from "@/hooks/ui/usePlaylistModal";
+import useAlbumModal from "@/hooks/ui/useAlbumModal";
+import { useUser } from "@/hooks/auth/useUser";
 import { useLikeSong, useIsLiked } from "@/hooks/mutations/useLikeSong";
 import { useLikedSongs } from "@/hooks/queries/useLikedSongs";
-import usePlayer from "@/hooks/usePlayer";
+import usePlayer from "@/hooks/ui/usePlayer";
 import { toast } from "react-hot-toast";
 
 interface SongItemProps {

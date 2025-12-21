@@ -2,17 +2,17 @@
 
 import React from "react";
 import { Song } from "@/types";
-import usePlayerModal from "@/hooks/usePlayerModal";
-import usePlayer from "@/hooks/usePlayer";
+import usePlayerModal from "@/hooks/ui/usePlayerModal";
+import usePlayer from "@/hooks/ui/usePlayer";
 import { ChevronDown, Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, ListMusic, Volume2, VolumeX, FastForward, Rewind } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import useLoadImage from "@/hooks/useLoadImage";
+import useLoadImage from "@/hooks/data/useLoadImage";
 import LikeButton from "@/components/LikeButton";
 import { cn } from "@/lib/utils";
-import useQueueModal from "@/hooks/useQueueModal";
-import usePlaybackSettings from "@/hooks/usePlaybackSettings";
+import useQueueModal from "@/hooks/ui/useQueueModal";
+import usePlaybackSettings from "@/hooks/data/usePlaybackSettings";
 import { useRouter } from "next/navigation";
 
 interface FullScreenPlayerProps {

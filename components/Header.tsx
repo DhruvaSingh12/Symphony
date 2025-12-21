@@ -11,14 +11,14 @@ import { useTheme } from "next-themes";
 import { useEffect, useState as useReactState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
-import useAuthModal from "@/hooks/useAuthModal";
+import useAuthModal from "@/hooks/ui/useAuthModal";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
-import { useUser } from "@/hooks/useUser";
+import { useUser } from "@/hooks/auth/useUser";
 import toast from "react-hot-toast";
 import { getUserDisplayName, getUserInitials } from "@/lib/userUtils";
 import { Progress } from "@/components/ui/progress";
 import PendingInvitations from "@/components/playlists/PendingInvitations";
-import useLoadAvatar from "@/hooks/useLoadAvatar";
+import useLoadAvatar from "@/hooks/data/useLoadAvatar";
 
 interface HeaderProps {
   children: React.ReactNode;
@@ -40,8 +40,8 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
   }, [setMounted]);
   const displayName = getUserDisplayName(userDetails, user?.email?.split('@')[0] || "User");
   const initialsFromName = userDetails?.full_name ? getUserInitials(userDetails.full_name) : null;
-  const initials = initialsFromName && initialsFromName !== "?" 
-    ? initialsFromName 
+  const initials = initialsFromName && initialsFromName !== "?"
+    ? initialsFromName
     : "U";
 
   const handleLogout = async () => {
@@ -150,7 +150,7 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel className="cursor-pointer" onClick={() => router.push("/account")}>
+                <DropdownMenuLabel className="cursor-pointer" onClick={() => router.push("/settings")}>
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10 border-2 border-border">
                       <AvatarImage
@@ -181,7 +181,7 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
                     <span>{resolvedTheme === "dark" ? "Light Mode" : "Dark Mode"}</span>
                   </DropdownMenuItem>
                 )}
-                
+
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>

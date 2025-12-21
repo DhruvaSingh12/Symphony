@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { UserDetails } from "@/types";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
-import useLoadAvatar from "@/hooks/useLoadAvatar";
+import useLoadAvatar from "@/hooks/data/useLoadAvatar";
 import { User, Cake, Users, Pencil, Mail } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import toast from "react-hot-toast";
-import { useUser } from "@/hooks/useUser";
+import { useUser } from "@/hooks/auth/useUser";
 
 interface ProfileSectionProps {
     userDetails: UserDetails | null;

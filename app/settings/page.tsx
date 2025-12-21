@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import Header from "@/components/Header";
 import SettingsContent from "./components/SettingsContent";
 import { createClient } from "@/supabase/server";
 import { redirect } from "next/navigation";
 import { getUserDetails } from "@/lib/api/users";
+
+export const metadata: Metadata = {
+  title: "Settings | Quivery",
+  description: "Manage your Quivery account settings.",
+};
 
 const SettingsPage = async () => {
   const supabase = await createClient();

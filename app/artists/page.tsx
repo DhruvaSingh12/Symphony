@@ -1,9 +1,15 @@
+import type { Metadata } from "next";
 import ArtistContent from "./components/ArtistContent";
 import Header from "@/components/Header";
 import { Card } from "@/components/ui/card";
 import { fetchArtists } from "@/lib/api/songs";
 
-export const revalidate = 300; // Revalidate every 5 minutes (artists change rarely)
+export const metadata: Metadata = {
+    title: "Artists | Quivery",
+    description: "Discover talented artists on Quivery.",
+};
+
+export const revalidate = 1800;
 
 const ArtistsPage = async () => {
     const artists = await fetchArtists();

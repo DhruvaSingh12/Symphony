@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useEffect } from "react";
-import useOnPlay from "@/hooks/useOnPlay";
-import { useUser } from "@/hooks/useUser";
+import useOnPlay from "@/hooks/data/useOnPlay";
+import { useUser } from "@/hooks/auth/useUser";
 import { Song } from "@/types";
 import { useRouter } from "next/navigation";
 import Table from '@/components/Table';
 import { Heart } from "lucide-react";
 import Box from "@/components/Box";
-import { useInfiniteSongs } from "@/hooks/useInfiniteSongs";
+import { useInfiniteSongs } from "@/hooks/data/useInfiniteSongs";
 
 interface LikedContentProps {
   songs: Song[];

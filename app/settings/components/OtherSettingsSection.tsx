@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Trash2, Shield, ChevronRight, Globe } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import toast from "react-hot-toast";
-import { useCacheManager } from "@/hooks/useCacheManager";
+import { useCacheManager } from "@/hooks/utils/useCacheManager";
 
 const OtherSettingsSection = () => {
     const router = useRouter();

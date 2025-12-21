@@ -6,12 +6,12 @@ import { Song } from "@/types";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useEffect } from "react";
 import AlbumCard from "@/app/artists/components/AlbumCard";
-import useOnPlay from "@/hooks/useOnPlay";
+import useOnPlay from "@/hooks/data/useOnPlay";
 import SongRow from "@/components/SongRow";
 import { Disc, Play, Pause } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-import usePlayer from "@/hooks/usePlayer";
+import usePlayer from "@/hooks/ui/usePlayer";
 
 interface ArtistDetailsClientProps {
     artistName: string;

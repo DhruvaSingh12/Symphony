@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import { Song } from "@/types";
 import SongRow from "./SongRow";
-import useOnPlay from "@/hooks/useOnPlay";
+import useOnPlay from "@/hooks/data/useOnPlay";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import useAlbumModal from "@/hooks/useAlbumModal";
+import useAlbumModal from "@/hooks/ui/useAlbumModal";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { toast } from "react-hot-toast";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -51,7 +51,7 @@ const AlbumModal = () => {
             }));
             setSongs(mappedSongs);
           }
-        } 
+        }
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         catch (_error) {
           toast.error("Something went wrong");

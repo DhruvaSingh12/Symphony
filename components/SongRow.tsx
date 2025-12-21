@@ -3,8 +3,8 @@
 import React from "react";
 import { Song, UserDetails } from "@/types";
 import { useRouter } from "next/navigation";
-import useLoadImage from "@/hooks/useLoadImage";
-import useLoadAvatar from "@/hooks/useLoadAvatar";
+import useLoadImage from "@/hooks/data/useLoadImage";
+import useLoadAvatar from "@/hooks/data/useLoadAvatar";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Play, Pause, MoreHorizontal, PlusCircle, ListPlus, Disc, User, Heart, Trash2 } from "lucide-react";
@@ -12,13 +12,13 @@ import NowPlayingIndicator from "@/components/NowPlaying";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import LikeButton from "@/components/LikeButton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import useAuthModal from "@/hooks/useAuthModal";
-import usePlaylistModal from "@/hooks/usePlaylistModal";
-import useAlbumModal from "@/hooks/useAlbumModal";
-import { useUser } from "@/hooks/useUser";
+import useAuthModal from "@/hooks/ui/useAuthModal";
+import usePlaylistModal from "@/hooks/ui/usePlaylistModal";
+import useAlbumModal from "@/hooks/ui/useAlbumModal";
+import { useUser } from "@/hooks/auth/useUser";
 import { useLikeSong, useIsLiked } from "@/hooks/mutations/useLikeSong";
 import { useRemoveSongFromPlaylist } from "@/hooks/mutations/usePlaylist";
-import usePlayer from "@/hooks/usePlayer";
+import usePlayer from "@/hooks/ui/usePlayer";
 import { toast } from "react-hot-toast";
 
 interface SongRowProps {
@@ -135,8 +135,8 @@ const SongRow: React.FC<SongRowProps> = ({
     layout === "queue"
       ? "grid-cols-[auto_40px_1fr_40px]" // Minimal layout: Index, Image, Title (flex), Action
       : showAlbum
-      ? "md:grid-cols-[auto_auto_minmax(200px,1fr)_minmax(150px,1fr)_80px_minmax(150px,1fr)_auto_auto]"
-      : "md:grid-cols-[auto_auto_minmax(200px,1fr)_minmax(150px,1fr)_80px_auto_auto]";
+        ? "md:grid-cols-[auto_auto_minmax(200px,1fr)_minmax(150px,1fr)_80px_minmax(150px,1fr)_auto_auto]"
+        : "md:grid-cols-[auto_auto_minmax(200px,1fr)_minmax(150px,1fr)_80px_auto_auto]";
 
   // For queue layout, we override the Grid container class completely
   if (layout === "queue") {
@@ -157,9 +157,8 @@ const SongRow: React.FC<SongRowProps> = ({
         {/* Title */}
         <div className="flex-1 flex flex-col justify-center overflow-hidden">
           <p
-            className={`truncate font-medium text-sm ${
-              isCurrentSong ? "text-primary" : "text-foreground"
-            }`}
+            className={`truncate font-medium text-sm ${isCurrentSong ? "text-primary" : "text-foreground"
+              }`}
           >
             {song.title}
           </p>
@@ -253,9 +252,8 @@ const SongRow: React.FC<SongRowProps> = ({
       </div>
 
       <div
-        className={`${
-          showArtist && layout !== "search" ? "hidden md:flex" : "hidden"
-        } flex-col justify-center overflow-hidden`}
+        className={`${showArtist && layout !== "search" ? "hidden md:flex" : "hidden"
+          } flex-col justify-center overflow-hidden`}
       >
         <div className="text-sm text-muted-foreground truncate">
           {artists.map((artist, artistIndex) => (
@@ -283,9 +281,8 @@ const SongRow: React.FC<SongRowProps> = ({
 
       {/* Duration - Always shown */}
       <div
-        className={`${
-          showDuration ? "flex" : "hidden"
-        } items-center justify-center text-xs md:text-sm text-muted-foreground`}
+        className={`${showDuration ? "flex" : "hidden"
+          } items-center justify-center text-xs md:text-sm text-muted-foreground`}
       >
         {formatTime(song.duration)}
       </div>
@@ -402,9 +399,8 @@ const SongRow: React.FC<SongRowProps> = ({
 
             <DropdownMenuItem onClick={handleLike} className="cursor-pointer">
               <Heart
-                className={`md:mr-2 mr-1 md:h-4 md:w-4 h-3 w-3 ${
-                  isLiked ? "fill-primary text-primary" : ""
-                }`}
+                className={`md:mr-2 mr-1 md:h-4 md:w-4 h-3 w-3 ${isLiked ? "fill-primary text-primary" : ""
+                  }`}
               />
               <span>{isLiked ? "Remove from Liked" : "Add to Liked"}</span>
             </DropdownMenuItem>

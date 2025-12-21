@@ -2,15 +2,15 @@
 
 import React from "react";
 import { Song } from "@/types";
-import useAuthModal from "@/hooks/useAuthModal";
-import useUploadModal from "@/hooks/useUploadModal";
-import useOnPlay from "@/hooks/useOnPlay";
-import { useUser } from "@/hooks/useUser";
+import useAuthModal from "@/hooks/ui/useAuthModal";
+import useUploadModal from "@/hooks/ui/useUploadModal";
+import useOnPlay from "@/hooks/data/useOnPlay";
+import { useUser } from "@/hooks/auth/useUser";
 import Table from "@/components/Table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { useInfiniteSongs } from "@/hooks/useInfiniteSongs";
+import { useInfiniteSongs } from "@/hooks/data/useInfiniteSongs";
 
 interface UploadedContentProps {
   songs: Song[];

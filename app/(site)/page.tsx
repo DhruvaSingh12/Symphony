@@ -1,9 +1,15 @@
+import type { Metadata } from "next";
 import Header from '@/components/Header';
 import PageContent from './components/PageContent';
 import { fetchAllSongs } from '@/lib/api/songs';
 import { createClient } from "@/supabase/server";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { getQueryClient } from "@/lib/queryClient";
+
+export const metadata: Metadata = {
+  title: "Home | Quivery",
+  description: "Discover and stream your favorite music on Quivery.",
+};
 
 export const revalidate = 60;
 
@@ -25,7 +31,7 @@ const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
 export default async function Home() {
   const supabase = await createClient();
   const songs = await fetchAllSongs(supabase);
-  
+
   const queryClient = getQueryClient();
   await queryClient.prefetchInfiniteQuery({
     queryKey: ['songs', undefined],

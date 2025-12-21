@@ -1,7 +1,7 @@
 "use client";
 
-import useAuthModal from "@/hooks/useAuthModal";
-import { useUser } from "@/hooks/useUser";
+import useAuthModal from "@/hooks/ui/useAuthModal";
+import { useUser } from "@/hooks/auth/useUser";
 import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -19,7 +19,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
 }) => {
     const authModal = useAuthModal();
     const { user } = useUser();
-    
+
     // Ensure liked songs are fetched and cached
     useLikedSongs();
 

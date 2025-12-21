@@ -6,7 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { cva, type VariantProps } from "class-variance-authority";
 import { UserDetails } from "@/types";
 import { getUserInitials, getUserDisplayName } from "@/lib/userUtils";
-import useLoadAvatar from "@/hooks/useLoadAvatar";
+import useLoadAvatar from "@/hooks/data/useLoadAvatar";
 import * as React from "react";
 
 const avatarStackVariants = cva("flex", {
@@ -42,7 +42,7 @@ const avatarSizeVariants = cva("border-2 border-background", {
 
 export interface AvatarStackProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof avatarStackVariants> {
+  VariantProps<typeof avatarStackVariants> {
   users: UserDetails[];
   maxAvatarsAmount?: number;
 }

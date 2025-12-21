@@ -1,5 +1,18 @@
+import type { Metadata } from "next";
 import { fetchSongsByArtist } from "@/lib/api/songs";
 import ArtistDetailsClient from "./components/ArtistDetailsClient";
+
+export async function generateMetadata(
+    props: ArtistPageProps
+): Promise<Metadata> {
+    const params = await props.params;
+    const artistName = decodeURIComponent(params.name);
+
+    return {
+        title: `${artistName} | Quivery`,
+        description: `Explore music from ${artistName} on Quivery.`,
+    };
+}
 
 interface ArtistPageProps {
     params: Promise<{

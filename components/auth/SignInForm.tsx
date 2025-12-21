@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { FaGoogle } from "react-icons/fa";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/auth/useAuth";
 import { signInSchema, emailSchema, validateData } from "@/lib/auth/validation";
 
 interface SignInFormProps {
@@ -230,11 +230,10 @@ export default function SignInForm({
               disabled={isLoading}
               aria-invalid={submitted && !!errors.password}
               aria-describedby={errors.password ? "password-error" : undefined}
-              className={`pr-10 ${
-                submitted && errors.password
+              className={`pr-10 ${submitted && errors.password
                   ? "border-red-500 focus-visible:ring-red-500"
                   : ""
-              }`}
+                }`}
               autoComplete="current-password"
             />
             <button

@@ -1,7 +1,7 @@
 "use client";
 
-import useLoadImage from "@/hooks/useLoadImage";
-import usePlayer from "@/hooks/usePlayer";
+import useLoadImage from "@/hooks/data/useLoadImage";
+import usePlayer from "@/hooks/ui/usePlayer";
 import { Song } from "@/types";
 import Image from "next/image";
 import React from "react";

@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Pause, Play, SkipBack, SkipForward, Rewind, FastForward, Volume2, VolumeX, Shuffle, Repeat, ListMusic } from 'lucide-react';
-import usePlayer from '@/hooks/usePlayer';
-import usePlaybackSettings from '@/hooks/usePlaybackSettings';
-import useQueueModal from '@/hooks/useQueueModal';
+import usePlayer from '@/hooks/ui/usePlayer';
+import usePlaybackSettings from '@/hooks/data/usePlaybackSettings';
+import useQueueModal from '@/hooks/ui/useQueueModal';
 import { Song } from '@/types';
 import { Card } from '@/components/ui/card';
 import MediaItem from '@/components/MediaItem';
@@ -12,7 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import FullScreenPlayer from './FullScreenPlayer';
-import usePlayerModal from '@/hooks/usePlayerModal';
+import usePlayerModal from '@/hooks/ui/usePlayerModal';
 
 interface PlayerContentProps {
   song: Song;

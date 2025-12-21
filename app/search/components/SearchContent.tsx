@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Song } from '@/types';
-import useOnPlay from '@/hooks/useOnPlay';
+import useOnPlay from '@/hooks/data/useOnPlay';
 import { useRouter } from "next/navigation";
 import Box from '@/components/Box';
 import SongRow from '@/components/SongRow';

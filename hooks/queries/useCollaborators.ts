@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
-import { useUser } from "@/hooks/useUser";
+import { useUser } from "@/hooks/auth/useUser";
 import { PlaylistCollaborator, PlaylistWithCollaborators, PlaylistSongWithAuthor } from "@/types";
 import { getCollaborators, checkUserPermission } from "@/lib/api/collaboration";
 import { fetchPlaylistWithCollaborators, fetchPlaylistSongsWithAuthors, fetchUserPlaylists } from "@/lib/api/playlists";

@@ -1,8 +1,8 @@
 "use client";
 
-import useGetSongById from "@/hooks/useGetSongById";
-import useLoadSongUrl from "@/hooks/useLoadSongUrl";
-import usePlayer from "@/hooks/usePlayer";
+import useGetSongById from "@/hooks/data/useGetSongById";
+import useLoadSongUrl from "@/hooks/data/useLoadSongUrl";
+import usePlayer from "@/hooks/ui/usePlayer";
 import PlayerContent from "./components/PlayerContent";
 
 export const revalidate = 0;
