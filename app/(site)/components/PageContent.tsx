@@ -10,21 +10,23 @@ import { useInView } from "react-intersection-observer";
 import { Loader2 } from "lucide-react";
 import useAuthModal from "@/hooks/useAuthModal";
 import { useSearchParams } from "next/navigation";
+import { useSupabaseSession } from "@/providers/SupabaseProvider";
 
 interface PageContentProps {
   songs: Song[];
 }
 
 const PageContent: React.FC<PageContentProps> = ({ songs: initialSongs }) => {
-  const authModal = useAuthModal();
+  const onOpen = useAuthModal((state) => state.onOpen);
   const searchParams = useSearchParams();
+  const session = useSupabaseSession();
 
   useEffect(() => {
     const shouldOpenAuth = searchParams.get('auth') === 'true';
-    if (shouldOpenAuth) {
-      authModal.onOpen();
+    if (shouldOpenAuth && !session) {
+      onOpen();
     }
-  }, [searchParams, authModal]);
+  }, [searchParams, onOpen, session]);
 
   const {
     data,
