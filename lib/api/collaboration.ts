@@ -1,13 +1,15 @@
-import { createClient } from "@/supabase/client";
+import { getClient } from "./client";
 import { PlaylistCollaborator } from "@/types";
 import { SupabaseClient } from "@supabase/supabase-js";
+import { Database } from "@/types_db";
+import { PlaylistCollaboratorSchema, UserDetailsSchema, validateArraySafe, validateSafe } from "@/lib/validation";
 
 // Remove all collaborators from a playlist (used when disabling collaboration)
 export async function removeAllCollaborators(
     playlistId: string,
-    supabaseClient?: SupabaseClient
+    supabaseClient?: SupabaseClient<Database>
 ): Promise<{ success: boolean; error?: string }> {
-    const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
+    const supabase = getClient(supabaseClient);
 
     const { error } = await supabase
         .from("playlist_collaborators")
@@ -27,9 +29,9 @@ export async function inviteCollaborator(
     playlistId: string,
     userId: string,
     invitedBy: string,
-    supabaseClient?: SupabaseClient
+    supabaseClient?: SupabaseClient<Database>
 ): Promise<{ success: boolean; error?: string; data?: PlaylistCollaborator }> {
-    const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
+    const supabase = getClient(supabaseClient);
 
     // Validate inputs
     if (!playlistId || !userId || !invitedBy) {
@@ -80,9 +82,9 @@ export async function inviteCollaborator(
 export async function acceptInvitation(
     playlistId: string,
     userId: string,
-    supabaseClient?: SupabaseClient
+    supabaseClient?: SupabaseClient<Database>
 ): Promise<{ success: boolean; error?: string }> {
-    const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
+    const supabase = getClient(supabaseClient);
 
     if (!playlistId || !userId) {
         return { success: false, error: "Missing required parameters" };
@@ -110,9 +112,9 @@ export async function acceptInvitation(
 export async function declineInvitation(
     playlistId: string,
     userId: string,
-    supabaseClient?: SupabaseClient
+    supabaseClient?: SupabaseClient<Database>
 ): Promise<{ success: boolean; error?: string }> {
-    const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
+    const supabase = getClient(supabaseClient);
 
     if (!playlistId || !userId) {
         return { success: false, error: "Missing required parameters" };
@@ -138,9 +140,9 @@ export async function declineInvitation(
 export async function removeCollaborator(
     playlistId: string,
     userId: string,
-    supabaseClient?: SupabaseClient
+    supabaseClient?: SupabaseClient<Database>
 ): Promise<{ success: boolean; error?: string }> {
-    const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
+    const supabase = getClient(supabaseClient);
 
     const { error } = await supabase
         .from("playlist_collaborators")
@@ -159,9 +161,9 @@ export async function removeCollaborator(
 // Get all collaborators for a playlist
 export async function getCollaborators(
     playlistId: string,
-    supabaseClient?: SupabaseClient
+    supabaseClient?: SupabaseClient<Database>
 ): Promise<PlaylistCollaborator[]> {
-    const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
+    const supabase = getClient(supabaseClient);
 
     // First, get collaborators without the user join to avoid RLS issues
     const { data, error } = await supabase
@@ -188,23 +190,31 @@ export async function getCollaborators(
 
     const { data: users } = await supabase
         .from("users")
-        .select("id, full_name, avatar_url")
+        .select("id, full_name, avatar_url, gender, dateOfBirth")
         .in("id", userIds);
 
     // Map collaborators with their user details
-    return data.map((item: any) => ({
-        ...item,
-        user: users?.find((u: any) => u.id === item.user_id)
-    })) as PlaylistCollaborator[];
+    const collabs = data.map((item: any) => {
+        const userRaw = users?.find((u: any) => u.id === item.user_id);
+        const validatedUser = validateSafe(UserDetailsSchema, userRaw, null);
+        
+        return validateSafe(PlaylistCollaboratorSchema, {
+            ...item,
+            user: validatedUser,
+            playlist: null // We don't fetch playlist info here
+        }, null);
+    }).filter((item): item is PlaylistCollaborator => item !== null);
+
+    return collabs;
 }
 
 // Check if user has permission to perform an action on a playlist
 export async function checkUserPermission(
     playlistId: string,
     userId: string,
-    supabaseClient?: SupabaseClient
+    supabaseClient?: SupabaseClient<Database>
 ): Promise<'owner' | 'collaborator' | null> {
-    const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
+    const supabase = getClient(supabaseClient);
 
     // Check if user is the owner
     const { data: playlist } = await supabase
@@ -238,9 +248,9 @@ export async function transferOwnership(
     playlistId: string,
     newOwnerId: string,
     currentOwnerId: string,
-    supabaseClient?: SupabaseClient
+    supabaseClient?: SupabaseClient<Database>
 ): Promise<{ success: boolean; error?: string }> {
-    const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
+    const supabase = getClient(supabaseClient);
 
     if (!playlistId || !newOwnerId || !currentOwnerId) {
         return { success: false, error: "Missing required parameters" };

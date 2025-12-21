@@ -243,7 +243,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ userDetails }) => {
                                     <Cake className="h-4 w-4 text-muted-foreground" />
                                     <span className="text-sm text-muted-foreground">Date of Birth</span>
                                 </div>
-                                <span className="text-sm font-medium">{formatDate(userDetails?.dateOfBirth)}</span>
+                                <span className="text-sm font-medium">{formatDate(userDetails?.dateOfBirth || "")}</span>
                             </div>
                             <div className="flex items-center justify-between py-2 px-1">
                                 <div className="flex items-center gap-3">

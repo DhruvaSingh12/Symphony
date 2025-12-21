@@ -14,6 +14,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ThemeProvider } from "@/components/theme-provider";
 import QueryProvider from "@/providers/QueryProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const font = Figtree({
   subsets: ["latin"],
@@ -30,8 +31,6 @@ export const metadata: Metadata = {
   description: "Discover Music",
 };
 
-export const revalidate = 0;
-
 export default async function RootLayout({
   children,
 }: {
@@ -44,22 +43,24 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${font.variable} ${leagueSpartan.variable} font-sans w-full h-full scrollbar-hide`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          <QueryProvider>
-            <ToasterProvider />
-            <SupabaseProvider>
-              <UserProvider>
-                <ModalProvider />
-                <Sidebar songs={userSongs}>
-                  {children}
-                  <Analytics />
-                  <SpeedInsights />
-                </Sidebar>
-                <ErrorBoundary>
-                  <Player />
-                </ErrorBoundary>
-              </UserProvider>
-            </SupabaseProvider>
-          </QueryProvider>
+          <TooltipProvider>
+            <QueryProvider>
+              <ToasterProvider />
+              <SupabaseProvider>
+                <UserProvider>
+                  <ModalProvider />
+                  <Sidebar songs={userSongs}>
+                    {children}
+                    <Analytics />
+                    <SpeedInsights />
+                  </Sidebar>
+                  <ErrorBoundary>
+                    <Player />
+                  </ErrorBoundary>
+                </UserProvider>
+              </SupabaseProvider>
+            </QueryProvider>
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>

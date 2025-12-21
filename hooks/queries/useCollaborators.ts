@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { useUser } from "@/hooks/auth/useUser";
-import { PlaylistCollaborator, PlaylistWithCollaborators, PlaylistSongWithAuthor } from "@/types";
+import { Playlist, UserDetails, PlaylistCollaborator, PlaylistWithCollaborators, PlaylistSongWithAuthor } from "@/types";
 import { getCollaborators, checkUserPermission } from "@/lib/api/collaboration";
 import { fetchPlaylistWithCollaborators, fetchPlaylistSongsWithAuthors, fetchUserPlaylists } from "@/lib/api/playlists";
 
@@ -55,15 +55,13 @@ export const usePendingInvitations = () => {
                     ? supabaseClient
                         .from("playlists")
                         .select(`
-                            id, 
-                            name, 
-                            user_id,
+                            *,
                             playlist_songs(song_id, songs(image_path))
                         `)
                         .in("id", playlistIds)
                     : Promise.resolve({ data: [], error: null }),
                 inviterIds.length > 0
-                    ? supabaseClient.from("users").select("id, full_name, avatar_url").in("id", inviterIds)
+                    ? supabaseClient.from("users").select("id, full_name, avatar_url, gender, dateOfBirth").in("id", inviterIds)
                     : Promise.resolve({ data: [], error: null })
             ]);
 
@@ -74,12 +72,38 @@ export const usePendingInvitations = () => {
                 console.error("Error fetching inviters:", invitersResult.error);
             }
 
-            const result = collaborators.map(item => {
+            const result = (data as any[]).map(item => {
                 const playlist = playlistsResult.data?.find((p: any) => p.id === item.playlist_id);
+                const inviter = invitersResult.data?.find((u: any) => u.id === item.invited_by);
+
+                const mappedPlaylist: Playlist | null = playlist ? {
+                    id: (playlist as any).id,
+                    user_id: (playlist as any).user_id,
+                    name: (playlist as any).name,
+                    description: (playlist as any).description || null,
+                    image_path: (playlist as any).image_path || null,
+                    created_at: (playlist as any).created_at || null,
+                } : null;
+
+                const mappedUser: UserDetails | null = inviter ? {
+                    id: (inviter as any).id,
+                    full_name: (inviter as any).full_name || null,
+                    avatar_url: (inviter as any).avatar_url || null,
+                    gender: (inviter as any).gender || null,
+                    dateOfBirth: (inviter as any).dateOfBirth || null,
+                } : null;
+
                 return {
-                    ...item,
-                    playlist: playlist,
-                    user: invitersResult.data?.find((u: any) => u.id === item.invited_by)
+                    id: item.id,
+                    playlist_id: item.playlist_id,
+                    user_id: item.user_id,
+                    invited_by: item.invited_by,
+                    invited_at: item.invited_at,
+                    accepted_at: item.accepted_at || null,
+                    status: item.status,
+                    created_at: item.created_at || null,
+                    playlist: mappedPlaylist,
+                    user: mappedUser
                 };
             }) as PlaylistCollaborator[];
 
@@ -128,16 +152,24 @@ export const useCollaborativePlaylists = () => {
 
             const ownerIds = playlists?.map((p: any) => p.user_id).filter(Boolean) || [];
             const { data: owners } = ownerIds.length > 0
-                ? await supabaseClient.from("users").select("id, full_name, avatar_url").in("id", ownerIds)
+                ? await supabaseClient.from("users").select("id, full_name, avatar_url, gender, dateOfBirth").in("id", ownerIds)
                 : { data: [] };
 
             return collaborators.map((item: PlaylistCollaborator) => {
                 const playlist = playlists?.find((p: any) => p.id === item.playlist_id);
                 const owner = owners?.find((o: any) => o.id === playlist?.user_id);
+                const ownerUser: UserDetails | null = owner ? {
+                    id: (owner as any).id,
+                    full_name: (owner as any).full_name || null,
+                    avatar_url: (owner as any).avatar_url || null,
+                    gender: (owner as any).gender || null,
+                    dateOfBirth: (owner as any).dateOfBirth || null,
+                } : null;
+
                 return {
                     ...playlist,
                     joined_at: item.accepted_at,
-                    owner
+                    owner: ownerUser
                 };
             });
         },

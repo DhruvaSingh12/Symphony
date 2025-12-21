@@ -1,6 +1,8 @@
-import { createClient } from "@/supabase/client";
 import { Song } from "@/types";
 import { SupabaseClient } from "@supabase/supabase-js";
+import { getClient } from "./client";
+import { SongSchema, validateArraySafe } from "@/lib/validation";
+import { Database } from "@/types_db";
 
 export interface ArtistInfo {
   artist: string;
@@ -9,8 +11,8 @@ export interface ArtistInfo {
   latest_update: string;
 }
 
-export async function fetchSongsByQuery(query: string, limit: number = 50, supabaseClient?: SupabaseClient): Promise<Song[]> {
-  const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
+export async function fetchSongsByQuery(query: string, limit: number = 50, supabaseClient?: SupabaseClient<Database>): Promise<Song[]> {
+  const supabase = getClient(supabaseClient);
 
   if (!query) {
     const { data, error } = await supabase
@@ -24,12 +26,11 @@ export async function fetchSongsByQuery(query: string, limit: number = 50, supab
       return [];
     }
 
-    return (data as Song[]) || [];
+    return validateArraySafe(SongSchema, data);
   }
 
-  const { data, error } = await (supabase.rpc as (name: string, params: { keyword: string }) => ReturnType<typeof supabase.rpc>)('search_songs_custom', {
-      keyword: query
-    })
+  const { data, error } = await supabase
+    .rpc('search_songs_custom', { keyword: query })
     .limit(limit);
 
   if (error) {
@@ -37,11 +38,11 @@ export async function fetchSongsByQuery(query: string, limit: number = 50, supab
     return [];
   }
   
-  return (data as Song[]) || [];
+  return validateArraySafe(SongSchema, data);
 }
 
-export async function fetchAllSongs(supabaseClient?: SupabaseClient, offset: number = 0, limit: number = 50): Promise<Song[]> {
-  const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
+export async function fetchAllSongs(supabaseClient?: SupabaseClient<Database>, offset: number = 0, limit: number = 50): Promise<Song[]> {
+  const supabase = getClient(supabaseClient);
 
   const { data, error } = await supabase
     .from('songs')
@@ -54,11 +55,11 @@ export async function fetchAllSongs(supabaseClient?: SupabaseClient, offset: num
     return [];
   }
 
-  return data as Song[];
+  return validateArraySafe(SongSchema, data);
 }
 
-export async function fetchSongsByArtist(artist: string, supabaseClient?: SupabaseClient): Promise<Song[]> {
-  const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
+export async function fetchSongsByArtist(artist: string, supabaseClient?: SupabaseClient<Database>): Promise<Song[]> {
+  const supabase = getClient(supabaseClient);
 
   if (!artist) {
     return [];
@@ -75,11 +76,11 @@ export async function fetchSongsByArtist(artist: string, supabaseClient?: Supaba
     return [];
   }
 
-  return (data as Song[]) || [];
+  return validateArraySafe(SongSchema, data);
 }
 
-export async function fetchLikedSongs(supabaseClient?: SupabaseClient, offset: number = 0, limit: number = 50): Promise<Song[]> {
-  const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
+export async function fetchLikedSongs(supabaseClient?: SupabaseClient<Database>, offset: number = 0, limit: number = 50): Promise<Song[]> {
+  const supabase = getClient(supabaseClient);
 
   const {
     data: { user },
@@ -105,11 +106,12 @@ export async function fetchLikedSongs(supabaseClient?: SupabaseClient, offset: n
     return [];
   }
 
-  return data.map((item: { songs: Song | null }) => item.songs).filter((song): song is Song => song !== null);
+  const songsRaw = data.map((item: { songs: any }) => item.songs).filter(Boolean);
+  return validateArraySafe(SongSchema, songsRaw);
 }
 
-export async function fetchUserSongs(supabaseClient?: SupabaseClient, offset: number = 0, limit: number = 50): Promise<Song[]> {
-  const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
+export async function fetchUserSongs(supabaseClient?: SupabaseClient<Database>, offset: number = 0, limit: number = 50): Promise<Song[]> {
+  const supabase = getClient(supabaseClient);
 
   const {
     data: userData,
@@ -132,11 +134,11 @@ export async function fetchUserSongs(supabaseClient?: SupabaseClient, offset: nu
     console.error('Error fetching user songs:', error.message);
   }
 
-  return (data as Song[]) || [];
+  return validateArraySafe(SongSchema, data);
 }
 
-export async function fetchArtists(supabaseClient?: SupabaseClient): Promise<ArtistInfo[]> {
-  const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
+export async function fetchArtists(supabaseClient?: SupabaseClient<Database>): Promise<ArtistInfo[]> {
+  const supabase = getClient(supabaseClient);
 
   try {
     const { data, error } = await supabase.rpc('get_artists_with_counts');
@@ -162,7 +164,7 @@ export async function fetchArtists(supabaseClient?: SupabaseClient): Promise<Art
 
     const artistMap = new Map<string, { songCount: number; albums: Set<string>; latestUpdate: string }>();
     
-    songs?.forEach((song: { artist?: string[]; album?: string; created_at?: string }) => {
+    songs?.forEach((song: { artist: string[] | null; album: string | null; created_at: string | null }) => {
       if (song.artist && Array.isArray(song.artist)) {
         song.artist.forEach((artistName: string) => {
           const existing = artistMap.get(artistName);

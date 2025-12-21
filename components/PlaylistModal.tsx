@@ -13,14 +13,8 @@ import { useCreatePlaylist, useAddSongToPlaylist } from "@/hooks/mutations/usePl
 import { Song } from "@/types";
 import useLoadImage from "@/hooks/data/useLoadImage";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { PlaylistWithSongs } from "@/lib/api/playlists";
 
-interface PlaylistWithSongs {
-    id: string;
-    name: string;
-    songs: Song[];
-    user_id: string;
-    created_at: string;
-}
 
 interface PlaylistRowProps {
     playlist: PlaylistWithSongs;

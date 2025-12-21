@@ -1,7 +1,9 @@
-import { createClient } from "@/supabase/client";
 import { Playlist, Song, PlaylistWithCollaborators, PlaylistSongWithAuthor } from "@/types";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { getCollaborators } from "./collaboration";
+import { getClient } from "./client";
+import { PlaylistSchema, SongSchema, UserDetailsSchema, validateArraySafe, validateSafe } from "@/lib/validation";
+import { Database } from "@/types_db";
 
 export interface PlaylistWithSongs extends Playlist {
     songs: Song[];
@@ -9,20 +11,20 @@ export interface PlaylistWithSongs extends Playlist {
 
 interface PlaylistWithSongsRaw {
     id: string;
-    created_at: string;
-    title: string;
-    description: string;
-    image_path: string;
+    created_at: string | null;
+    title?: string;
+    description: string | null;
+    image_path: string | null;
     user_id: string;
     name: string;
     playlist_songs: {
         song_id: number;
-        songs: Song; // Raw DB song object
+        songs: any; // Raw DB song object
     }[];
 }
 
-export async function fetchPlaylistById(playlistId: string, supabaseClient?: SupabaseClient): Promise<PlaylistWithSongs | null> {
-    const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
+export async function fetchPlaylistById(playlistId: string, supabaseClient?: SupabaseClient<Database>): Promise<PlaylistWithSongs | null> {
+    const supabase = getClient(supabaseClient);
 
     if (!playlistId || playlistId.trim() === '') {
         console.error("fetchPlaylistById: Invalid playlistId");
@@ -44,16 +46,18 @@ export async function fetchPlaylistById(playlistId: string, supabaseClient?: Sup
         return null;
     }
 
-    const rawPlaylist = data as unknown as PlaylistWithSongsRaw;
-    
+    const validatedPlaylist = validateSafe(PlaylistSchema, data, null);
+    if (!validatedPlaylist) return null;
+
+    const rawSongs = (data as any).playlist_songs
+        ?.map((item: any) => item.songs)
+        .filter(Boolean) || [];
+
+    const validatedSongs = validateArraySafe(SongSchema, rawSongs);
+
     return {
-        ...rawPlaylist,
-        songs: rawPlaylist.playlist_songs
-            .map((item) => ({
-                ...item.songs,
-                updated_at: item.songs.created_at,
-            }))
-            .filter((song) => song !== null) as Song[]
+        ...validatedPlaylist,
+        songs: validatedSongs
     };
 }
 
@@ -61,9 +65,9 @@ export async function fetchPlaylistById(playlistId: string, supabaseClient?: Sup
 export async function fetchUserPlaylists(
     userId: string,
     includeCollaborative: boolean = true,
-    supabaseClient?: SupabaseClient
+    supabaseClient?: SupabaseClient<Database>
 ): Promise<PlaylistWithSongs[]> {
-    const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
+    const supabase = getClient(supabaseClient);
 
     if (!userId || userId.trim() === '') {
         console.error("fetchUserPlaylists: Invalid userId");
@@ -83,7 +87,7 @@ export async function fetchUserPlaylists(
         return [];
     }
 
-    let allPlaylists = ownedData as unknown as PlaylistWithSongsRaw[] || [];
+    let allPlaylistsRaw = (ownedData as any[]) || [];
 
     // Fetch collaborative playlists
     if (includeCollaborative) {
@@ -104,33 +108,37 @@ export async function fetchUserPlaylists(
                     .order("created_at", { ascending: false });
 
                 if (!playlistError && collabPlaylists) {
-                    allPlaylists = [...allPlaylists, ...(collabPlaylists as unknown as PlaylistWithSongsRaw[])];
+                    allPlaylistsRaw = [...allPlaylistsRaw, ...(collabPlaylists as any[])];
                 }
             }
         }
     }
 
-    // Map the nested data structure
-    const playlists = allPlaylists.map((playlist) => ({
-        ...playlist,
-        songs: playlist.playlist_songs
-            .map((item) => ({
-                ...item.songs,
-                updated_at: item.songs.created_at,
-            }))
-            .filter((song) => song !== null) as Song[]
-    }));
+    // Map and validate
+    return allPlaylistsRaw.map((playlistRaw) => {
+        const validatedPlaylist = validateSafe(PlaylistSchema, playlistRaw, null);
+        if (!validatedPlaylist) return null;
 
-    return playlists as PlaylistWithSongs[];
+        const rawSongs = playlistRaw.playlist_songs
+            ?.map((item: any) => item.songs)
+            .filter(Boolean) || [];
+        
+        const validatedSongs = validateArraySafe(SongSchema, rawSongs);
+
+        return {
+            ...validatedPlaylist,
+            songs: validatedSongs
+        };
+    }).filter((p): p is PlaylistWithSongs => p !== null);
 }
 
 // Fetch playlist with collaborators and check if user is owner
 export async function fetchPlaylistWithCollaborators(
     playlistId: string,
     userId: string,
-    supabaseClient?: SupabaseClient
+    supabaseClient?: SupabaseClient<Database>
 ): Promise<PlaylistWithCollaborators | null> {
-    const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
+    const supabase = getClient(supabaseClient);
 
     if (!playlistId || playlistId.trim() === '' || !userId || userId.trim() === '') {
         console.error("fetchPlaylistWithCollaborators: Invalid parameters");
@@ -157,9 +165,9 @@ export async function fetchPlaylistWithCollaborators(
 // Fetch playlist songs with "added_by" user details
 export async function fetchPlaylistSongsWithAuthors(
     playlistId: string,
-    supabaseClient?: SupabaseClient
+    supabaseClient?: SupabaseClient<Database>
 ): Promise<PlaylistSongWithAuthor[]> {
-    const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
+    const supabase = getClient(supabaseClient);
 
     if (!playlistId || playlistId.trim() === '') {
         console.error("fetchPlaylistSongsWithAuthors: Invalid playlistId");
@@ -171,7 +179,7 @@ export async function fetchPlaylistSongsWithAuthors(
         .select(`
             *,
             song:songs(*),
-            added_by_user:users!playlist_songs_added_by_fkey(id, full_name, avatar_url)
+            added_by_user:users!playlist_songs_added_by_fkey(id, full_name, avatar_url, gender, dateOfBirth)
         `)
         .eq("playlist_id", playlistId)
         .order("created_at", { ascending: false });
@@ -181,13 +189,23 @@ export async function fetchPlaylistSongsWithAuthors(
         return [];
     }
 
-    return (data as PlaylistSongWithAuthor[]).map(item => ({
-        id: item.id,
-        playlist_id: item.playlist_id,
-        song_id: item.song_id,
-        added_by: item.added_by,
-        created_at: item.created_at,
-        song: item.song,
-        added_by_user: item.added_by_user
-    })) as PlaylistSongWithAuthor[];
+    if (!data) return [];
+
+    return data.map(item => {
+        const validatedSong = validateSafe(SongSchema, item.song, null);
+        if (!validatedSong) return null;
+
+        const validatedUser = validateSafe(UserDetailsSchema, item.added_by_user, null);
+
+        const result: PlaylistSongWithAuthor = {
+            id: item.id,
+            playlist_id: item.playlist_id,
+            song_id: item.song_id,
+            added_by: item.added_by,
+            created_at: item.created_at,
+            song: validatedSong,
+            added_by_user: validatedUser
+        };
+        return result;
+    }).filter((item): item is PlaylistSongWithAuthor => item !== null);
 }

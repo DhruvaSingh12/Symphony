@@ -1,24 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@/hooks/auth/useUser";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
-import { Playlist, Song } from "@/types";
-
-export interface PlaylistWithSongs extends Playlist {
-    songs: Song[];
-}
+import {  Song } from "@/types";
+import { PlaylistWithSongs } from "@/lib/api/playlists";
 
 interface PlaylistWithSongsRaw {
     id: string;
-    created_at: string;
-    title: string;
-    description: string;
-    image_path: string;
-    author: string;
+    created_at: string | null;
+    title: string | null;
+    description: string | null;
+    image_path: string | null;
+    author: string | null;
     user_id: string;
     name: string;
     playlist_songs: {
         song_id: number;
-        songs: Song; // Raw DB song object
+        songs: any; // Use any for raw DB object, will be mapped
     }[];
 }
 

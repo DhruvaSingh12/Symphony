@@ -15,50 +15,27 @@ const SearchInput = () => {
     // Initialize with URL query if available
     const [query, setQuery] = useState<string>(searchParams.get("query") || "");
     const debouncedQuery = useDebounce<string>(query, 500);
-    const initialized = React.useRef(false);
 
-    // Restore from localStorage on mount if URL query is empty
+    // Sync input with URL if URL changes (e.g. browser back button)
     useEffect(() => {
-        if (initialized.current) return;
-        initialized.current = true;
-
-        if (!searchParams.get("query")) {
-            const savedQuery = localStorage.getItem("quivery-last-search");
-            if (savedQuery) {
-                setTimeout(() => setQuery(savedQuery), 0);
-            }
+        const urlQuery = searchParams.get("query") || "";
+        if (urlQuery !== query) {
+            setQuery(urlQuery);
         }
     }, [searchParams]);
 
     useEffect(() => {
-        const currentQuery = searchParams.get("query") || "";
-        if (debouncedQuery === currentQuery) return;
-
         const url = qs.stringifyUrl({
             url: '/search',
             query: { query: debouncedQuery }
         });
 
-        // Persist to localStorage
         if (debouncedQuery) {
             localStorage.setItem("quivery-last-search", debouncedQuery);
-        } else if (query === "" && !searchParams.get("query")) {
-            localStorage.removeItem("quivery-last-search");
         }
 
         router.push(url);
-    }, [debouncedQuery, router, searchParams, query]);
-
-    // Handle persistence cleanup on unmount
-    useEffect(() => {
-        return () => {
-            const shouldPersist = sessionStorage.getItem("keep-search-persistence");
-            if (!shouldPersist) {
-                localStorage.removeItem("quivery-last-search");
-            }
-            sessionStorage.removeItem("keep-search-persistence");
-        };
-    }, []);
+    }, [debouncedQuery, router]);
 
     return (
         <div className="flex items-center gap-2">
