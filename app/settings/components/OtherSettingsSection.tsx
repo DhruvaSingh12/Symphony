@@ -41,7 +41,7 @@ const OtherSettingsSection = () => {
             <Card className="border-border bg-card/60">
                 <CardContent className="p-3">
                     <button
-                        onClick={() => router.push("/privacypolicy")}
+                        onClick={() => router.push("/privacy")}
                         className="w-full flex items-center justify-between py-3 px-1 hover:bg-muted/50 rounded-md transition-colors group"
                     >
                         <div className="flex items-center gap-3">

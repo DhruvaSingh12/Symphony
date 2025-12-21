@@ -27,4 +27,4 @@ const PrivacyPolicyPage = () => {
   );
 };
 
-export default PrivacyContent;
+export default PrivacyPolicyPage;
