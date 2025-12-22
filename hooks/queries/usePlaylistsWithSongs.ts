@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@/hooks/auth/useUser";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
-import {  Song } from "@/types";
+import { Song } from "@/types";
 import { PlaylistWithSongs } from "@/lib/api/playlists";
+import { SONG_RELATIONAL_SELECT, mapRelationalSong, RawSongData } from "@/lib/api/songs";
 
 interface PlaylistWithSongsRaw {
     id: string;
@@ -10,12 +11,11 @@ interface PlaylistWithSongsRaw {
     title: string | null;
     description: string | null;
     image_path: string | null;
-    author: string | null;
     user_id: string;
     name: string;
     playlist_songs: {
         song_id: number;
-        songs: any; // Use any for raw DB object, will be mapped
+        songs: RawSongData | null;
     }[];
 }
 
@@ -37,14 +37,28 @@ export const usePlaylistsWithSongs = () => {
 
             const collaborativePlaylistIds = collaboratorData?.map(c => c.playlist_id) || [];
 
-            // Build query based on whether there are collaborative playlists
+            // Build query
             let query = supabaseClient
                 .from("playlists")
-                .select("*, playlist_songs(song_id, songs(*))");
+                .select(`
+                    *, 
+                    playlist_songs(
+                        song_id, 
+                        songs(
+                            ${SONG_RELATIONAL_SELECT}
+                        )
+                    )
+                `);
 
             if (collaborativePlaylistIds.length > 0) {
                 // Fetch both owned and collaborative playlists
-                query = query.or(`user_id.eq.${user.id},id.in.(${collaborativePlaylistIds.join(',')})`);
+                // Filter out nulls and join with commas
+                const ids = collaborativePlaylistIds.filter((id): id is string => id !== null).join(',');
+                if (ids) {
+                    query = query.or(`user_id.eq.${user.id},id.in.(${ids})`);
+                } else {
+                    query = query.eq("user_id", user.id);
+                }
             } else {
                 // Only fetch owned playlists
                 query = query.eq("user_id", user.id);
@@ -57,16 +71,12 @@ export const usePlaylistsWithSongs = () => {
                 throw error;
             }
 
-            // Map the nested data structure to a flatter one
+            // Map and validate
             const playlists = (data as unknown as PlaylistWithSongsRaw[] || []).map((playlist) => ({
                 ...playlist,
                 songs: playlist.playlist_songs
-                    .map((item) => ({
-                        ...item.songs,
-                        author: item.songs.artist?.[0] ?? null,
-                        updated_at: item.songs.created_at,
-                    }))
-                    .filter((song) => song !== null) as Song[]
+                    .map((item) => item.songs ? mapRelationalSong(item.songs) : null)
+                    .filter((song): song is Song => song !== null)
             }));
 
             return playlists as PlaylistWithSongs[];

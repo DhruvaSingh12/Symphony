@@ -41,7 +41,7 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick }) => {
   const isPlaying = isCurrentSong && player.isPlaying;
   useLikedSongs();
 
-  const artists = data.artist ? (Array.isArray(data.artist) ? data.artist : [data.artist]) : [];
+  const artists = data.artists || [];
 
   const handleAddToPlaylist = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -64,8 +64,8 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick }) => {
 
   const handleAlbumClick = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    if (data.album) {
-      albumModal.onOpen(data.album);
+    if (data.album?.title) {
+      albumModal.onOpen(data.album.title);
     }
   };
 
@@ -122,9 +122,9 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick }) => {
                 <span key={i}>
                   <span
                     className="hover:underline hover:text-foreground transition cursor-pointer"
-                    onClick={(e) => handleArtistClick(e, artist)}
+                    onClick={(e) => handleArtistClick(e, artist.name)}
                   >
-                    {artist}
+                    {artist.name}
                   </span>
                   {i < artists.length - 1 && ", "}
                 </span>
@@ -152,7 +152,7 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick }) => {
                 Add to Queue
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              {data.album && (
+              {data.album?.title && (
                 <DropdownMenuItem onClick={handleAlbumClick} className="cursor-pointer">
                   <Disc className="mr-2 h-4 w-4" />
                   Go to album
@@ -167,11 +167,11 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick }) => {
                   {artists.map((artist, i) => (
                     <DropdownMenuItem
                       key={i}
-                      onClick={(e) => handleArtistClick(e, artist)}
+                      onClick={(e) => handleArtistClick(e, artist.name)}
                       className="cursor-pointer"
                     >
                       <User className="mr-2 h-4 w-4" />
-                      {artist}
+                      {artist.name}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuSubContent>

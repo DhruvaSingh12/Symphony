@@ -76,8 +76,8 @@ const Table: React.FC<TableProps> = ({
     // Virtual scrolling
     const rowVirtualizer = useVirtualizer({
         count: sortedSongs.length,
-        getScrollElement: () => scrollContainerRef.current,
-        estimateSize: () => 64, // Approximate row height
+        getScrollElement: React.useCallback(() => scrollContainerRef.current, []),
+        estimateSize: React.useCallback(() => 64, []), // Approximate row height
         overscan: 10, // Render 10 extra items above and below viewport
     });
 

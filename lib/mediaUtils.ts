@@ -1,152 +1,231 @@
-import { FFmpeg } from '@ffmpeg/ffmpeg';
-import { toBlobURL } from '@ffmpeg/util';
+import { FFmpeg } from "@ffmpeg/ffmpeg";
+import { toBlobURL } from "@ffmpeg/util";
 
-let ffmpeg: FFmpeg | null = null;
+const AUDIO_CONFIG = {
+  OPUS_BITRATE: "64k",
+  AAC_BITRATE: "64k",
+  SAMPLE_RATE_OPUS: "48000",
+  SAMPLE_RATE_AAC: "44100",
+  CHANNELS: "2",
+  MAX_UPLOAD_MB: 50,
+};
 
-const loadFFmpeg = async () => {
-    if (ffmpeg) return ffmpeg;
+const CORE_VERSION = "0.12.4";
+const BASE_URL = `https://unpkg.com/@ffmpeg/core@${CORE_VERSION}/dist/umd`;
 
-    ffmpeg = new FFmpeg();
+const createFFmpeg = async (): Promise<FFmpeg> => {
+  const ffmpeg = new FFmpeg();
+  
+  await ffmpeg.load({
+    coreURL: await toBlobURL(`${BASE_URL}/ffmpeg-core.js`, "text/javascript"),
+    wasmURL: await toBlobURL(`${BASE_URL}/ffmpeg-core.wasm`, "application/wasm"),
+  });
 
-    if (!ffmpeg.loaded) {
-        try {
-            const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
-            await ffmpeg.load({
-                coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-                wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-            });
-        } 
-        catch (error) {
-            console.error('Failed to load FFmpeg:', error);
-            ffmpeg = null;
-            throw new Error('Failed to load audio processor');
-        }
+  return ffmpeg;
+};
+
+// AUDIO VALIDATION
+const validateAudioUpload = (file: File) => {
+  if (!file.type.startsWith("audio/")) {
+    throw new Error("Invalid audio file");
+  }
+
+  if (file.size > AUDIO_CONFIG.MAX_UPLOAD_MB * 1024 * 1024) {
+    throw new Error("Audio file exceeds upload limit");
+  }
+};
+
+// AUDIO ENCODERS
+const encodeOpus = async (
+  ffmpeg: FFmpeg,
+  input: string,
+  output: string
+) => {
+  await ffmpeg.exec([
+    "-y",
+    "-i",
+    input,
+    "-vn",
+    "-map_metadata",
+    "-1",
+    "-c:a",
+    "libopus",
+    "-b:a",
+    AUDIO_CONFIG.OPUS_BITRATE,
+    "-ac",
+    AUDIO_CONFIG.CHANNELS,
+    "-ar",
+    AUDIO_CONFIG.SAMPLE_RATE_OPUS,
+    output,
+  ]);
+};
+
+const encodeAAC = async (
+  ffmpeg: FFmpeg,
+  input: string,
+  output: string
+) => {
+  await ffmpeg.exec([
+    "-y",
+    "-i",
+    input,
+    "-vn",
+    "-map_metadata",
+    "-1",
+    "-c:a",
+    "aac",
+    "-b:a",
+    AUDIO_CONFIG.AAC_BITRATE,
+    "-ac",
+    AUDIO_CONFIG.CHANNELS,
+    "-ar",
+    AUDIO_CONFIG.SAMPLE_RATE_AAC,
+    output,
+  ]);
+};
+
+// Internal processing function for a single codec
+const tryEncode = async (
+  file: File,
+  codec: 'opus' | 'aac'
+): Promise<File | null> => {
+  let ffmpeg: FFmpeg | null = null;
+  const uniqueId = crypto.randomUUID();
+  const ext = codec === 'opus' ? 'opus' : 'm4a';
+  const mime = codec === 'opus' ? 'audio/opus' : 'audio/aac';
+  const inputName = `input-${uniqueId}.${file.name.split(".").pop()}`;
+  const outputName = `output-${uniqueId}.${ext}`;
+
+  try {
+    ffmpeg = await createFFmpeg();
+    
+    await ffmpeg.writeFile(
+      inputName,
+      new Uint8Array(await file.arrayBuffer())
+    );
+
+    if (codec === 'opus') {
+      await encodeOpus(ffmpeg, inputName, outputName);
+    } else {
+      await encodeAAC(ffmpeg, inputName, outputName);
     }
 
-    return ffmpeg;
-};
-
-export const processAudio = async (file: File): Promise<File> => {
-    const instance = await loadFFmpeg(); 
-    const inputName = 'input.' + file.name.split('.').pop();
-    const outputName = 'output.mp3';
-
-    try {
-        await instance.writeFile(inputName, await fetchFile(file));
-
-        // Convert to MP3 (libmp3lame) at 128kbps, 44.1kHz, Stereo
-        await instance.exec([
-            '-i', inputName,
-            '-c:a', 'libmp3lame',
-            '-b:a', '128k',
-            '-ar', '44100',
-            '-ac', '2',
-            outputName
-        ]);
-        const data = await instance.readFile(outputName);
-        const uint8Data = data instanceof Uint8Array ? new Uint8Array(data) : new TextEncoder().encode(String(data));
-        const processedBlob = new Blob([uint8Data], { type: 'audio/mpeg' });
-        
-        return new File([processedBlob], file.name.replace(/\.[^/.]+$/, "") + ".mp3", {
-            type: 'audio/mpeg'
-        });
-
-    } 
-    catch (error) {
-        console.error('Audio processing failed:', error);
-        if (instance) {
-            try {
-                await instance.terminate();
-            } 
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            catch (_e) {}
-        }
-        ffmpeg = null; 
-        
-        throw error;
-
-    } 
-    finally {
-        if (ffmpeg && ffmpeg.loaded) {
-            try {
-                await ffmpeg.deleteFile(inputName);
-                await ffmpeg.deleteFile(outputName);
-            } 
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            catch (_e) {}
-        }
-    }
-};
-
-const fetchFile = async (file: File): Promise<Uint8Array> => {
-    return new Uint8Array(await file.arrayBuffer());
-};
-
-
-export const processImage = async (file: File): Promise<File> => {
-    const TARGET_SIZE_KB = 200;
-    const MAX_WIDTH = 1920; 
-    const MAX_HEIGHT = 1080;
-
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.src = URL.createObjectURL(file);
-        
-        img.onload = () => {
-             URL.revokeObjectURL(img.src);
-             
-             let width = img.width;
-             let height = img.height;
-
-             // Resize if too large
-             if (width > MAX_WIDTH || height > MAX_HEIGHT) {
-                 const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
-                 width = Math.round(width * ratio);
-                 height = Math.round(height * ratio);
-             }
-
-             const canvas = document.createElement('canvas');
-             canvas.width = width;
-             canvas.height = height;
-             
-             const ctx = canvas.getContext('2d');
-             if (!ctx) {
-                 reject(new Error('Canvas context failed'));
-                 return;
-             }
-             
-             ctx.drawImage(img, 0, 0, width, height);
-
-             // Compression Loop
-             let quality = 0.9;
-             
-             const attemptCompression = () => {
-                 canvas.toBlob(
-                     (blob) => {
-                         if (!blob) {
-                             reject(new Error('Image processing failed'));
-                             return;
-                         }
-
-                         if (blob.size / 1024 <= TARGET_SIZE_KB || quality <= 0.1) {
-                             resolve(new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
-                                 type: 'image/webp'
-                             }));
-                         } 
-                         else {
-                             // Reduce quality and try again
-                             quality -= 0.1;
-                             attemptCompression(); 
-                         }
-                     },
-                     'image/webp',
-                     quality
-                 );
-             };
-
-             attemptCompression();
-        };
-
-        img.onerror = (err) => reject(err);
+    const data = (await ffmpeg.readFile(outputName)) as Uint8Array;
+    return new File([data as any], replaceExt(file.name, ext), {
+      type: mime,
     });
+  } catch (err) {
+    console.warn(`${codec.toUpperCase()} processing failed:`, err);
+    return null;
+  } finally {
+    if (ffmpeg) {
+      try {
+        await safeDelete(ffmpeg, inputName);
+        await safeDelete(ffmpeg, outputName);
+        ffmpeg.terminate();
+      } catch {}
+    }
+  }
+};
+
+// AUDIO PROCESSOR (PRIMARY: OPUS, FALLBACK: AAC)
+export const processAudio = async (file: File): Promise<File> => {
+  validateAudioUpload(file);
+
+  // Try Opus
+  const opusFile = await tryEncode(file, 'opus');
+  if (opusFile) return opusFile;
+
+  // Try AAC (with a fresh FFmpeg instance)
+  const aacFile = await tryEncode(file, 'aac');
+  if (aacFile) return aacFile;
+
+  // Final fallback
+  throw new Error("All audio processing attempts failed");
+};
+
+// IMAGE PROCESSOR 
+export const processImage = async (file: File): Promise<File> => {
+  const TARGET_SIZE_KB = 20;
+  const MAX_WIDTH = 1920;
+  const MAX_HEIGHT = 1080;
+  const MIN_WIDTH = 64;
+  const MIN_HEIGHT = 64;
+  const MIN_QUALITY = 0.2;
+  const SCALE_STEP = 0.85;
+
+  const img = new Image();
+  img.src = URL.createObjectURL(file);
+
+  await new Promise<void>((resolve, reject) => {
+    img.onload = () => resolve();
+    img.onerror = reject;
+  });
+
+  URL.revokeObjectURL(img.src);
+
+  let { width, height } = img;
+
+  if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+    const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+    width = Math.max(Math.round(width * ratio), MIN_WIDTH);
+    height = Math.max(Math.round(height * ratio), MIN_HEIGHT);
+  }
+
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas not supported");
+
+  const render = (w: number, h: number) => {
+    canvas.width = w;
+    canvas.height = h;
+    ctx.clearRect(0, 0, w, h);
+    ctx.drawImage(img, 0, 0, w, h);
+  };
+
+  render(width, height);
+
+  let quality = 0.9;
+  let blob: Blob | null = null;
+
+  while (true) {
+    blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (b) => (b ? resolve(b) : reject()),
+        "image/webp",
+        quality
+      );
+    });
+
+    if (blob.size / 1024 <= TARGET_SIZE_KB) break;
+
+    if (quality > MIN_QUALITY) {
+      quality -= 0.1;
+      continue;
+    }
+
+    const newW = Math.max(MIN_WIDTH, Math.floor(canvas.width * SCALE_STEP));
+    const newH = Math.max(MIN_HEIGHT, Math.floor(canvas.height * SCALE_STEP));
+    if (newW === canvas.width && newH === canvas.height) break;
+
+    render(newW, newH);
+    quality = 0.8;
+  }
+
+  if (!blob) throw new Error("Image processing failed");
+
+  return new File([blob], replaceExt(file.name, "webp"), {
+    type: "image/webp",
+  });
+};
+
+// HELPERS
+const replaceExt = (name: string, ext: string) =>
+  name.replace(/\.[^/.]+$/, `.${ext}`);
+
+const safeDelete = async (ffmpeg: FFmpeg, file: string) => {
+  try {
+    await ffmpeg.deleteFile(file);
+  } 
+  catch {}
 };

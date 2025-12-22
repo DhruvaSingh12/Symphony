@@ -40,10 +40,14 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
     }
   }, [song.id, rememberVolume, setVolume]);
 
-  useEffect(() => {
+  const [prevSongUrl, setPrevSongUrl] = useState(songUrl);
+
+  // Sync state when song changes during render
+  if (songUrl !== prevSongUrl) {
+    setPrevSongUrl(songUrl);
     setCurrentTime(0);
     setDuration(null);
-  }, [songUrl]);
+  }
 
   useEffect(() => {
     if (audioRef.current) {

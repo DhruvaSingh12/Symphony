@@ -31,7 +31,7 @@ const AlbumImage = ({ song, className }: { song?: Song, className?: string }) =>
         <div className={`relative overflow-hidden bg-muted ${className}`}>
             <Image
                 src={imageUrl || '/images/liked.png'}
-                alt={song.album || "Album"}
+                alt={song.album?.title || "Album"}
                 fill
                 sizes="(max-width: 768px) 50vw, 200px"
                 className="object-cover"

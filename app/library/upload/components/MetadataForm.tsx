@@ -7,16 +7,17 @@ import { Command as CommandPrimitive } from "cmdk";
 import { Check, Plus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useRef, useEffect } from "react";
+import { Artist, Album } from "@/types";
 
 interface MetadataFormProps {
     register: UseFormRegister<FieldValues>;
     isLoading: boolean;
-    selectedArtists: string[];
-    setSelectedArtists: React.Dispatch<React.SetStateAction<string[]>>;
-    selectedAlbum: string;
-    setSelectedAlbum: (value: string) => void;
-    uniqueArtists: string[];
-    uniqueAlbums: string[];
+    selectedArtists: (Artist | { name: string })[];
+    setSelectedArtists: React.Dispatch<React.SetStateAction<(Artist | { name: string })[]>>;
+    selectedAlbum: Album | { title: string } | null;
+    setSelectedAlbum: (value: Album | { title: string } | null) => void;
+    uniqueArtists: Artist[];
+    uniqueAlbums: Album[];
 }
 
 const MetadataForm: React.FC<MetadataFormProps> = ({
@@ -55,9 +56,10 @@ const MetadataForm: React.FC<MetadataFormProps> = ({
         };
     }, []);
 
-    const toggleArtist = (artist: string) => {
-        if (selectedArtists.includes(artist)) {
-            setSelectedArtists(prev => prev.filter(a => a !== artist));
+    const toggleArtist = (artist: Artist | { name: string }) => {
+        const isSelected = selectedArtists.some(a => a.name === artist.name);
+        if (isSelected) {
+            setSelectedArtists(prev => prev.filter(a => a.name !== artist.name));
         } else {
             setSelectedArtists(prev => [...prev, artist]);
         }
@@ -65,7 +67,7 @@ const MetadataForm: React.FC<MetadataFormProps> = ({
         setShowArtistList(false);
     };
 
-    const handleAlbumSelect = (album: string) => {
+    const handleAlbumSelect = (album: Album | { title: string }) => {
         setSelectedAlbum(album);
         setAlbumInput("");
         setShowAlbumList(false);
@@ -113,7 +115,7 @@ const MetadataForm: React.FC<MetadataFormProps> = ({
                                     <CommandEmpty>
                                         <button
                                             type="button"
-                                            onClick={() => toggleArtist(artistInput)}
+                                            onClick={() => toggleArtist({ name: artistInput })}
                                             className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition cursor-pointer"
                                         >
                                             <Plus className="h-4 w-4" />
@@ -121,22 +123,25 @@ const MetadataForm: React.FC<MetadataFormProps> = ({
                                         </button>
                                     </CommandEmpty>
                                     <CommandGroup>
-                                        {uniqueArtists.map((artist) => (
-                                            <CommandItem
-                                                key={artist}
-                                                value={artist}
-                                                onSelect={() => toggleArtist(artist)}
-                                                className="cursor-pointer px-3 py-2 aria-selected:bg-accent aria-selected:text-accent-foreground"
-                                            >
-                                                <Check
-                                                    className={cn(
-                                                        "mr-2 h-4 w-4",
-                                                        selectedArtists.includes(artist) ? "opacity-100" : "opacity-0"
-                                                    )}
-                                                />
-                                                {artist}
-                                            </CommandItem>
-                                        ))}
+                                        {uniqueArtists.map((artist) => {
+                                            const isSelected = selectedArtists.some(a => a.name === artist.name);
+                                            return (
+                                                <CommandItem
+                                                    key={artist.id}
+                                                    value={artist.name}
+                                                    onSelect={() => toggleArtist(artist)}
+                                                    className="cursor-pointer px-3 py-2 aria-selected:bg-accent aria-selected:text-accent-foreground"
+                                                >
+                                                    <Check
+                                                        className={cn(
+                                                            "mr-2 h-4 w-4",
+                                                            isSelected ? "opacity-100" : "opacity-0"
+                                                        )}
+                                                    />
+                                                    {artist.name}
+                                                </CommandItem>
+                                            );
+                                        })}
                                     </CommandGroup>
                                 </CommandList>
                             </div>
@@ -146,8 +151,8 @@ const MetadataForm: React.FC<MetadataFormProps> = ({
                     {/* Artist Tags */}
                     <div className="flex flex-wrap gap-2 min-h-[1.5rem]">
                         {selectedArtists.map(artist => (
-                            <div key={artist} className="flex items-center gap-1 bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded-md">
-                                {artist}
+                            <div key={artist.name} className="flex items-center gap-1 bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded-md">
+                                {artist.name}
                                 <button type="button" onClick={() => toggleArtist(artist)} className="hover:text-foreground transition">
                                     <X size={12} />
                                 </button>
@@ -162,7 +167,7 @@ const MetadataForm: React.FC<MetadataFormProps> = ({
                     <Command className="bg-transparent overflow-visible">
                         <div className="relative">
                             <CommandPrimitive.Input
-                                placeholder={selectedAlbum || "Enter album name"}
+                                placeholder={selectedAlbum?.title || "Enter album name"}
                                 value={albumInput}
                                 onValueChange={(val) => {
                                     setAlbumInput(val);
@@ -189,7 +194,7 @@ const MetadataForm: React.FC<MetadataFormProps> = ({
                                     <CommandEmpty>
                                         <button
                                             type="button"
-                                            onClick={() => handleAlbumSelect(albumInput)}
+                                            onClick={() => handleAlbumSelect({ title: albumInput })}
                                             className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition cursor-pointer"
                                         >
                                             <Plus className="h-4 w-4" />
@@ -199,18 +204,18 @@ const MetadataForm: React.FC<MetadataFormProps> = ({
                                     <CommandGroup>
                                         {uniqueAlbums.map((album) => (
                                             <CommandItem
-                                                key={album}
-                                                value={album}
+                                                key={album.id}
+                                                value={album.title}
                                                 onSelect={() => handleAlbumSelect(album)}
                                                 className="cursor-pointer px-3 py-2 aria-selected:bg-accent aria-selected:text-accent-foreground"
                                             >
                                                 <Check
                                                     className={cn(
                                                         "mr-2 h-4 w-4",
-                                                        selectedAlbum === album ? "opacity-100" : "opacity-0"
+                                                        selectedAlbum?.title === album.title ? "opacity-100" : "opacity-0"
                                                     )}
                                                 />
-                                                {album}
+                                                {album.title}
                                             </CommandItem>
                                         ))}
                                     </CommandGroup>

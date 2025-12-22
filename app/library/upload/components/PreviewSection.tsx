@@ -3,12 +3,13 @@
 import { Card } from '@/components/ui/card';
 import { Music } from 'lucide-react';
 import Image from 'next/image';
+import { Artist, Album } from '@/types';
 
 interface PreviewSectionProps {
     imagePreview: string | null;
     title: string;
-    artists: string[];
-    album: string;
+    artists: (Artist | { name: string })[];
+    album: Album | { title: string } | null;
 }
 
 const PreviewSection: React.FC<PreviewSectionProps> = ({
@@ -37,10 +38,10 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
                         {title || "Untitled Track"}
                     </h4>
                     <p className="text-sm text-muted-foreground truncate">
-                        {artists.length > 0 ? artists.join(", ") : "Unknown Artist"}
+                        {artists.length > 0 ? artists.map(a => a.name).join(", ") : "Unknown Artist"}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                        {album || "Unknown Album"}
+                        {album?.title || "Unknown Album"}
                     </p>
                 </div>
             </Card>

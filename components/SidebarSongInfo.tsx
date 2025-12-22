@@ -13,7 +13,7 @@ const SidebarSongInfo = () => {
     const player = usePlayer();
     const { song, isloading } = useGetSongById(player.activeId?.toString());
     const imageUrl = useLoadImage(song!);
-    const allArtists = song?.artist ? (Array.isArray(song.artist) ? song.artist : [song.artist]) : [];
+    const allArtists = song?.artists || [];
     const displayedArtists = allArtists.slice(0, 2);
 
 
@@ -27,8 +27,8 @@ const SidebarSongInfo = () => {
     };
 
     const handleAlbumClick = () => {
-        if (!song?.album) return;
-        albumModal.onOpen(song.album);
+        if (!song?.album?.title) return;
+        albumModal.onOpen(song.album.title);
     };
 
     if (!player.activeId) {
@@ -89,20 +89,20 @@ const SidebarSongInfo = () => {
                             <span key={index}>
                                 <span
                                     className="cursor-pointer hover:text-foreground transition"
-                                    onClick={(e) => handleArtistClick(e, artist)}
+                                    onClick={(e) => handleArtistClick(e, artist.name)}
                                 >
-                                    {artist}
+                                    {artist.name}
                                 </span>
                                 {index < displayedArtists.length - 1 && ", "}
                             </span>
                         ))}
                     </div>
-                    {song.album && (
+                    {song.album?.title && (
                         <div
                             className="text-xs xl:text-sm text-muted-foreground hover:text-foreground cursor-pointer truncate w-full"
                             onClick={handleAlbumClick}
                         >
-                            {song.album}
+                            {song.album.title}
                         </div>
                     )}
                 </div>

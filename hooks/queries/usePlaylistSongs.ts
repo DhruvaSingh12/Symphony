@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { Song, Playlist, UserDetails } from "@/types";
+import { SONG_RELATIONAL_SELECT, mapRelationalSong, RawSongData } from "@/lib/api/songs";
 
 export const usePlaylistById = (playlistId: string) => {
     const supabaseClient = useSupabaseClient();
@@ -36,7 +37,9 @@ export const usePlaylistSongs = (playlistId: string) => {
                 .select(`
                     song_id, 
                     added_by,
-                    songs(*),
+                    songs(
+                        ${SONG_RELATIONAL_SELECT}
+                    ),
                     added_by_user:users!playlist_songs_added_by_fkey(id, full_name, avatar_url)
                 `)
                 .eq("playlist_id", playlistId)
@@ -49,12 +52,16 @@ export const usePlaylistSongs = (playlistId: string) => {
 
             if (!data) return [];
 
-            return data.map((item: any) => ({
-                ...item.songs,
-                author: item.songs.artist?.[0] ?? null,
-                updated_at: item.songs.updated_at || item.songs.created_at,
-                added_by_user: item.added_by_user,
-            })) as (Song & { added_by_user?: UserDetails })[];
+            return data.map((item) => {
+                const songData = item.songs as unknown as RawSongData;
+                const mappedSong = mapRelationalSong(songData);
+                if (!mappedSong) return null;
+
+                return {
+                    ...mappedSong,
+                    added_by_user: item.added_by_user as UserDetails | null,
+                };
+            }).filter((s): s is (Song & { added_by_user: UserDetails | null }) => !!s);
         },
         enabled: !!playlistId,
     });

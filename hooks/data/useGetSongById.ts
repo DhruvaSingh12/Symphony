@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Song } from "@/types";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { toast } from "react-hot-toast";
+import { SONG_RELATIONAL_SELECT, mapRelationalSong } from "@/lib/api/songs";
 
 const useGetSongById = ( id?: string) => {
     const [song, setSong] = useState<Song | undefined>(undefined);
@@ -19,32 +20,23 @@ const useGetSongById = ( id?: string) => {
             setTimeout(() => setIsLoading(true), 0);
             const {data, error} = await supabaseClient
                 .from('songs')
-                .select('*')
+                .select(SONG_RELATIONAL_SELECT)
                 .eq('id', songId)
                 .single();
 
             if(error || !data) {
                 setIsLoading(false);
-                if(error) {
+                if(error && error.code !== 'PGRST116') { // PGRST116 is 'no rows returned' for .single()
                     return toast.error(error.message);
                 }
                 return;
             }
 
-            const mappedSong: Song = {
-                updated_at: data.created_at ?? '',
-                id: Number(data.id),
-                user_id: data.user_id ?? '',
-                artist: data.artist ?? [],
-                title: data.title ?? '',
-                song_path: data.song_path ?? '',
-                image_path: data.image_path ?? '',
-                created_at: data.created_at,
-                album: data.album ?? '',
-                duration: data.duration ?? 0
-            };
+            const mappedSong = mapRelationalSong(data);
 
-            setSong(mappedSong);
+            if (mappedSong) {
+                setSong(mappedSong);
+            }
             setIsLoading(false);
         }
         fetchSong();

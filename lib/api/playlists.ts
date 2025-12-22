@@ -4,23 +4,10 @@ import { getCollaborators } from "./collaboration";
 import { getClient } from "./client";
 import { PlaylistSchema, SongSchema, UserDetailsSchema, validateArraySafe, validateSafe } from "@/lib/validation";
 import { Database } from "@/types_db";
+import { SONG_RELATIONAL_SELECT, mapRelationalSong, RawSongData } from "./songs";
 
 export interface PlaylistWithSongs extends Playlist {
     songs: Song[];
-}
-
-interface PlaylistWithSongsRaw {
-    id: string;
-    created_at: string | null;
-    title?: string;
-    description: string | null;
-    image_path: string | null;
-    user_id: string;
-    name: string;
-    playlist_songs: {
-        song_id: number;
-        songs: any; // Raw DB song object
-    }[];
 }
 
 export async function fetchPlaylistById(playlistId: string, supabaseClient?: SupabaseClient<Database>): Promise<PlaylistWithSongs | null> {
@@ -33,7 +20,15 @@ export async function fetchPlaylistById(playlistId: string, supabaseClient?: Sup
 
     const { data, error } = await supabase
         .from("playlists")
-        .select("*, playlist_songs(song_id, songs(*))")
+        .select(`
+            *,
+            playlist_songs(
+                song_id,
+                songs(
+                    ${SONG_RELATIONAL_SELECT}
+                )
+            )
+        `)
         .eq("id", playlistId)
         .single();
 
@@ -49,11 +44,12 @@ export async function fetchPlaylistById(playlistId: string, supabaseClient?: Sup
     const validatedPlaylist = validateSafe(PlaylistSchema, data, null);
     if (!validatedPlaylist) return null;
 
-    const rawSongs = (data as any).playlist_songs
-        ?.map((item: any) => item.songs)
-        .filter(Boolean) || [];
+    const rawSongs = (data.playlist_songs as unknown as { songs: RawSongData }[])
+        ?.map((item) => item.songs)
+        .filter((s): s is RawSongData => !!s) || [];
 
-    const validatedSongs = validateArraySafe(SongSchema, rawSongs);
+    const mappedSongs = rawSongs.map(mapRelationalSong).filter((s): s is Song => !!s);
+    const validatedSongs = validateArraySafe(SongSchema, mappedSongs);
 
     return {
         ...validatedPlaylist,
@@ -74,10 +70,20 @@ export async function fetchUserPlaylists(
         return [];
     }
 
+    const playlistSelect = `
+        *,
+        playlist_songs(
+            song_id,
+            songs(
+                ${SONG_RELATIONAL_SELECT}
+            )
+        )
+    `;
+
     // Fetch owned playlists
     const query = supabase
         .from("playlists")
-        .select("*, playlist_songs(song_id, songs(*))")
+        .select(playlistSelect)
         .eq("user_id", userId);
 
     const { data: ownedData, error: ownedError } = await query.order("created_at", { ascending: false });
@@ -87,7 +93,12 @@ export async function fetchUserPlaylists(
         return [];
     }
 
-    let allPlaylistsRaw = (ownedData as any[]) || [];
+    interface RawPlaylistWithSongsData {
+        playlist_songs: { songs: RawSongData }[];
+        [key: string]: unknown;
+    }
+
+    let allPlaylistsRaw = (ownedData as unknown as RawPlaylistWithSongsData[]) || [];
 
     // Fetch collaborative playlists
     if (includeCollaborative) {
@@ -103,12 +114,12 @@ export async function fetchUserPlaylists(
             if (playlistIds.length > 0) {
                 const { data: collabPlaylists, error: playlistError } = await supabase
                     .from("playlists")
-                    .select("*, playlist_songs(song_id, songs(*))")
+                    .select(playlistSelect)
                     .in("id", playlistIds)
                     .order("created_at", { ascending: false });
 
                 if (!playlistError && collabPlaylists) {
-                    allPlaylistsRaw = [...allPlaylistsRaw, ...(collabPlaylists as any[])];
+                    allPlaylistsRaw = [...allPlaylistsRaw, ...(collabPlaylists as unknown as RawPlaylistWithSongsData[])];
                 }
             }
         }
@@ -120,10 +131,11 @@ export async function fetchUserPlaylists(
         if (!validatedPlaylist) return null;
 
         const rawSongs = playlistRaw.playlist_songs
-            ?.map((item: any) => item.songs)
-            .filter(Boolean) || [];
+            ?.map((item) => item.songs)
+            .filter((s): s is RawSongData => !!s) || [];
         
-        const validatedSongs = validateArraySafe(SongSchema, rawSongs);
+        const mappedSongs = rawSongs.map(mapRelationalSong).filter((s): s is Song => !!s);
+        const validatedSongs = validateArraySafe(SongSchema, mappedSongs);
 
         return {
             ...validatedPlaylist,
@@ -178,7 +190,9 @@ export async function fetchPlaylistSongsWithAuthors(
         .from("playlist_songs")
         .select(`
             *,
-            song:songs(*),
+            song:songs(
+                ${SONG_RELATIONAL_SELECT}
+            ),
             added_by_user:users!playlist_songs_added_by_fkey(id, full_name, avatar_url, gender, dateOfBirth)
         `)
         .eq("playlist_id", playlistId)
@@ -192,7 +206,10 @@ export async function fetchPlaylistSongsWithAuthors(
     if (!data) return [];
 
     return data.map(item => {
-        const validatedSong = validateSafe(SongSchema, item.song, null);
+        const mappedSong = mapRelationalSong(item.song as unknown as RawSongData);
+        if (!mappedSong) return null;
+        
+        const validatedSong = validateSafe(SongSchema, mappedSong, null);
         if (!validatedSong) return null;
 
         const validatedUser = validateSafe(UserDetailsSchema, item.added_by_user, null);

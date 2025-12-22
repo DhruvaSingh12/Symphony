@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { Song } from "@/types";
 import SongRow from "./SongRow";
@@ -10,6 +8,7 @@ import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { toast } from "react-hot-toast";
 import { ListMusic } from "lucide-react";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { SONG_RELATIONAL_SELECT, mapRelationalSong } from "@/lib/api/songs";
 
 const QueueModal = () => {
     const { isOpen, onClose } = useQueueModal();
@@ -64,7 +63,7 @@ const QueueModal = () => {
 
                     const { data, error } = await supabaseClient
                         .from('songs')
-                        .select('*')
+                        .select(SONG_RELATIONAL_SELECT)
                         .in('id', uniqueIds);
 
                     if (error) {
@@ -73,19 +72,7 @@ const QueueModal = () => {
                     }
 
                     if (data) {
-                        const mappedSongs: Song[] = data.map(item => ({
-                            id: item.id,
-                            user_id: item.user_id,
-                            author: item.artist?.[0] ?? null,
-                            artist: item.artist ?? [],
-                            title: item.title,
-                            song_path: item.song_path,
-                            image_path: item.image_path,
-                            created_at: item.created_at,
-                            updated_at: item.created_at,
-                            album: item.album,
-                            duration: item.duration
-                        }));
+                        const mappedSongs = data.map(mapRelationalSong).filter((s): s is Song => !!s);
 
                         // Map back to sections
                         if (activeId) {
@@ -93,14 +80,13 @@ const QueueModal = () => {
                             setCurrentSong(current || null);
                         }
 
-                        const qSongs = queueIds.map(id => mappedSongs.find(s => s.id === id)).filter(Boolean) as Song[];
+                        const qSongs = queueIds.map(id => mappedSongs.find(s => s.id === id)).filter((s): s is Song => !!s);
                         setQueueSongs(qSongs);
 
-                        const nSongs = nextUpIds.map(id => mappedSongs.find(s => s.id === id)).filter(Boolean) as Song[];
+                        const nSongs = nextUpIds.map(id => mappedSongs.find(s => s.id === id)).filter((s): s is Song => !!s);
                         setNextUpSongs(nSongs);
                     }
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                } catch (_error) {
+                } catch (error) {
                     toast.error("Something went wrong");
                 } finally {
                     setIsLoading(false);
@@ -175,12 +161,12 @@ const QueueModal = () => {
                                     <div className="flex flex-col opacity-80">
                                         {nextUpSongs.map((song, index) => {
                                             // Correct index relative to context
-                                            const startIdx = (player.ids.findIndex(id => id === player.activeId) || 0) + 1;
+                                            const currentIdx = player.ids.indexOf(player.activeId!) || 0;
                                             return (
                                                 <div key={song.id} className="border-b border-border/50 last:border-b-0">
                                                     <SongRow
                                                         song={song}
-                                                        index={startIdx + index + 1}
+                                                        index={currentIdx + index + 1}
                                                         onPlay={onPlay}
                                                         showAlbum={false}
                                                         showArtist={true}

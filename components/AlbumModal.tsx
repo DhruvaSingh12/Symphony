@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { Song } from "@/types";
 import SongRow from "./SongRow";
@@ -10,6 +8,7 @@ import useAlbumModal from "@/hooks/ui/useAlbumModal";
 import { useSupabaseClient } from "@/providers/SupabaseProvider";
 import { toast } from "react-hot-toast";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { mapRelationalSong } from "@/lib/api/songs";
 
 const AlbumModal = () => {
   const { isOpen, onClose, albumName } = useAlbumModal();
@@ -24,10 +23,15 @@ const AlbumModal = () => {
       const fetchSongs = async () => {
         setIsLoading(true);
         try {
+          // Filter songs where the joined album title matches albumName
           const { data, error } = await supabaseClient
             .from('songs')
-            .select('*')
-            .eq('album', albumName)
+            .select(`
+                *,
+                album:album_id!inner(*),
+                song_artists(artists(*))
+            `)
+            .eq('album.title', albumName)
             .order('id', { ascending: true });
 
           if (error) {
@@ -36,24 +40,10 @@ const AlbumModal = () => {
           }
 
           if (data) {
-            const mappedSongs: Song[] = data.map(item => ({
-              id: item.id,
-              user_id: item.user_id,
-              author: item.artist?.[0] ?? null,
-              artist: item.artist ?? [],
-              title: item.title,
-              song_path: item.song_path,
-              image_path: item.image_path,
-              created_at: item.created_at,
-              updated_at: item.created_at,
-              album: item.album,
-              duration: item.duration
-            }));
+            const mappedSongs = data.map(mapRelationalSong).filter((s): s is Song => !!s);
             setSongs(mappedSongs);
           }
-        }
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        catch (_error) {
+        } catch (error) {
           toast.error("Something went wrong");
         } finally {
           setIsLoading(false);

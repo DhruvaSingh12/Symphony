@@ -2,15 +2,15 @@ import { toast } from "react-hot-toast";
 
 export interface AppError {
     message: string;
-    details?: any;
+    details?: unknown;
     code?: string;
 }
 
-export const handleError = (error: any, customMessage?: string) => {
+export const handleError = (error: unknown, customMessage?: string) => {
     console.error("Application Error:", error);
 
     const message = customMessage || 
-        (typeof error === 'string' ? error : error?.message) || 
+        (typeof error === 'string' ? error : (error as any)?.message) || 
         "An unexpected error occurred. Please try again.";
 
     toast.error(message);
@@ -24,7 +24,7 @@ export const handleError = (error: any, customMessage?: string) => {
 export const handleAsync = async <T>(
     promise: Promise<T>,
     customMessage?: string
-): Promise<[T | null, any]> => {
+): Promise<[T | null, unknown]> => {
     try {
         const data = await promise;
         return [data, null];

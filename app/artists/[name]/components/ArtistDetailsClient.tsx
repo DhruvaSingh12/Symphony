@@ -37,11 +37,10 @@ const ArtistDetailsClient: React.FC<ArtistDetailsClientProps> = ({ artistName, s
         if (!songs) return [];
         const artistsSet = new Set<string>();
         songs.forEach((song) => {
-            if (song.artist) {
-                const songArtists = Array.isArray(song.artist) ? song.artist : [song.artist];
-                songArtists.forEach((a) => {
-                    if (a !== artistName) {
-                        artistsSet.add(a);
+            if (song.artists) {
+                song.artists.forEach((artist) => {
+                    if (artist.name !== artistName) {
+                        artistsSet.add(artist.name);
                     }
                 });
             }
@@ -53,11 +52,11 @@ const ArtistDetailsClient: React.FC<ArtistDetailsClientProps> = ({ artistName, s
         if (!songs) return {};
         const groups: Record<string, Song[]> = {};
         songs.forEach(song => {
-            const albumName = song.album || "Singles";
-            if (!groups[albumName]) {
-                groups[albumName] = [];
+            const albumTitle = song.album?.title || "Singles";
+            if (!groups[albumTitle]) {
+                groups[albumTitle] = [];
             }
-            groups[albumName].push(song);
+            groups[albumTitle].push(song);
         });
         return groups;
     }, [songs]);

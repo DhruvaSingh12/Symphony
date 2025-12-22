@@ -13,16 +13,16 @@ const SearchInput = () => {
     const searchParams = useSearchParams();
 
     // Initialize with URL query if available
-    const [query, setQuery] = useState<string>(searchParams.get("query") || "");
+    const urlQuery = searchParams.get("query") || "";
+    const [prevUrlQuery, setPrevUrlQuery] = useState(urlQuery);
+    const [query, setQuery] = useState<string>(urlQuery);
     const debouncedQuery = useDebounce<string>(query, 500);
 
-    // Sync input with URL if URL changes (e.g. browser back button)
-    useEffect(() => {
-        const urlQuery = searchParams.get("query") || "";
-        if (urlQuery !== query) {
-            setQuery(urlQuery);
-        }
-    }, [searchParams]);
+    // Sync input with URL if URL changes
+    if (urlQuery !== prevUrlQuery) {
+        setPrevUrlQuery(urlQuery);
+        setQuery(urlQuery);
+    }
 
     useEffect(() => {
         const url = qs.stringifyUrl({

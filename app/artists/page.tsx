@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import ArtistContent from "./components/ArtistContent";
 import Header from "@/components/Header";
 import { Card } from "@/components/ui/card";
-import { fetchArtists } from "@/lib/api/songs";
+import { fetchArtistsWithStats } from "@/lib/api/songs";
 
 export const metadata: Metadata = {
     title: "Artists | Quivery",
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export const revalidate = 1800;
 
 const ArtistsPage = async () => {
-    const artists = await fetchArtists();
+    const artists = await fetchArtistsWithStats();
 
     return (
         <div className="h-full w-full flex flex-col overflow-hidden">

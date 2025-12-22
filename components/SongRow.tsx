@@ -61,11 +61,7 @@ const SongRow: React.FC<SongRowProps> = ({
   const addedByAvatarUrl = useLoadAvatar(addedBy || null);
   const initials = (song.title || "?").slice(0, 2).toUpperCase();
   const router = useRouter();
-  const artists = song.artist
-    ? Array.isArray(song.artist)
-      ? song.artist
-      : [song.artist]
-    : [];
+  const artists = song.artists || [];
 
   // Auth & Like Logic
   const authModal = useAuthModal();
@@ -125,9 +121,10 @@ const SongRow: React.FC<SongRowProps> = ({
     router.push(`/artists/${encodeURIComponent(artistName)}`);
   };
 
-  const handleAlbumClick = () => {
-    if (song.album) {
-      albumModal.onOpen(song.album);
+  const handleAlbumClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (song.album?.title) {
+      albumModal.onOpen(song.album.title);
     }
   };
 
@@ -163,7 +160,7 @@ const SongRow: React.FC<SongRowProps> = ({
             {song.title}
           </p>
           <p className="truncate text-xs text-muted-foreground">
-            {song.artist || "Unknown Artist"}
+            {artists.map(a => a.name).join(", ") || "Unknown Artist"}
           </p>
         </div>
 
@@ -240,9 +237,9 @@ const SongRow: React.FC<SongRowProps> = ({
               <span key={artistIndex}>
                 <span
                   className="hover:underline cursor-pointer hover:text-foreground transition"
-                  onClick={(e) => handleArtistClick(e, artist)}
+                  onClick={(e) => handleArtistClick(e, artist.name)}
                 >
-                  {artist}
+                  {artist.name}
                 </span>
                 {artistIndex < artists.length - 1 && ", "}
               </span>
@@ -263,15 +260,15 @@ const SongRow: React.FC<SongRowProps> = ({
                   <span>
                     <span
                       className="hover:underline cursor-pointer hover:text-foreground transition"
-                      onClick={(e) => handleArtistClick(e, artist)}
+                      onClick={(e) => handleArtistClick(e, artist.name)}
                     >
-                      {artist}
+                      {artist.name}
                     </span>
                     {artistIndex < artists.length - 1 && ", "}
                   </span>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p className="text-xs">View more by {artist}.</p>
+                  <p className="text-xs">View more by {artist.name}.</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -298,11 +295,11 @@ const SongRow: React.FC<SongRowProps> = ({
                     className="text-sm text-muted-foreground hover:text-foreground hover:underline cursor-pointer truncate"
                     onClick={handleAlbumClick}
                   >
-                    {song.album}
+                    {song.album.title}
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{song.album}</p>
+                  <p>{song.album.title}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -366,7 +363,7 @@ const SongRow: React.FC<SongRowProps> = ({
 
             <DropdownMenuSeparator />
 
-            {song.album && (
+            {song.album?.title && (
               <DropdownMenuItem
                 onClick={handleAlbumClick}
                 className="cursor-pointer"
@@ -385,11 +382,11 @@ const SongRow: React.FC<SongRowProps> = ({
                 {artists.map((artist, i) => (
                   <DropdownMenuItem
                     key={i}
-                    onClick={(e) => handleArtistClick(e, artist)}
+                    onClick={(e) => handleArtistClick(e, artist.name)}
                     className="cursor-pointer"
                   >
                     <User className="md:mr-2 mr-1 md:h-4 md:w-4 h-3 w-3" />
-                    {artist}
+                    {artist.name}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuSubContent>

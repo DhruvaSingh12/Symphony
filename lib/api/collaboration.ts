@@ -2,7 +2,7 @@ import { getClient } from "./client";
 import { PlaylistCollaborator } from "@/types";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/types_db";
-import { PlaylistCollaboratorSchema, UserDetailsSchema, validateArraySafe, validateSafe } from "@/lib/validation";
+import { PlaylistCollaboratorSchema, UserDetailsSchema, validateSafe } from "@/lib/validation";
 
 // Remove all collaborators from a playlist (used when disabling collaboration)
 export async function removeAllCollaborators(
@@ -182,7 +182,7 @@ export async function getCollaborators(
     }
 
     // Fetch user details separately to avoid RLS recursion
-    const userIds = data.map((c: any) => c.user_id).filter(Boolean);
+    const userIds = data.map((c) => c.user_id).filter((id): id is string => !!id);
     
     if (userIds.length === 0) {
         return data as PlaylistCollaborator[];
@@ -194,8 +194,8 @@ export async function getCollaborators(
         .in("id", userIds);
 
     // Map collaborators with their user details
-    const collabs = data.map((item: any) => {
-        const userRaw = users?.find((u: any) => u.id === item.user_id);
+    const collabs = data.map((item) => {
+        const userRaw = users?.find((u) => u.id === item.user_id);
         const validatedUser = validateSafe(UserDetailsSchema, userRaw, null);
         
         return validateSafe(PlaylistCollaboratorSchema, {

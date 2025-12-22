@@ -56,7 +56,7 @@ const FullScreenPlayer: React.FC<FullScreenPlayerProps> = ({
         }
     };
 
-    const artists = song.artist ? (Array.isArray(song.artist) ? song.artist : [song.artist]) : [];
+    const artists = song.artists || [];
 
     // Additional skip controls
     const skipForward = () => {
@@ -125,15 +125,15 @@ const FullScreenPlayer: React.FC<FullScreenPlayerProps> = ({
                                     <span key={artistIndex} className="inline-flex">
                                         <span
                                             className="hover:text-foreground transition cursor-pointer hover:underline"
-                                            onClick={(e) => handleArtistClick(e, artist)}
+                                            onClick={(e) => handleArtistClick(e, artist.name)}
                                         >
-                                            {artist}
+                                            {artist.name}
                                         </span>
                                         {artistIndex < artists.length - 1 && <span>, </span>}
                                     </span>
                                 ))
                             ) : (
-                                <span>{song.artist || "Unknown Artist"}</span>
+                                <span>Unknown Artist</span>
                             )}
                         </p>
                     </div>

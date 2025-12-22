@@ -19,7 +19,7 @@ const MediaItem: React.FC<MediaItemProps> = ({ data, onClick, className }) => {
     const player = usePlayer();
     const router = useRouter();
 
-    const artists = data.artist ? (Array.isArray(data.artist) ? data.artist : [data.artist]) : [];
+    const artists = data.artists || [];
 
     const handleClick = () => {
         if (onClick) {
@@ -61,9 +61,9 @@ const MediaItem: React.FC<MediaItemProps> = ({ data, onClick, className }) => {
                         <span key={index}>
                             <span
                                 className="hover:underline cursor-pointer hover:text-foreground transition"
-                                onClick={(e) => handleArtistClick(e, artist)}
+                                onClick={(e) => handleArtistClick(e, artist.name)}
                             >
-                                {artist}
+                                {artist.name}
                             </span>
                             {index < artists.length - 1 && ", "}
                         </span>

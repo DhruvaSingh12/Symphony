@@ -1,17 +1,29 @@
 import { z } from "zod";
 
+export const ArtistSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  created_at: z.string().nullish().transform(val => val ?? null),
+});
+
+export const AlbumSchema = z.object({
+  id: z.number(),
+  title: z.string(),
+  created_at: z.string().nullish().transform(val => val ?? null),
+});
+
 export const SongSchema = z.object({
   id: z.number(),
   user_id: z.string().nullish().transform(val => val ?? null),
-  artist: z.array(z.string()).nullish().transform(val => val ?? null)
-    .or(z.string().transform(s => [s]).nullish().transform(val => val ?? null)),
   title: z.string().nullish().transform(val => val ?? null),
   song_path: z.string().nullish().transform(val => val ?? null),
   image_path: z.string().nullish().transform(val => val ?? null),
   created_at: z.string().nullish().transform(val => val ?? null),
-  updated_at: z.string().nullish().transform(val => val ?? null),
-  album: z.string().nullish().transform(val => val ?? null),
+  album_id: z.number().nullish().transform(val => val ?? null),
   duration: z.number().nullish().transform(val => val ?? null),
+  // Relations (optional for partial fetches)
+  artists: z.array(ArtistSchema).nullish().transform(val => val ?? []),
+  album: AlbumSchema.nullish().transform(val => val ?? null),
 });
 
 export const UserDetailsSchema = z.object({

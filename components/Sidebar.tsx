@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import React, { useMemo } from "react";
 import { Heart, Home, Library, Search } from "lucide-react";
 import Link from "next/link";
-import { Song } from "@/types";
 import usePlayer from "@/hooks/ui/usePlayer";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";

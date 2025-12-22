@@ -1,14 +1,26 @@
+export interface Artist {
+    id: number;
+    name: string;
+    created_at: string | null;
+}
+
+export interface Album {
+    id: number;
+    title: string;
+    created_at: string | null;
+}
+
 export interface Song {
     id: number;
     user_id: string | null;
-    artist: string[] | null;
     title: string | null;
     song_path: string | null;
     image_path: string | null;
     created_at: string | null;
-    updated_at: string | null;
-    album: string | null;
+    album_id: number | null;
     duration: number | null;
+    artists: Artist[];
+    album: Album | null;
 }
 
 export interface UserDetails {

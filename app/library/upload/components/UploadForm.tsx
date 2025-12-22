@@ -7,39 +7,28 @@ import uniqid from 'uniqid';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/auth/useUser';
 import { useSupabaseClient } from '@/providers/SupabaseProvider';
-import { useAllSongs } from '@/hooks/queries/useAllSongs';
+import { getOrCreateArtist, getOrCreateAlbum } from '@/lib/api/songs';
+import { useArtists } from '@/hooks/queries/useArtists';
+import { useAlbums } from '@/hooks/queries/useAlbums';
 import Button from '@/components/Button';
 import MetadataForm from './MetadataForm';
 import FileSection from './FileSection';
 import PreviewSection from './PreviewSection';
 import { processImage, processAudio } from '@/lib/mediaUtils';
+import { Artist, Album } from '@/types';
 
 const UploadForm = () => {
     const [isLoading, setIsLoading] = useState(false);
     const { user } = useUser();
     const supabaseClient = useSupabaseClient();
     const router = useRouter();
-    const { data: allSongs } = useAllSongs();
 
-    const [selectedArtists, setSelectedArtists] = useState<string[]>([]);
-    const [selectedAlbum, setSelectedAlbum] = useState("");
+    const { data: artistsData } = useArtists();
+    const { data: albumsData } = useAlbums();
+
+    const [selectedArtists, setSelectedArtists] = useState<(Artist | { name: string })[]>([]);
+    const [selectedAlbum, setSelectedAlbum] = useState<Album | { title: string } | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
-
-    // Get unique existing artists and albums
-    const { uniqueArtists, uniqueAlbums } = useMemo(() => {
-        const artists = new Set<string>();
-        const albums = new Set<string>();
-
-        allSongs?.forEach(song => {
-            song.artist?.forEach(a => artists.add(a));
-            if (song.album) albums.add(song.album);
-        });
-
-        return {
-            uniqueArtists: Array.from(artists).sort(),
-            uniqueAlbums: Array.from(albums).sort()
-        };
-    }, [allSongs]);
 
     const { register, handleSubmit, reset, watch } = useForm<FieldValues>({
         defaultValues: {
@@ -123,14 +112,13 @@ const UploadForm = () => {
                 toast.success('Audio converted!', { id: 'process-audio' });
             } catch (error) {
                 console.error("Audio processing error:", error);
-                // FALLBACK: Use original file
                 toast.error("Audio optimization failed. Uploading original file instead.", { id: 'process-audio', duration: 4000 });
                 finalSongFile = rawSongFile;
             }
 
             const uniqueID = uniqid();
 
-            // Extract duration from the processed file
+            // Extract duration
             let songDuration: number | null = null;
             try {
                 songDuration = await new Promise<number>((resolve) => {
@@ -139,12 +127,10 @@ const UploadForm = () => {
                     audio.onloadedmetadata = () => {
                         window.URL.revokeObjectURL(audio.src);
                         const duration = Math.floor(audio.duration);
-                        if (isNaN(duration) || duration === 0) resolve(0); // Fallback
-                        else resolve(duration);
+                        resolve(isNaN(duration) || duration === 0 ? 0 : duration);
                     };
                     audio.onerror = () => {
                         window.URL.revokeObjectURL(audio.src);
-                        console.warn("Audio metadata load error");
                         resolve(0);
                     };
                     audio.src = URL.createObjectURL(finalSongFile);
@@ -153,7 +139,42 @@ const UploadForm = () => {
                 console.warn('Could not extract duration:', error);
             }
 
-            // Upload Song (Use finalSongFile)
+            // 3. Resolve Metadata (Artists & Album)
+            toast.loading('Resolving metadata...', { id: 'resolve-metadata' });
+
+            // Resolve Album
+            let albumId: number | null = null;
+            if ('id' in selectedAlbum) {
+                albumId = selectedAlbum.id;
+            } else {
+                const album = await getOrCreateAlbum(selectedAlbum.title, supabaseClient);
+                if (!album) {
+                    toast.error('Failed to create album', { id: 'resolve-metadata' });
+                    setIsLoading(false);
+                    return;
+                }
+                albumId = album.id;
+            }
+
+            // Resolve Artists
+            const resolvedArtistIds: number[] = [];
+            for (const artist of selectedArtists) {
+                if ('id' in artist) {
+                    resolvedArtistIds.push(artist.id);
+                } else {
+                    const createdArtist = await getOrCreateArtist(artist.name, supabaseClient);
+                    if (!createdArtist) {
+                        toast.error(`Failed to create artist: ${artist.name}`, { id: 'resolve-metadata' });
+                        setIsLoading(false);
+                        return;
+                    }
+                    resolvedArtistIds.push(createdArtist.id);
+                }
+            }
+            toast.success('Metadata resolved!', { id: 'resolve-metadata' });
+
+            // 4. Upload Files
+            // Upload Song
             const { data: songData, error: songError } = await supabaseClient
                 .storage
                 .from('songs')
@@ -167,7 +188,7 @@ const UploadForm = () => {
                 return toast.error(`Song upload failed: ${songError.message}`);
             }
 
-            // Upload Image (Use finalImageFile)
+            // Upload Image
             const { data: imageData, error: imageError } = await supabaseClient
                 .storage
                 .from('images')
@@ -179,24 +200,41 @@ const UploadForm = () => {
             if (imageError) {
                 setIsLoading(false);
                 return toast.error(`Image upload failed: ${imageError.message}`);
-            } // Continue...
+            }
 
-            // Insert Record
-            const { error: supabaseError } = await supabaseClient
+            // 5. Insert Record
+            const { data: insertedSong, error: supabaseError } = await supabaseClient
                 .from('songs')
                 .insert({
                     title: values.title,
-                    album: selectedAlbum,
-                    artist: selectedArtists,
+                    album_id: albumId,
                     image_path: imageData.path,
                     song_path: songData.path,
                     user_id: user.id,
                     duration: songDuration
-                });
+                })
+                .select()
+                .single();
 
             if (supabaseError) {
                 setIsLoading(false);
                 return toast.error(supabaseError.message);
+            }
+
+            // 6. Insert Junction Records (song_artists)
+            const songArtistRecords = resolvedArtistIds.map(artistId => ({
+                song_id: insertedSong.id,
+                artist_id: artistId
+            }));
+
+            const { error: junctionError } = await supabaseClient
+                .from('song_artists')
+                .insert(songArtistRecords);
+
+            if (junctionError) {
+                console.error("Junction error:", junctionError);
+                toast.error("Failed to link artists to song");
+                // Note: Song still uploaded, but artists might be missing.
             }
 
             router.push('/library');
@@ -204,9 +242,10 @@ const UploadForm = () => {
             toast.success('Track uploaded successfully');
             reset();
             setSelectedArtists([]);
-            setSelectedAlbum("");
+            setSelectedAlbum(null);
 
-        } catch {
+        } catch (error) {
+            console.error("Upload error:", error);
             toast.error("Something went wrong");
         } finally {
             setIsLoading(false);
@@ -223,8 +262,8 @@ const UploadForm = () => {
                     setSelectedArtists={setSelectedArtists}
                     selectedAlbum={selectedAlbum}
                     setSelectedAlbum={setSelectedAlbum}
-                    uniqueArtists={uniqueArtists}
-                    uniqueAlbums={uniqueAlbums}
+                    uniqueArtists={artistsData || []}
+                    uniqueAlbums={albumsData || []}
                 />
                 <FileSection
                     register={register}

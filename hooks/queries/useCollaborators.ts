@@ -72,25 +72,25 @@ export const usePendingInvitations = () => {
                 console.error("Error fetching inviters:", invitersResult.error);
             }
 
-            const result = (data as any[]).map(item => {
-                const playlist = playlistsResult.data?.find((p: any) => p.id === item.playlist_id);
-                const inviter = invitersResult.data?.find((u: any) => u.id === item.invited_by);
+            const result = (data || []).map(item => {
+                const playlist = playlistsResult.data?.find((p) => p.id === item.playlist_id);
+                const inviter = invitersResult.data?.find((u) => u.id === item.invited_by);
 
                 const mappedPlaylist: Playlist | null = playlist ? {
-                    id: (playlist as any).id,
-                    user_id: (playlist as any).user_id,
-                    name: (playlist as any).name,
-                    description: (playlist as any).description || null,
-                    image_path: (playlist as any).image_path || null,
-                    created_at: (playlist as any).created_at || null,
+                    id: (playlist as { id: string }).id,
+                    user_id: (playlist as { user_id: string }).user_id,
+                    name: (playlist as { name: string }).name,
+                    description: (playlist as { description?: string | null }).description || null,
+                    image_path: (playlist as { image_path?: string | null }).image_path || null,
+                    created_at: (playlist as { created_at?: string | null }).created_at || null,
                 } : null;
 
                 const mappedUser: UserDetails | null = inviter ? {
-                    id: (inviter as any).id,
-                    full_name: (inviter as any).full_name || null,
-                    avatar_url: (inviter as any).avatar_url || null,
-                    gender: (inviter as any).gender || null,
-                    dateOfBirth: (inviter as any).dateOfBirth || null,
+                    id: inviter.id,
+                    full_name: inviter.full_name || null,
+                    avatar_url: inviter.avatar_url || null,
+                    gender: inviter.gender || null,
+                    dateOfBirth: inviter.dateOfBirth || null,
                 } : null;
 
                 return {
@@ -150,20 +150,20 @@ export const useCollaborativePlaylists = () => {
                 .select("*")
                 .in("id", playlistIds);
 
-            const ownerIds = playlists?.map((p: any) => p.user_id).filter(Boolean) || [];
+            const ownerIds = playlists?.map((p) => p.user_id).filter((id): id is string => !!id) || [];
             const { data: owners } = ownerIds.length > 0
                 ? await supabaseClient.from("users").select("id, full_name, avatar_url, gender, dateOfBirth").in("id", ownerIds)
                 : { data: [] };
 
             return collaborators.map((item: PlaylistCollaborator) => {
-                const playlist = playlists?.find((p: any) => p.id === item.playlist_id);
-                const owner = owners?.find((o: any) => o.id === playlist?.user_id);
+                const playlist = playlists?.find((p) => p.id === item.playlist_id);
+                const owner = owners?.find((o) => o.id === playlist?.user_id);
                 const ownerUser: UserDetails | null = owner ? {
-                    id: (owner as any).id,
-                    full_name: (owner as any).full_name || null,
-                    avatar_url: (owner as any).avatar_url || null,
-                    gender: (owner as any).gender || null,
-                    dateOfBirth: (owner as any).dateOfBirth || null,
+                    id: owner.id,
+                    full_name: owner.full_name || null,
+                    avatar_url: owner.avatar_url || null,
+                    gender: owner.gender || null,
+                    dateOfBirth: owner.dateOfBirth || null,
                 } : null;
 
                 return {

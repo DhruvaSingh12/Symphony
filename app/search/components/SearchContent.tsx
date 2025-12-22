@@ -23,11 +23,30 @@ const SearchContent: React.FC<SearchContentProps> = ({ songs, query }) => {
     const [expandedArtists, setExpandedArtists] = useState(false);
     const router = useRouter();
 
-    const calculateMatchScore = (text: string, query: string) => {
+    const calculateMatchScore = (song: Song, query: string) => {
+        const q = query.toLowerCase();
+        let maxScore = 0;
+
+        // Title matches are highest priority
+        const titleScore = song.title?.toLowerCase().includes(q) ? (song.title.toLowerCase() === q ? 10 : 5) : 0;
+        maxScore = Math.max(maxScore, titleScore);
+
+        // Artist matches
+        const artistMatch = song.artists?.some(a => a.name.toLowerCase().includes(q));
+        if (artistMatch) maxScore = Math.max(maxScore, 4);
+
+        // Album matches
+        const albumMatch = song.album?.title?.toLowerCase().includes(q);
+        if (albumMatch) maxScore = Math.max(maxScore, 3);
+
+        return maxScore;
+    };
+
+    const calculateTextMatchScore = (text: string, query: string) => {
         const t = text.toLowerCase();
         const q = query.toLowerCase();
-        if (t === q) return 3;
-        if (t.startsWith(q)) return 2;
+        if (t === q) return 10;
+        if (t.startsWith(q)) return 5;
         if (t.includes(q)) return 1;
         return 0;
     };
@@ -35,17 +54,16 @@ const SearchContent: React.FC<SearchContentProps> = ({ songs, query }) => {
     const matchingArtists = useMemo(() => {
         const artistsSet = new Set<string>();
         songs.forEach(song => {
-            if (song.artist) {
-                const songArtists = Array.isArray(song.artist) ? song.artist : [song.artist];
-                songArtists.forEach(a => {
-                    if (a.toLowerCase().includes(query.toLowerCase())) {
-                        artistsSet.add(a);
+            if (song.artists) {
+                song.artists.forEach(artist => {
+                    if (artist.name.toLowerCase().includes(query.toLowerCase())) {
+                        artistsSet.add(artist.name);
                     }
                 });
             }
         });
         return Array.from(artistsSet).sort((a, b) => {
-            return calculateMatchScore(b, query) - calculateMatchScore(a, query);
+            return calculateTextMatchScore(b, query) - calculateTextMatchScore(a, query);
         });
     }, [songs, query]);
 
@@ -53,22 +71,22 @@ const SearchContent: React.FC<SearchContentProps> = ({ songs, query }) => {
     const matchingAlbums = useMemo(() => {
         const groups: Record<string, Song[]> = {};
         songs.forEach(song => {
-            if (song.album) {
-                if (!groups[song.album]) {
-                    groups[song.album] = [];
+            if (song.album?.title) {
+                if (!groups[song.album.title]) {
+                    groups[song.album.title] = [];
                 }
-                groups[song.album].push(song);
+                groups[song.album.title].push(song);
             }
         });
         return groups;
     }, [songs]);
 
     const sortedSongs = useMemo(() => {
-        return [...songs].sort((a, b) => {
-            const scoreA = calculateMatchScore(a.title || "", query);
-            const scoreB = calculateMatchScore(b.title || "", query);
-            return scoreB - scoreA;
-        });
+        return [...songs]
+            .map(song => ({ song, score: calculateMatchScore(song, query) }))
+            .filter(item => item.score > 0)
+            .sort((a, b) => b.score - a.score)
+            .map(item => item.song);
     }, [songs, query]);
 
     const displayedSongs = useMemo(() => {
@@ -77,8 +95,8 @@ const SearchContent: React.FC<SearchContentProps> = ({ songs, query }) => {
 
     const displayedAlbums = useMemo(() => {
         const entries = Object.entries(matchingAlbums).sort(([aName], [bName]) => {
-            const scoreA = calculateMatchScore(aName, query);
-            const scoreB = calculateMatchScore(bName, query);
+            const scoreA = calculateTextMatchScore(aName, query);
+            const scoreB = calculateTextMatchScore(bName, query);
             return scoreB - scoreA;
         });
         return expandedAlbums ? entries : entries.slice(0, 6);
