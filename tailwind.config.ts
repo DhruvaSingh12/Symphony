@@ -76,11 +76,17 @@ const config: Config = {
 				'0%': { transform: 'translateX(100%)' },
 				'100%': { transform: 'translateX(0%)' },
 			},
+			'progress-indeterminate': {
+				'0%': { transform: 'translateX(-100%)' },
+				'50%': { transform: 'translateX(100%)' },
+				'100%': { transform: 'translateX(-100%)' },
+			},
 		},
 		animation: {
 			'now-playing': 'now-playing 0.8s ease-in-out infinite',
 			marquee: 'marquee 15s linear infinite',
 			marquee2: 'marquee2 15s linear infinite',
+			'progress-indeterminate': 'progress-indeterminate 2s linear infinite',
 		},
   	}
   },

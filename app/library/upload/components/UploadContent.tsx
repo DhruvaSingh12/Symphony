@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/hooks/auth/useUser";
 import useAuthModal from "@/hooks/ui/useAuthModal";
-import UploadForm from "./UploadForm";
+import BatchUploadForm from "./BatchUploadForm";
 import { Card } from "@/components/ui/card";
 
 const UploadContent = () => {
@@ -25,7 +25,7 @@ const UploadContent = () => {
 
     return (
         <Card className="border-border h-full flex flex-col overflow-auto scrollbar-hide relative bg-card/60 p-4 md:p-6 overflow-y-auto">
-            <UploadForm />
+            <BatchUploadForm />
         </Card>
     );
 }

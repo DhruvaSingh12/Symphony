@@ -21,6 +21,7 @@ export const SongSchema = z.object({
   created_at: z.string().nullish().transform(val => val ?? null),
   album_id: z.number().nullish().transform(val => val ?? null),
   duration: z.number().nullish().transform(val => val ?? null),
+  lyrics_path: z.string().nullish().transform(val => val ?? null),
   // Relations (optional for partial fetches)
   artists: z.array(ArtistSchema).nullish().transform(val => val ?? []),
   album: AlbumSchema.nullish().transform(val => val ?? null),

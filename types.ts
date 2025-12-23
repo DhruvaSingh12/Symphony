@@ -19,6 +19,7 @@ export interface Song {
     created_at: string | null;
     album_id: number | null;
     duration: number | null;
+    lyrics_path: string | null;
     artists: Artist[];
     album: Album | null;
 }

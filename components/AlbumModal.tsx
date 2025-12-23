@@ -27,7 +27,15 @@ const AlbumModal = () => {
           const { data, error } = await supabaseClient
             .from('songs')
             .select(`
-                *,
+                id,
+                user_id,
+                title,
+                song_path,
+                image_path,
+                lyrics_path,
+                created_at,
+                album_id,
+                duration,
                 album:album_id!inner(*),
                 song_artists(artists(*))
             `)

@@ -30,6 +30,7 @@ export interface RawSongData {
   title: string | null;
   song_path: string | null;
   image_path: string | null;
+  lyrics_path?: string | null;
   created_at: string | null;
   album_id: number | null;
   duration: number | null;
@@ -54,6 +55,7 @@ export const mapRelationalSong = (data: RawSongData): Song | null => {
     title: data.title,
     song_path: data.song_path,
     image_path: data.image_path,
+    lyrics_path: data.lyrics_path || null,
     created_at: data.created_at,
     album_id: data.album_id,
     duration: data.duration,
@@ -109,6 +111,7 @@ export async function fetchSongsByQuery(query: string, limit: number = 50, supab
         title,
         song_path,
         image_path,
+        lyrics_path,
         created_at,
         album_id,
         duration,

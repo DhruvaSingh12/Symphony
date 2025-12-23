@@ -2,13 +2,17 @@ import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { toBlobURL } from "@ffmpeg/util";
 
 const AUDIO_CONFIG = {
-  OPUS_BITRATE: "64k",
-  AAC_BITRATE: "64k",
+  OPUS_BITRATE: "112k",
+  AAC_BITRATE: "112k",
   SAMPLE_RATE_OPUS: "48000",
-  SAMPLE_RATE_AAC: "44100",
+  SAMPLE_RATE_AAC: "44100", // Standard for AAC/MP4
   CHANNELS: "2",
   MAX_UPLOAD_MB: 50,
 };
+
+// Target specifications for "optimized" check
+const TARGET_BITRATE_BPS = 112 * 1024;
+const TARGET_SAMPLE_RATE = 48000;
 
 const CORE_VERSION = "0.12.4";
 const BASE_URL = `https://unpkg.com/@ffmpeg/core@${CORE_VERSION}/dist/umd`;
@@ -16,10 +20,17 @@ const BASE_URL = `https://unpkg.com/@ffmpeg/core@${CORE_VERSION}/dist/umd`;
 const createFFmpeg = async (): Promise<FFmpeg> => {
   const ffmpeg = new FFmpeg();
   
+  const coreURL = await toBlobURL(`${BASE_URL}/ffmpeg-core.js`, "text/javascript");
+  const wasmURL = await toBlobURL(`${BASE_URL}/ffmpeg-core.wasm`, "application/wasm");
+
   await ffmpeg.load({
-    coreURL: await toBlobURL(`${BASE_URL}/ffmpeg-core.js`, "text/javascript"),
-    wasmURL: await toBlobURL(`${BASE_URL}/ffmpeg-core.wasm`, "application/wasm"),
+    coreURL,
+    wasmURL,
   });
+
+  // Cleanup blob URLs to free memory
+  URL.revokeObjectURL(coreURL);
+  URL.revokeObjectURL(wasmURL);
 
   return ffmpeg;
 };
@@ -84,7 +95,7 @@ const encodeAAC = async (
   ]);
 };
 
-// Internal processing function for a single codec
+// Internal processing function for a single codec with optimization check
 const tryEncode = async (
   file: File,
   codec: 'opus' | 'aac'
@@ -93,10 +104,27 @@ const tryEncode = async (
   const uniqueId = crypto.randomUUID();
   const ext = codec === 'opus' ? 'opus' : 'm4a';
   const mime = codec === 'opus' ? 'audio/opus' : 'audio/aac';
-  const inputName = `input-${uniqueId}.${file.name.split(".").pop()}`;
+  const extension = file.name.split(".").pop();
+  const inputName = `input-${uniqueId}.${extension}`;
   const outputName = `output-${uniqueId}.${ext}`;
 
+  // Sanitize name for the final File object to avoid Storage errors
+  const sanitizedOriginalName = sanitizePath(file.name.replace(/\.[^/.]+$/, ""));
+  const finalFileName = `${sanitizedOriginalName}.${ext}`;
+
   try {
+    // 1. Check if file is already optimized (112k, 48k/44.1k, and correct format)
+    // For simplicity, we check if it's already an Opus/AAC file with similar bitrate
+    const isAlreadyTargetMime = file.type === mime;
+    const estimatedBitrate = (file.size * 8) / (durationToSeconds(file) || 1); // Simple estimation
+    const isAlreadyOptimized = isAlreadyTargetMime && 
+                               estimatedBitrate <= TARGET_BITRATE_BPS * 1.1; // 10% tolerance
+
+    if (isAlreadyOptimized) {
+      console.info(`Skipping conversion for ${file.name}, already optimized.`);
+      return file;
+    }
+
     ffmpeg = await createFFmpeg();
     
     await ffmpeg.writeFile(
@@ -111,7 +139,7 @@ const tryEncode = async (
     }
 
     const data = (await ffmpeg.readFile(outputName)) as Uint8Array;
-    return new File([data as any], replaceExt(file.name, ext), {
+    return new File([data as any], finalFileName, {
       type: mime,
     });
   } catch (err) {
@@ -128,9 +156,22 @@ const tryEncode = async (
   }
 };
 
+// Simple helper for bitrate estimation (not perfectly accurate without parsing)
+const durationToSeconds = (file: File): number => {
+  // We'll rely on the duration passed from metadata or a placeholder
+  // Since we don't have it here yet, this check is limited.
+  // In BatchUpload, we have it. Let's adjust to pass it.
+  return (file as any)._duration || 0; 
+};
+
 // AUDIO PROCESSOR (PRIMARY: OPUS, FALLBACK: AAC)
-export const processAudio = async (file: File): Promise<File> => {
+export const processAudio = async (file: File, duration?: number): Promise<File> => {
   validateAudioUpload(file);
+  
+  // Attach duration for tryEncode optimization check
+  if (duration !== undefined) {
+    (file as any)._duration = duration;
+  }
 
   // Try Opus
   const opusFile = await tryEncode(file, 'opus');
@@ -220,6 +261,15 @@ export const processImage = async (file: File): Promise<File> => {
 };
 
 // HELPERS
+export const sanitizePath = (path: string): string => {
+  // Replace illegal characters for Supabase Storage (e.g., emojis, parentheses, single quotes)
+  // We keep alphanumeric, hyphens, underscores, and dots.
+  return path
+    .replace(/[^\w\s\.-]/gi, '') // Remove everything except alphanumeric, spaces, dots, hyphens
+    .replace(/\s+/g, '_')        // Replace spaces with underscores
+    .trim();
+};
+
 const replaceExt = (name: string, ext: string) =>
   name.replace(/\.[^/.]+$/, `.${ext}`);
 
