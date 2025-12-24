@@ -56,6 +56,9 @@ interface PlayerStore {
   // New session tracking for forcing player remounts
   playbackId: number;
   play: (ids: number[], activeId: number, context?: PlayContext, contextId?: string) => void;
+
+  seekTo: number | null;
+  setSeekTo: (time: number | null) => void;
 }
 
 const usePlayer = create<PlayerStore>()(
@@ -112,6 +115,8 @@ const usePlayer = create<PlayerStore>()(
       setVolume: (volume: number) => set({ volume }),
       currentTime: 0,
       setCurrentTime: (time: number) => set({ currentTime: time }),
+      seekTo: null,
+      setSeekTo: (time: number | null) => set({ seekTo: time }),
     }),
     {
       name: 'quivery-player-storage',

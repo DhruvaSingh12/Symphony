@@ -105,6 +105,7 @@ const SidebarSongInfo = () => {
                                 isPlaying={player.isPlaying}
                                 compact={true}
                                 className="py-6 scrollbar-hide"
+                                onSeek={(time) => player.setSeekTo(time)}
                             />
                         </div>
                     </div>

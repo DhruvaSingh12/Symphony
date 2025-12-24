@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import { Song } from "@/types";
 import usePlayerModal from "@/hooks/ui/usePlayerModal";
 import usePlaylistModal from "@/hooks/ui/usePlaylistModal";
@@ -50,6 +50,13 @@ const FullScreenPlayer: React.FC<FullScreenPlayerProps> = ({
     const { data: lyrics } = useLyrics(song.lyrics_path || null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+    // Reset scroll to top when player opens
+    useEffect(() => {
+        if (playerModal.isOpen) {
+            scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+        }
+    }, [playerModal.isOpen]);
+
     const VolumeIcon = volume === 0 ? VolumeX : Volume2;
 
     const toggleMute = () => {
@@ -97,7 +104,7 @@ const FullScreenPlayer: React.FC<FullScreenPlayerProps> = ({
             ref={scrollContainerRef}
             className="fixed inset-0 bg-background z-[100] md:hidden overflow-y-auto snap-y snap-mandatory scrollbar-hide scroll-smooth"
         >
-            {/* Section 1: Main Player (100vh) */}
+            {/* Main Player (100vh) */}
             <div className="flex flex-col h-[100dvh] w-full shrink-0 snap-start animate-in slide-in-from-bottom duration-300">
                 {/* Header */}
                 <div className="flex items-center justify-center pt-[env(safe-area-inset-top,24px)] pb-2 px-6 shrink-0">
@@ -307,11 +314,7 @@ const FullScreenPlayer: React.FC<FullScreenPlayerProps> = ({
                                     isPlaying={player.isPlaying}
                                     compact={true}
                                     className="py-6 px-4 scrollbar-hide"
-                                    onSeek={(time) => {
-                                        if (audioRef.current) {
-                                            audioRef.current.currentTime = time;
-                                        }
-                                    }}
+                                    onSeek={(time) => player.setSeekTo(time)}
                                 />
                             </div>
 

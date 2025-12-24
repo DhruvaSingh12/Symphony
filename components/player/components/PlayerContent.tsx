@@ -210,6 +210,14 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
     };
   }, [audioRef, onPlayNext, isRepeat, setIsPlaying, duration, autoplay, player.ids, player.activeId, isPlaying]);
 
+  // Handle seeking from the global store
+  useEffect(() => {
+    if (player.seekTo !== null && audioRef.current) {
+      audioRef.current.currentTime = player.seekTo;
+      player.setSeekTo(null);
+    }
+  }, [player.seekTo, player.setSeekTo]);
+
   // Sync audio playback with global isPlaying state
   useEffect(() => {
     const audioElement = audioRef.current;
