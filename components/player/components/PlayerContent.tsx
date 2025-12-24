@@ -179,6 +179,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
     const handleTimeUpdate = () => {
       const current = audioElement.currentTime;
       setCurrentTime(current);
+      player.setCurrentTime(current);
     };
 
     const handleEnded = () => {

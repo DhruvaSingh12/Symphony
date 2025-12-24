@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import { extractMetadata } from '@/lib/metadata';
 import UploadItem from './UploadItem';
 import Button from '@/components/Button';
-import { FaPlus, FaCloudUploadAlt } from 'react-icons/fa';
+import { FaArrowUpFromBracket, FaCloudArrowUp, FaPlus } from 'react-icons/fa6';
 
 export interface BatchItem {
     id: string;
@@ -100,45 +100,58 @@ const BatchUploadForm = () => {
     }, [currentIndex, items.length, isUploading]);
 
     return (
-        <div className="flex flex-col h-full gap-y-6">
-            <div className="flex items-center justify-between">
-                <div className="flex gap-x-2">
+        <div className="flex flex-col h-full gap-y-2">
+            <div className="flex items-end justify-end">
+                <div className="flex items-center">
+                    {items.length > 0 && items.length < 10 && !isUploading && (
+                        <label className="px-4 py-2 border border-border bg-secondary text-secondary-foreground rounded-xl flex flex-row text-sm font-medium items-center gap-x-1 cursor-pointer hover:bg-secondary/80 transition mr-2">
+                            <FaPlus className="text-xs" /> Add
+                            <input
+                                type="file"
+                                multiple
+                                accept="audio/*,.lrc"
+                                className="hidden"
+                                onChange={onFilesSelected}
+                            />
+                        </label>
+                    )}
                     {items.length > 0 && (
                         <Button
                             disabled={isUploading}
                             onClick={handleUpload}
-                            className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-x-2"
+                            className="px-4 py-1 bg-foreground text-background rounded-xl flex flex-row text-base font-medium items-center gap-x-1"
                         >
-                            <FaCloudUploadAlt /> ({items.length})
+                            <FaArrowUpFromBracket /> {isUploading ? 'Uploading...' : 'Upload'} {items.length} {items.length === 1 ? 'track' : 'tracks'}
                         </Button>
                     )}
-
-                    <label className={`
-                        cursor-pointer bg-foreground hover:bg-foreground/80 text-background 
-                        px-2 py-1 rounded-full font-sm transition flex items-center gap-x-2
-                        ${items.length >= 10 ? 'opacity-50 cursor-not-allowed' : ''}
-                    `}>
-                        <FaPlus />
-                        {items.length === 0 ? "" : "More"}
-                        <input
-                            type="file"
-                            multiple
-                            accept="audio/*,.lrc"
-                            className="hidden"
-                            onChange={onFilesSelected}
-                            disabled={items.length >= 10 || isUploading}
-                        />
-                    </label>
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto pr-2 space-y-4 min-h-0">
+            <div className="flex-1 overflow-y-auto scrollbar-hide space-y-4 min-h-0">
                 {items.length === 0 ? (
-                    <label className="h-full flex flex-col items-center justify-center text-muted-foreground border-2 border-dashed border-border rounded-xl cursor-pointer hover:bg-secondary/20 transition-colors">
-                        <FaCloudUploadAlt size={48} className="mb-4 opacity-20" />
-                        <p className="font-medium">Drop your tracks here or click to browse</p>
-                        <p className="text-xs mt-1">Up to 10 songs + 10 .lrc files (Max 20 total)</p>
-                        <p className="text-xs opacity-60">Standard: 112kbps / 48kHz</p>
+                    <label className="group h-full flex flex-col items-center justify-center text-muted-foreground border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-foreground/50 transition-all duration-300">
+                        <FaCloudArrowUp size={48} className="mb-4 opacity-20 group-hover:opacity-60 group-hover:text-foreground transition-all duration-300" />
+                        <p className="font-medium opacity-60 group-hover:opacity-100 uppercase transition-opacity duration-300">Drop your tracks here or click to browse</p>
+                        <p className="text-sm opacity-60 group-hover:opacity-100 uppercase transition-opacity duration-300">Up to 10 songs + 10 lyric files</p>
+
+                        <div className="mt-8 grid grid-cols-2 gap-x-8 gap-y-3 text-[10px] uppercase tracking-widest opacity-80 group-hover:opacity-100 transition-opacity duration-300 max-w-[400px]">
+                            <div className="flex items-center gap-x-2">
+                                <span className="h-1 w-1 rounded-full" />
+                                Metadata Extraction
+                            </div>
+                            <div className="flex items-center gap-x-2">
+                                <span className="h-1 w-1 rounded-full" />
+                                112 kbps MP3 Encoding
+                            </div>
+                            <div className="flex items-center gap-x-2">
+                                <span className="h-1 w-1 rounded-full" />
+                                Lyric Auto-pairing
+                            </div>
+                            <div className="flex items-center gap-x-2">
+                                <span className="h-1 w-1 rounded-full" />
+                                Sequential Processing
+                            </div>
+                        </div>
                         <input
                             type="file"
                             multiple
@@ -148,7 +161,7 @@ const BatchUploadForm = () => {
                         />
                     </label>
                 ) : (
-                    <div className="grid grid-cols-1 gap-4">
+                    <div className="grid grid-cols-2 gap-2">
                         {items.map((item, index) => (
                             <UploadItem
                                 key={item.id}

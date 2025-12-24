@@ -6,34 +6,41 @@ import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useLikeSong, useIsLiked } from "@/hooks/mutations/useLikeSong";
-import { useLikedSongs } from "@/hooks/queries/useLikedSongs";
+import { useState } from "react";
+import { Song } from "@/types";
 
 interface LikeButtonProps {
     songId: number;
+    song?: Song;
     className?: string;
 }
 
 const LikeButton: React.FC<LikeButtonProps> = ({
     songId,
+    song,
     className
 }) => {
     const authModal = useAuthModal();
     const { user } = useUser();
+    const [isAnimate, setIsAnimate] = useState(false);
 
-    // Ensure liked songs are fetched and cached
-    useLikedSongs();
-
-    const isLiked = useIsLiked(songId);
+    const { data: isLiked } = useIsLiked(songId);
     const likeMutation = useLikeSong();
 
-    const handleLike = () => {
+    const handleLike = (e: React.MouseEvent) => {
+        e.stopPropagation();
+
         if (!user) {
             return authModal.onOpen();
         }
 
+        setIsAnimate(true);
+        setTimeout(() => setIsAnimate(false), 200);
+
         likeMutation.mutate({
             songId,
-            isCurrentlyLiked: isLiked
+            isCurrentlyLiked: !!isLiked,
+            song
         });
     };
 
@@ -43,11 +50,20 @@ const LikeButton: React.FC<LikeButtonProps> = ({
             onClick={handleLike}
             size="icon"
             variant="ghost"
-            className={cn("hover:opacity-75 transition rounded-full", className)}
+            className={cn(
+                "hover:opacity-75 transition rounded-full active:scale-90",
+                isAnimate && "scale-125",
+                className
+            )}
             aria-label={isLiked ? "Unlike" : "Like"}
             disabled={likeMutation.isPending}
         >
-            <Heart className={cn("md:h-5 md:w-5 h-4 w-4", isLiked ? "fill-primary text-primary" : "text-muted-foreground")} />
+            <Heart
+                className={cn(
+                    "md:h-5 md:w-5 h-4 w-4 transition-all duration-200",
+                    isLiked ? "fill-primary text-primary" : "text-muted-foreground"
+                )}
+            />
         </Button>
     );
 }

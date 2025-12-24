@@ -33,13 +33,24 @@ export function useSort<T>({ data, initialField = null, initialDirection = 'asc'
             if (typeof valA === 'string' && typeof valB === 'string') {
                 comparison = valA.localeCompare(valB);
             } else if (Array.isArray(valA) && Array.isArray(valB)) {
-                comparison = (valA[0] || '').toString().localeCompare((valB[0] || '').toString());
+                // Handle collections (like artists)
+                const firstA = valA[0];
+                const firstB = valB[0];
+                
+                if (firstA && firstB && typeof firstA === 'object' && 'name' in firstA && typeof firstB === 'object' && 'name' in firstB) {
+                    comparison = (firstA.name as string).localeCompare(firstB.name as string);
+                } else {
+                    comparison = (firstA || '').toString().localeCompare((firstB || '').toString());
+                }
             } else if (typeof valA === 'number' && typeof valB === 'number') {
                 comparison = valA - valB;
             } else if (valA instanceof Date && valB instanceof Date) {
                 comparison = valA.getTime() - valB.getTime();
+            } else if (valA && typeof valA === 'object' && 'title' in valA && valB && typeof valB === 'object' && 'title' in valB) {
+                // Handle objects with title (like album)
+                comparison = (valA.title as string).localeCompare(valB.title as string);
             } else {
-                comparison = String(valA).localeCompare(String(valB));
+                comparison = String(valA || '').localeCompare(String(valB || ''));
             }
 
             return sortDirection === 'asc' ? comparison : -comparison;

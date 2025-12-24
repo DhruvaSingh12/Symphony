@@ -24,7 +24,7 @@ const UploadContent = () => {
     }
 
     return (
-        <Card className="border-border h-full flex flex-col overflow-auto scrollbar-hide relative bg-card/60 p-4 md:p-6 overflow-y-auto">
+        <Card className="border-border h-full flex flex-col overflow-auto scrollbar-hide relative bg-card/60 p-3 md:p-4">
             <BatchUploadForm />
         </Card>
     );

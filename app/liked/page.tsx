@@ -25,7 +25,17 @@ const LikedPage = async () => {
 
   const songs = await fetchLikedSongs(supabase, 0, 50);
   const queryClient = getQueryClient();
-  queryClient.setQueryData(queryKeys.user.likedSongs(user.id), songs);
+
+  // Seed the liked songs query
+  queryClient.setQueryData(queryKeys.songs.liked(user.id), {
+    pages: [songs],
+    pageParams: [0]
+  });
+
+  // Seed individual status for better initial hydration
+  songs.forEach(song => {
+    queryClient.setQueryData(queryKeys.songs.likeStatus(user.id, song.id), true);
+  });
 
   return (
     <HydrateClient state={dehydrate(queryClient)}>

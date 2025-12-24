@@ -54,7 +54,7 @@ export interface PlaylistCollaborator {
     playlist_id: string;
     user_id: string;
     invited_by: string;
-    invited_at: string;
+    invited_at: string | null;
     accepted_at: string | null;
     status: 'pending' | 'accepted' | 'declined';
     created_at: string | null;

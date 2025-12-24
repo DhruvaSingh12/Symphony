@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useSupabaseClient } from '@/providers/SupabaseProvider';
 import { useUser } from '@/hooks/auth/useUser';
 import { queryKeys } from '@/lib/queryKeys';
@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 interface LikeSongParams {
   songId: number;
   isCurrentlyLiked: boolean;
+  song?: Song; // Optional song object for optimistic additions
 }
 
 export function useLikeSong() {
@@ -22,7 +23,6 @@ export function useLikeSong() {
       if (!user) throw new Error('User not authenticated');
 
       if (isCurrentlyLiked) {
-        // Unlike
         const { error } = await supabaseClient
           .from('liked_songs')
           .delete()
@@ -33,17 +33,6 @@ export function useLikeSong() {
         return { action: 'unlike', songId };
       } 
       else {
-        const { data: existingLike } = await supabaseClient
-            .from('liked_songs')
-            .select('*')
-            .eq('user_id', user.id)
-            .eq('song_id', songId)
-            .single();
-
-        if (existingLike) {
-            return { action: 'like', songId };
-        }
-
         const { error } = await supabaseClient
           .from('liked_songs')
           .insert({
@@ -55,143 +44,130 @@ export function useLikeSong() {
         return { action: 'like', songId };
       }
     },
-    // Optimistic update for instant UI feedback
-    onMutate: async ({ songId, isCurrentlyLiked }) => {
-      // Cancel any outgoing refetches for both query types
-      await queryClient.cancelQueries({ queryKey: queryKeys.user.likedSongs(user?.id) });
-      await queryClient.cancelQueries({ queryKey: queryKeys.songs.liked(user?.id) });
+    onMutate: async ({ songId, isCurrentlyLiked, song }) => {
+      const userId = user?.id;
+      if (!userId) return;
 
-      // Snapshot the previous values
-      const previousLikedSongs = queryClient.getQueryData<Song[]>(
-        queryKeys.user.likedSongs(user?.id)
-      );
+      const likedListKey = queryKeys.songs.liked(userId);
+      const statusKey = queryKeys.songs.likeStatus(userId, songId);
 
-      const previousInfiniteData = queryClient.getQueryData<{
-        pages: Song[][];
-        pageParams: unknown[];
-      }>(queryKeys.songs.liked(user?.id));
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: likedListKey });
+      await queryClient.cancelQueries({ queryKey: statusKey });
 
-      // Optimistically update the regular query
-      if (previousLikedSongs && isCurrentlyLiked) {
-        queryClient.setQueryData<Song[]>(
-          queryKeys.user.likedSongs(user?.id),
-          previousLikedSongs.filter((song) => song.id !== songId)
-        );
-      }
+      // Snapshot values
+      const previousInfiniteData = queryClient.getQueryData(likedListKey);
+      const previousStatus = queryClient.getQueryData(statusKey);
 
-      // Optimistically update the infinite query
-      if (previousInfiniteData && isCurrentlyLiked) {
+      // 1. Optimistically update individual status
+      queryClient.setQueryData(statusKey, !isCurrentlyLiked);
+
+      // 2. Optimistically update infinite query data structure
+      if (previousInfiniteData) {
         queryClient.setQueryData(
-          queryKeys.songs.liked(user?.id),
-          {
-            ...previousInfiniteData,
-            pages: previousInfiniteData.pages.map(page =>
-              page.filter(song => song.id !== songId)
-            ),
+          likedListKey,
+          (old: any) => {
+            if (!old) return old;
+            
+            if (isCurrentlyLiked) {
+              // Unlike: Remove from ALL pages
+              return {
+                ...old,
+                pages: old.pages.map((page: Song[]) =>
+                  page.filter(item => item.id !== songId)
+                ),
+              };
+            } else if (song) {
+              // Like: Add to FIRST page if it doesn't exist
+              const alreadyExists = old.pages.some((page: Song[]) => 
+                page.some(item => item.id === songId)
+              );
+              
+              if (alreadyExists) return old;
+
+              const newPages = [...old.pages];
+              newPages[0] = [song, ...newPages[0]];
+              
+              return {
+                ...old,
+                pages: newPages,
+              };
+            }
+            return old;
           }
         );
       }
 
-      // Return context with the previous values
-      return { previousLikedSongs, previousInfiniteData };
+      return { previousInfiniteData, previousStatus, userId, songId };
     },
     onSuccess: (data) => {
-      // Show success message
       if (data.action === 'like') {
         toast.success('Added to Liked Songs!');
       } else {
         toast.success('Removed from Liked Songs');
       }
-
-      // Invalidate and refetch both liked songs queries to ensure consistency
-      queryClient.invalidateQueries({ queryKey: queryKeys.user.likedSongs(user?.id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.songs.liked(user?.id) });
-      
-      // Invalidate the individual song like status cache
-      queryClient.invalidateQueries({ 
-        queryKey: ['song-like-status', user?.id, data.songId] 
-      });
     },
-   onError: (err: Error, variables, context) => {
-      // Rollback on error - restore both queries
-      if (context?.previousLikedSongs) {
-        queryClient.setQueryData(
-          queryKeys.user.likedSongs(user?.id),
-          context.previousLikedSongs
-        );
-      }
-      if (context?.previousInfiniteData) {
-        queryClient.setQueryData(
-          queryKeys.songs.liked(user?.id),
-          context.previousInfiniteData
-        );
+    onError: (err: Error, variables, context) => {
+      if (context) {
+        queryClient.setQueryData(queryKeys.songs.liked(context.userId), context.previousInfiniteData);
+        queryClient.setQueryData(queryKeys.songs.likeStatus(context.userId, context.songId), context.previousStatus);
       }
       toast.error(err?.message || 'Something went wrong');
     },
+    onSettled: (data, error, variables, context) => {
+      if (context?.userId) {
+        // Use exact: false to catch any variations
+        queryClient.invalidateQueries({ queryKey: queryKeys.songs.liked(context.userId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.songs.likeStatus(context.userId, variables.songId) });
+      }
+    }
   });
 }
 
-// Hook to check if a song is liked
+/**
+ * Hook to check if a song is liked.
+ * Reactive and uses multiple cache layers for efficiency.
+ */
 export function useIsLiked(songId: number) {
   const { user } = useUser();
-  const queryClient = useQueryClient();
   const supabaseClient = useSupabaseClient();
+  const queryClient = useQueryClient();
 
-  // First, check the cache for quick response
-  // Check the regular liked songs query (used by LikeButton for initial hydration)
-  const likedSongs = queryClient.getQueryData<Song[]>(
-    queryKeys.user.likedSongs(user?.id)
-  );
+  const userId = user?.id;
 
-  if (likedSongs?.some((song) => song.id === songId)) {
-    return true;
-  }
+  return useQuery({
+    queryKey: queryKeys.songs.likeStatus(userId, songId),
+    queryFn: async () => {
+      if (!userId || !songId) return false;
 
-  // Also check infinite query data structure (used by liked page infinite scroll)
-  const infiniteData = queryClient.getQueryData<{
-    pages: Song[][];
-    pageParams: unknown[];
-  }>(queryKeys.songs.liked(user?.id));
+      // 1. Check infinite data cache first
+      const infiniteData = queryClient.getQueryData<{ pages: Song[][] }>(
+        queryKeys.songs.liked(userId)
+      );
+      
+      if (infiniteData?.pages) {
+        const found = infiniteData.pages.some(page => 
+          page.some(song => song.id === songId)
+        );
+        if (found) return true;
+      }
 
-  if (infiniteData?.pages) {
-    const allSongs = infiniteData.pages.flat();
-    if (allSongs.some((song) => song.id === songId)) {
-      return true;
-    }
-  }
+      // 2. Fallback to direct DB check
+      const { data, error } = await supabaseClient
+        .from('liked_songs')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('song_id', songId)
+        .maybeSingle();
 
-  // If not found in cache, check the cache for individual song like status
-  const songLikeStatus = queryClient.getQueryData<boolean>(
-    ['song-like-status', user?.id, songId]
-  );
+      if (error) {
+        console.error('Error checking like status:', error);
+        return false;
+      }
 
-  if (songLikeStatus !== undefined) {
-    return songLikeStatus;
-  }
-
-  // If not in any cache, perform a direct database check (runs once per song)
-  // This will be cached for subsequent renders
-  if (user && songId) {
-    queryClient.fetchQuery({
-      queryKey: ['song-like-status', user.id, songId],
-      queryFn: async () => {
-        const { data, error } = await supabaseClient
-          .from('liked_songs')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('song_id', songId)
-          .maybeSingle();
-
-        if (error) {
-          console.error('Error checking like status:', error);
-          return false;
-        }
-
-        return !!data;
-      },
-      staleTime: 60 * 1000, // Cache for 1 minute
-    });
-  }
-
-  return false;
+      return !!data;
+    },
+    enabled: !!userId && !!songId,
+    staleTime: 1000 * 60 * 5, // 5 minutes standard stale time
+  });
 }

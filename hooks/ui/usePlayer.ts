@@ -37,6 +37,12 @@ interface PlayerStore {
   toggleShuffle: () => void;
   toggleRepeat: () => void;
 
+  // Volume & Time
+  volume: number;
+  setVolume: (volume: number) => void;
+  currentTime: number;
+  setCurrentTime: (time: number) => void;
+
   // Playback control
   isPlaying: boolean;
   setIsPlaying: (playing: boolean) => void;
@@ -98,8 +104,14 @@ const usePlayer = create<PlayerStore>()(
         playContextId: contextId,
         isPlaying: true,
         playingFromQueue: false,
-        playbackId: state.playbackId + 1
+        playbackId: state.playbackId + 1,
+        currentTime: 0
       })),
+
+      volume: 1,
+      setVolume: (volume: number) => set({ volume }),
+      currentTime: 0,
+      setCurrentTime: (time: number) => set({ currentTime: time }),
     }),
     {
       name: 'quivery-player-storage',

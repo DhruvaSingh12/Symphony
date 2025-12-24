@@ -17,7 +17,6 @@ import usePlaylistModal from "@/hooks/ui/usePlaylistModal";
 import useAlbumModal from "@/hooks/ui/useAlbumModal";
 import { useUser } from "@/hooks/auth/useUser";
 import { useLikeSong, useIsLiked } from "@/hooks/mutations/useLikeSong";
-import { useLikedSongs } from "@/hooks/queries/useLikedSongs";
 import usePlayer from "@/hooks/ui/usePlayer";
 import { toast } from "react-hot-toast";
 
@@ -34,12 +33,11 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick }) => {
   const playlistModal = usePlaylistModal();
   const albumModal = useAlbumModal();
   const { user } = useUser();
-  const isLiked = useIsLiked(data.id);
+  const { data: isLiked } = useIsLiked(data.id);
   const likeMutation = useLikeSong();
   const player = usePlayer();
   const isCurrentSong = player.activeId === data.id;
   const isPlaying = isCurrentSong && player.isPlaying;
-  useLikedSongs();
 
   const artists = data.artists || [];
 
@@ -76,7 +74,8 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick }) => {
     }
     likeMutation.mutate({
       songId: data.id,
-      isCurrentlyLiked: isLiked
+      isCurrentlyLiked: !!isLiked,
+      song: data
     });
   };
 

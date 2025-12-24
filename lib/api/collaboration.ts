@@ -75,7 +75,10 @@ export async function inviteCollaborator(
         return { success: false, error: error.message };
     }
 
-    return { success: true, data: data as PlaylistCollaborator };
+    return { 
+        success: true, 
+        data: validateSafe(PlaylistCollaboratorSchema, data, undefined) 
+    };
 }
 
 // Accept an invitation to collaborate on a playlist

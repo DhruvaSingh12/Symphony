@@ -18,24 +18,29 @@ const SearchInput = () => {
     const [query, setQuery] = useState<string>(urlQuery);
     const debouncedQuery = useDebounce<string>(query, 500);
 
-    // Sync input with URL if URL changes
-    if (urlQuery !== prevUrlQuery) {
-        setPrevUrlQuery(urlQuery);
-        setQuery(urlQuery);
-    }
+    // Sync input with URL if URL changes (external changes)
+    useEffect(() => {
+        if (urlQuery !== prevUrlQuery) {
+            setPrevUrlQuery(urlQuery);
+            setQuery(urlQuery);
+        }
+    }, [urlQuery, prevUrlQuery]);
 
     useEffect(() => {
-        const url = qs.stringifyUrl({
-            url: '/search',
-            query: { query: debouncedQuery }
-        });
+        // Only push to router if the debounced query actually changed and differs from URL
+        if (debouncedQuery !== urlQuery) {
+            const url = qs.stringifyUrl({
+                url: '/search',
+                query: { query: debouncedQuery }
+            });
 
-        if (debouncedQuery) {
-            localStorage.setItem("quivery-last-search", debouncedQuery);
+            if (debouncedQuery) {
+                localStorage.setItem("quivery-last-search", debouncedQuery);
+            }
+
+            router.push(url);
         }
-
-        router.push(url);
-    }, [debouncedQuery, router]);
+    }, [debouncedQuery, router, urlQuery]);
 
     return (
         <div className="flex items-center gap-2">

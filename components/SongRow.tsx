@@ -82,7 +82,8 @@ const SongRow: React.FC<SongRowProps> = ({
     }
     likeMutation.mutate({
       songId: song.id,
-      isCurrentlyLiked: isLiked,
+      isCurrentlyLiked: !!isLiked,
+      song: song
     });
   };
 
@@ -319,7 +320,7 @@ const SongRow: React.FC<SongRowProps> = ({
             </AvatarFallback>
           </Avatar>
         ) : (
-          <LikeButton songId={song.id} />
+          <LikeButton songId={song.id} song={song} />
         )}
       </div>
 

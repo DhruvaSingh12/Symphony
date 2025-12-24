@@ -1,6 +1,7 @@
 import { createClient } from "@/supabase/client";
 import { UserDetails } from "@/types";
 import { SupabaseClient } from "@supabase/supabase-js";
+import { UserDetailsSchema, validateSafe, validateArraySafe } from "@/lib/validation";
 
 export async function getUserDetails(supabaseClient?: SupabaseClient): Promise<UserDetails | null> {
   const supabase = (supabaseClient && 'from' in supabaseClient) ? supabaseClient : createClient();
@@ -22,7 +23,7 @@ export async function getUserDetails(supabaseClient?: SupabaseClient): Promise<U
     return null;
   }
 
-  return data as UserDetails;
+  return validateSafe(UserDetailsSchema, data, null);
 }
 
 // Search users by email or full_name
@@ -44,7 +45,13 @@ export async function searchUsers(
 
     let queryBuilder = supabase
         .from("users")
-        .select("id, full_name, avatar_url, gender, dateOfBirth")
+        .select(`
+            id, 
+            full_name, 
+            avatar_url, 
+            gender, 
+            dateOfBirth
+        `)
         .ilike('full_name', searchTerm)
         .limit(limit);
 
@@ -60,7 +67,8 @@ export async function searchUsers(
         return [];
     }
 
-    return data as UserDetails[];
+    const validated = validateArraySafe(UserDetailsSchema, data);
+    return validated;
 }
 
 // Get user by ID
@@ -72,7 +80,13 @@ export async function getUserById(
 
     const { data, error } = await supabase
         .from("users")
-        .select("id, full_name, avatar_url, gender, dateOfBirth")
+        .select(`
+            id, 
+            full_name, 
+            avatar_url, 
+            gender, 
+            dateOfBirth
+        `)
         .eq("id", userId)
         .single();
 
@@ -81,7 +95,7 @@ export async function getUserById(
         return null;
     }
 
-    return data as UserDetails;
+    return validateSafe(UserDetailsSchema, data, null);
 }
 
 // Get multiple users by IDs
@@ -97,7 +111,13 @@ export async function getUsersByIds(
 
     const { data, error } = await supabase
         .from("users")
-        .select("id, full_name, avatar_url, gender, dateOfBirth")
+        .select(`
+            id, 
+            full_name, 
+            avatar_url, 
+            gender, 
+            dateOfBirth
+        `)
         .in("id", userIds);
 
     if (error) {
@@ -105,5 +125,5 @@ export async function getUsersByIds(
         return [];
     }
 
-    return data as UserDetails[];
+    return validateArraySafe(UserDetailsSchema, data);
 }

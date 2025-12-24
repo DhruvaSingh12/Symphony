@@ -2,9 +2,8 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { BatchItem } from './BatchUploadForm';
-import { Trash2, Music, User, Disc, Quote, CheckCircle2, AlertCircle, Loader2, Image as ImageIcon, UploadCloud } from 'lucide-react';
+import { Trash2, CheckCircle2, AlertCircle, Loader2, Image as ImageIcon, UploadCloud } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { processAudio, processImage, sanitizePath } from '@/lib/mediaUtils';
 import { extractMetadata, metadataImageToFile } from '@/lib/metadata';
 import { useSupabaseClient } from '@/providers/SupabaseProvider';
@@ -12,6 +11,7 @@ import { useUser } from '@/hooks/auth/useUser';
 import { getOrCreateArtist, getOrCreateAlbum } from '@/lib/api/songs';
 import uniqid from 'uniqid';
 import { cn } from '@/lib/utils';
+import { FaCloudArrowUp } from 'react-icons/fa6';
 
 interface UploadItemProps {
     item: BatchItem;
@@ -162,123 +162,123 @@ const UploadItem = ({
 
     return (
         <div className={cn(`
-            group relative flex flex-col md:flex-row gap-6 p-5 rounded-2xl border border-border/60 bg-card/40 backdrop-blur-sm transition-all duration-300
-            ${item.status === 'completed' ? 'opacity-60 border-primary/20 bg-primary/[0.02]' : 'hover:bg-card/60 hover:border-border'}
-            ${item.status === 'error' ? 'border-destructive/50 bg-destructive/[0.02]' : ''}
-            ${shouldStart ? 'ring-2 ring-primary/40 scale-[1.01] shadow-2xl shadow-primary/10' : ''}
+            group relative flex flex-col md:flex-row gap-5 p-4 rounded-xl border border-border bg-card backdrop-blur-md transition-all duration-500
+            ${item.status === 'completed' ? 'opacity-80 border-primary/10' : 'hover:bg-card/50 hover:border-border/80'}
+            ${item.status === 'error' ? 'border-destructive/40 bg-destructive/5' : ''}
+            ${shouldStart && item.status !== 'completed' ? 'ring-1 ring-primary/20 bg-card/60' : ''}
         `)}>
-            {/* Status Progress Bar (Simulated) */}
+            {/* Minimal Progress Line */}
             {shouldStart && item.status !== 'completed' && (
-                <div className="absolute top-0 left-0 h-1 bg-primary/20 w-full overflow-hidden rounded-t-2xl">
-                    <div className="h-full bg-primary animate-progress-indeterminate w-[30%] shadow-[0_0_10px_rgb(var(--primary))]" />
+                <div className="absolute top-1 px-2 left-0 h-1 bg-primary/10 w-full overflow-hidden rounded-t-3xl">
+                    <div className="h-full bg-primary animate-progress-indeterminate w-[90%] shadow-[0_0_15px_rgba(var(--primary),0.5)] rounded-full" />
                 </div>
             )}
 
-            {/* Artwork Section */}
-            <div className="relative flex-none w-28 h-28 md:w-32 md:h-32 self-center md:self-start">
-                <label className="cursor-pointer group/img block w-full h-full rounded-2xl overflow-hidden border border-border/40 bg-muted/30 shadow-inner group-hover:border-primary/40 transition-colors">
+            {/* Artwork  */}
+            <div className="relative flex-none w-24 h-24 md:w-28 md:h-28 self-center md:self-start">
+                <label className="cursor-pointer group/img block w-full h-full rounded-xl overflow-hidden border border-border/30 bg-muted/20 hover:border-primary/30 transition-all duration-500 shadow-sm">
                     {imagePreview ? (
-                        <img src={imagePreview} className="w-full h-full object-cover transition-transform group-hover/img:scale-110 duration-500" alt="Art" />
+                        <img src={imagePreview} className="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-110" alt="Art" />
                     ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/30">
-                            <ImageIcon size={32} strokeWidth={1.5} />
-                            <span className="text-[10px] uppercase mt-2 font-bold tracking-widest">Artwork</span>
+                        <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/20">
+                            <ImageIcon size={24} strokeWidth={1} />
                         </div>
                     )}
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-bold uppercase tracking-tighter">
-                        <UploadCloud size={20} className="mb-1" />
-                        Replace
+                    <div className="absolute rounded-xl inset-0 bg-background/80 backdrop-blur-[2px] opacity-0 group-hover/img:opacity-100 transition-all duration-300 flex flex-col items-center justify-center text-foreground font-bold text-[9px] uppercase tracking-[0.2em]">
+                        <UploadCloud size={16} className="mb-1 opacity-60" />
+                        Update
                     </div>
                     <input type="file" className="hidden" accept="image/*" onChange={onImageChange} disabled={isUploading} />
                 </label>
             </div>
 
             {/* Editing Section */}
-            <div className="flex-1 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                        <label className="text-[10px] text-muted-foreground uppercase font-black tracking-widest flex items-center gap-2 px-1">
-                            <Music size={10} className="text-primary" /> Title
+            <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+                    <div className="space-y-1">
+                        <label className="text-[9px] text-muted-foreground uppercase font-bold tracking-[0.2em] px-1 flex items-center">
+                            Title
                         </label>
                         <Input
                             value={item.title}
                             onChange={(e) => onUpdate({ title: e.target.value })}
-                            className="h-10 text-sm bg-background/50 border-border/40 focus:bg-background transition-all rounded-xl"
+                            className="h-9 text-xs bg-background/30 border-border focus:bg-background/60 focus:border-primary/20 transition-all rounded-lg placeholder:text-muted-foreground/30"
                             placeholder="Track Title"
                             disabled={isUploading}
                         />
                     </div>
-                    <div className="space-y-1.5">
-                        <label className="text-[10px] text-muted-foreground uppercase font-black tracking-widest flex items-center gap-2 px-1">
-                            <User size={10} className="text-primary" /> Artists
+                    <div className="space-y-1">
+                        <label className="text-[9px] text-muted-foreground uppercase font-bold tracking-[0.2em] px-1 flex items-center">
+                            Artist
                         </label>
                         <Input
                             value={item.artists.join('; ')}
                             onChange={(e) => onUpdate({ artists: e.target.value.split(';').map(s => s.trim()).filter(Boolean) })}
-                            className="h-10 text-sm bg-background/50 border-border/40 focus:bg-background transition-all rounded-xl"
+                            className="h-9 text-xs bg-background/30 border-border focus:bg-background/60 focus:border-primary/20 transition-all rounded-lg placeholder:text-muted-foreground/30"
                             placeholder="Artist 1; Artist 2"
                             disabled={isUploading}
                         />
                     </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                        <label className="text-[10px] text-muted-foreground uppercase font-black tracking-widest flex items-center gap-2 px-1">
-                            <Disc size={10} className="text-primary" /> Album
+                    <div className="space-y-1">
+                        <label className="text-[9px] text-muted-foreground uppercase font-bold tracking-[0.2em] px-1 flex items-center">
+                            Album
                         </label>
                         <Input
                             value={item.album}
                             onChange={(e) => onUpdate({ album: e.target.value })}
-                            className="h-10 text-sm bg-background/50 border-border/40 focus:bg-background transition-all rounded-xl"
+                            className="h-9 text-xs bg-background/30 border-border focus:bg-background/60 focus:border-primary/20 transition-all rounded-lg placeholder:text-muted-foreground/30"
                             placeholder="Album Title"
                             disabled={isUploading}
                         />
                     </div>
-                    <div className="flex items-center gap-3 pt-3">
-                        {item.lyricsFile ? (
-                            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 gap-1.5 px-3 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-tighter shadow-sm">
-                                <Quote size={10} /> Sync Lyrics
-                            </Badge>
-                        ) : (
-                            <Badge variant="outline" className="opacity-30 gap-1.5 px-3 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-tighter">
-                                No Lyrics
-                            </Badge>
-                        )}
 
-                        <div className="ml-auto">
+                    {/* Status & Lyrics Row */}
+                    <div className="flex items-end justify-between gap-3 h-9 mb-0.5">
+                        <div className="flex items-center gap-2">
+                            {item.lyricsFile ? (
+                                <div className="flex items-center px-2.5 py-1 rounded-md bg-primary/5 text-primary border border-primary/10 font-bold text-[9px] uppercase tracking-widest">
+                                    Lyrics Synced
+                                </div>
+                            ) : (
+                                <div className="text-[9px] text-muted-foreground/30 uppercase font-bold tracking-widest px-1">
+                                    No Lyrics
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
                             {item.status === 'processing' && (
-                                <Badge className="bg-amber-500 hover:bg-amber-500 gap-1.5 px-4 rounded-full font-bold py-1 animate-pulse">
-                                    <Loader2 size={12} className="animate-spin" /> Processing
-                                </Badge>
+                                <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-secondary text-secondary-foreground font-bold text-[9px] uppercase tracking-widest animate-pulse">
+                                    <Loader2 size={10} className="animate-spin" /> Processing
+                                </div>
                             )}
                             {item.status === 'uploading' && (
-                                <Badge className="bg-blue-500 hover:bg-blue-500 gap-1.5 px-4 rounded-full font-bold py-1">
-                                    <UploadCloud size={12} className="animate-bounce" /> Uploading
-                                </Badge>
+                                <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-primary text-primary-foreground font-bold text-[9px] uppercase tracking-widest">
+                                    <FaCloudArrowUp size={10} className="animate-bounce" /> In Jest
+                                </div>
                             )}
                             {item.status === 'completed' && (
-                                <Badge className="bg-emerald-500 hover:bg-emerald-500 gap-1.5 px-4 rounded-full font-bold py-1 shadow-md shadow-emerald-500/20">
-                                    <CheckCircle2 size={12} /> Ready
-                                </Badge>
+                                <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-primary text-primary-foreground font-bold text-[9px] uppercase tracking-widest opacity-60">
+                                    <CheckCircle2 size={10} /> Uploaded
+                                </div>
                             )}
                             {item.status === 'error' && (
-                                <Badge variant="destructive" className="gap-1.5 px-4 rounded-full font-bold py-1">
-                                    <AlertCircle size={12} /> Error
-                                </Badge>
+                                <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-destructive text-destructive-foreground font-bold text-[9px] uppercase tracking-widest">
+                                    <AlertCircle size={10} /> Failure
+                                </div>
                             )}
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Actions */}
+            {/* Remove Action */}
             {!isUploading && item.status === 'idle' && (
                 <button
                     onClick={onRemove}
-                    className="absolute top-4 right-4 p-2.5 text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 rounded-full transition-all md:opacity-0 md:group-hover:opacity-100"
+                    className="absolute top-1.5 right-1.5 p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-all md:opacity-0 md:group-hover:opacity-100 duration-300"
                 >
-                    <Trash2 size={18} />
+                    <Trash2 size={14} />
                 </button>
             )}
         </div>
