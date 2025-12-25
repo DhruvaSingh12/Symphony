@@ -18,7 +18,7 @@ const LibraryPage = async () => {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-        redirect('/?auth=true');
+        redirect('/?auth=true&next=/library');
     }
 
     // Parallel fetching

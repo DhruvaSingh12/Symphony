@@ -1,9 +1,9 @@
 "use client";
 
 import { useSupabaseClient, useSupabaseSession } from "@/providers/SupabaseProvider";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import useAuthModal from "@/hooks/ui/useAuthModal";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,27 +37,49 @@ const WelcomeSection = ({ activeTab }: WelcomeSectionProps) => (
   </div>
 );
 
-const AuthModal = () => {
+const AuthModalContent = () => {
   const supabaseClient = useSupabaseClient();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const session = useSupabaseSession();
-  const { isOpen, onClose } = useAuthModal();
+  const { isOpen, onClose, onOpen } = useAuthModal();
   const [isLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("signin");
 
+  const isAuthParam = searchParams.get("auth") === "true";
+  const nextPath = searchParams.get("next");
+
   useEffect(() => {
-    if (session) {
-      router.refresh();
-      onClose();
+    if (isAuthParam && !isOpen && !session) {
+      onOpen();
     }
-  }, [session, router, onClose]);
+  }, [isAuthParam, isOpen, session, onOpen]);
 
   const handleChange = (open: boolean) => {
     // Prevent closing while loading
     if (!open && !isLoading) {
       onClose();
+      // Clear the auth parameter from URL to prevent reopening loop
+      if (isAuthParam) {
+        router.replace(window.location.pathname);
+      }
     }
   };
+
+  useEffect(() => {
+    if (session) {
+      onClose();
+      if (nextPath) {
+        router.push(nextPath);
+      } else {
+        // Clear auth params if we're not redirecting to a specific path
+        if (isAuthParam) {
+          router.replace(window.location.pathname);
+        }
+        router.refresh();
+      }
+    }
+  }, [session, router, onClose, nextPath, isAuthParam]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleChange}>
@@ -107,6 +129,14 @@ const AuthModal = () => {
         </Card>
       </DialogContent>
     </Dialog>
+  );
+};
+
+const AuthModal = () => {
+  return (
+    <Suspense fallback={null}>
+      <AuthModalContent />
+    </Suspense>
   );
 };
 

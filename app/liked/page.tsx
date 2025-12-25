@@ -20,7 +20,7 @@ const LikedPage = async () => {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/?auth=true');
+    redirect('/?auth=true&next=/liked');
   }
 
   const songs = await fetchLikedSongs(supabase, 0, 50);

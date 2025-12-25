@@ -15,10 +15,14 @@ interface SignInFormProps {
   onClose: () => void;
 }
 
+import { useSearchParams } from "next/navigation";
+
 export default function SignInForm({
   supabaseClient,
   onClose,
 }: SignInFormProps) {
+  const searchParams = useSearchParams();
+  const nextPath = searchParams.get("next");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPasswordReset, setShowPasswordReset] = useState(false);
@@ -111,7 +115,9 @@ export default function SignInForm({
   };
 
   const handleGoogleSignIn = async () => {
-    await signInWithProvider("google");
+    await signInWithProvider("google", {
+      redirectTo: nextPath || undefined
+    });
   };
 
   if (showPasswordReset) {
@@ -231,8 +237,8 @@ export default function SignInForm({
               aria-invalid={submitted && !!errors.password}
               aria-describedby={errors.password ? "password-error" : undefined}
               className={`pr-10 ${submitted && errors.password
-                  ? "border-red-500 focus-visible:ring-red-500"
-                  : ""
+                ? "border-red-500 focus-visible:ring-red-500"
+                : ""
                 }`}
               autoComplete="current-password"
             />

@@ -79,10 +79,10 @@ export function useAuth(
 
   // Sign in with OAuth provider
   const signInWithProvider = useCallback(
-    async (provider: "google") => {
+    async (provider: "google", authOptions?: { redirectTo?: string }) => {
       setIsLoading(true);
       try {
-        const result = await signInWithOAuth(supabase, provider);
+        const result = await signInWithOAuth(supabase, provider, authOptions);
 
         if (!result.success) {
           const errorMessage =

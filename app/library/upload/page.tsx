@@ -1,13 +1,22 @@
 import type { Metadata } from "next";
 import Header from "@/components/Header";
 import UploadContent from "./components/UploadContent";
+import { createClient } from "@/supabase/server";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
     title: "Upload Music | Quivery",
     description: "Share your music with the world on Quivery.",
 };
 
-const UploadPage = () => {
+const UploadPage = async () => {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        return redirect("/?auth=true&next=/library/upload");
+    }
+
     return (
         <div className="h-full w-full flex flex-col overflow-hidden">
             <div className="flex-none px-2 md:px-0 md:pr-2 pt-2">

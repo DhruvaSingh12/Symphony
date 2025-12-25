@@ -21,13 +21,14 @@ const SupabaseContext = createContext<SupabaseContextValue | undefined>(undefine
 const SupabaseProvider: React.FC<SupabaseProviderProps> = ({ children, session: initialSession }) => {
   const [supabase] = useState(() => createClient());
   const [session, setSession] = useState<Session | null>(initialSession);
-  const [isLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(!initialSession);
 
   useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      setIsLoading(false);
     });
 
     return () => {

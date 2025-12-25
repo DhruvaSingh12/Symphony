@@ -243,13 +243,18 @@ export async function signInWithPassword(
 // Sign in with OAuth provider (Google)
 export async function signInWithOAuth(
   supabase: SupabaseClient,
-  provider: "google"
+  provider: "google",
+  options?: { redirectTo?: string }
 ): Promise<AuthResult> {
   try {
+    const redirectTo = options?.redirectTo 
+      ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(options.redirectTo)}`
+      : `${window.location.origin}/auth/callback`;
+
     const { error, data } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo,
         queryParams: {
           access_type: "offline",
           prompt: "consent",

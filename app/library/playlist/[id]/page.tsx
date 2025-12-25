@@ -32,7 +32,7 @@ const PlaylistPage = async (props: PlaylistPageProps) => {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-        redirect("/?auth=true");
+        redirect(`/?auth=true&next=/library/playlist/${id}`);
     }
 
     const playlist = await fetchPlaylistById(id, supabase);
